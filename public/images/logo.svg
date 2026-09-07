@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" fill="none" role="img" aria-label="Logo Laurence B.">
+  <!-- Recréation SVG du logo Laurence B. (silhouette bien-être : encre + or, accents vert d'eau et lavande) -->
+  <g stroke-linecap="round">
+    <!-- Tête : anneau doré -->
+    <circle cx="100" cy="40" r="24" stroke="#A8822A" stroke-width="5"/>
+
+    <!-- Ruban d'encre 1 : boucle haut-droite puis boucle bas-gauche + longue traîne -->
+    <path d="M112 70 C176 100 176 166 100 192 C30 220 40 302 96 332 C110 354 96 376 106 396"
+          stroke="#2E2C48" stroke-width="4.5"/>
+    <!-- Ruban d'encre 2 : boucle haut-gauche puis boucle bas-droite -->
+    <path d="M104 70 C34 96 30 166 100 192 C170 218 162 300 108 340"
+          stroke="#2E2C48" stroke-width="4.5"/>
+
+    <!-- Trait doré central (colonne) -->
+    <path d="M101 150 C92 170 108 182 100 202" stroke="#A8822A" stroke-width="3.6"/>
+    <path d="M99 214 C89 252 108 270 98 302 C95 322 101 332 99 348" stroke="#A8822A" stroke-width="3.6"/>
+
+    <!-- Croissant vert d'eau (gauche) -->
+    <path d="M58 150 C42 170 42 202 60 222" stroke="#A6CCC3" stroke-width="5"/>
+    <!-- Croissant lavande (bas-droite) -->
+    <path d="M142 252 C160 272 160 306 140 328" stroke="#BDC2E2" stroke-width="5"/>
+  </g>
+
+  <!-- Points dorés (gauche, décroissants) -->
+  <g fill="#A8822A">
+    <circle cx="76" cy="158" r="3.2"/>
+    <circle cx="73" cy="172" r="2.6"/>
+    <circle cx="71" cy="185" r="2.1"/>
+    <circle cx="70" cy="197" r="1.6"/>
+  </g>
+  <!-- Points (bas-droite, croissants) -->
+  <g fill="#A8822A">
+    <circle cx="126" cy="308" r="3.2"/>
+    <circle cx="124" cy="296" r="2.6"/>
+    <circle cx="123" cy="285" r="2.1"/>
+    <circle cx="122" cy="275" r="1.6"/>
+  </g>
+</svg>
