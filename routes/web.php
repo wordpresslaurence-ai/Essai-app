@@ -1,15 +1,17 @@
 <?php
 
+use App\Livewire\Actions\Logout;
 use App\Livewire\Contacts\FicheDetail;
 use App\Livewire\Contacts\Formulaire;
 use App\Livewire\Contacts\GestionEtiquettes;
 use App\Livewire\Contacts\ImportCsv;
 use App\Livewire\Contacts\Liste;
+use App\Livewire\TableauBord;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome');
 
-Route::view('dashboard', 'dashboard')
+Route::get('dashboard', TableauBord::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
@@ -25,6 +27,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('contacts/{contact}', FicheDetail::class)->name('contacts.fiche');
     Route::get('contacts/{contact}/modifier', Formulaire::class)->name('contacts.modifier');
     Route::get('etiquettes', GestionEtiquettes::class)->name('etiquettes.index');
+
+    Route::post('logout', function (Logout $logout) {
+        $logout();
+
+        return redirect('/');
+    })->name('logout');
 });
 
 require __DIR__.'/auth.php';

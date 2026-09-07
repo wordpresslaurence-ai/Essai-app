@@ -71,14 +71,14 @@ class Contact extends Model
 
     // --- Scopes --------------------------------------------------------------
 
-    /** @param  Builder<Contact>  $query */
-    public function scopePersonnes(Builder $query): void
+    /** Filtre les contacts de type « personne ». @param  Builder<Contact>  $query */
+    public function scopeTypePersonne(Builder $query): void
     {
         $query->where('type', self::TYPE_PERSONNE);
     }
 
-    /** @param  Builder<Contact>  $query */
-    public function scopeEntreprises(Builder $query): void
+    /** Filtre les contacts de type « entreprise ». @param  Builder<Contact>  $query */
+    public function scopeTypeEntreprise(Builder $query): void
     {
         $query->where('type', self::TYPE_ENTREPRISE);
     }
@@ -153,5 +153,28 @@ class Contact extends Model
         }
 
         return $this->nom;
+    }
+
+    /** Initiales pour l'avatar (2 lettres). */
+    public function initiales(): string
+    {
+        if ($this->estPersonne() && filled($this->prenom)) {
+            return mb_strtoupper(mb_substr($this->prenom, 0, 1).mb_substr($this->nom, 0, 1));
+        }
+
+        $mots = preg_split('/\s+/', trim($this->nom)) ?: [];
+        if (count($mots) >= 2) {
+            return mb_strtoupper(mb_substr($mots[0], 0, 1).mb_substr($mots[1], 0, 1));
+        }
+
+        return mb_strtoupper(mb_substr($this->nom, 0, 2));
+    }
+
+    /** Couleur d'avatar dérivée du nom : mint, lav, gold ou terra. */
+    public function couleurAvatar(): string
+    {
+        $palette = ['mint', 'lav', 'gold', 'terra'];
+
+        return $palette[crc32($this->nomComplet()) % count($palette)];
     }
 }

@@ -142,7 +142,7 @@ class Formulaire extends Component
 
     public function render(): View
     {
-        $entreprises = Contact::entreprises()
+        $entreprises = Contact::typeEntreprise()
             ->actifs()
             ->orderBy('nom')
             ->get(['id', 'nom']);

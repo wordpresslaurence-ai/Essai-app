@@ -50,9 +50,12 @@ test('navigation menu can be rendered', function () {
 
     $response = $this->get('/dashboard');
 
+    // La navigation latérale (sidebar) affiche la marque et les liens principaux.
     $response
         ->assertOk()
-        ->assertSeeVolt('layout.navigation');
+        ->assertSee('Laurence B.')
+        ->assertSee('Accueil')
+        ->assertSee('Contacts');
 });
 
 test('users can logout', function () {
