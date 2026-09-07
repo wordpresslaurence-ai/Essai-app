@@ -44,13 +44,15 @@ d'abstraction, de dépendance ou de fonctionnalité « au cas où ».
 
 ## Article 2 — Stack technique imposée
 
-2.1. **Langage & framework :** **PHP 8.2+** et **Laravel** (dernière version stable,
-12.x). Aucun autre framework backend.
+2.1. **Langage & framework :** **PHP 8.2+** et **Laravel** (dernière version stable ;
+le projet est initialisé en **13.x**). Aucun autre framework backend.
 
-2.2. **Base de données :** **MySQL / MariaDB** (compatible avec l'hébergement
-Hostinger). Tout accès aux données passe par **Eloquent** (l'ORM de Laravel) et par
-des **migrations** versionnées — jamais de SQL écrit à la main pour modifier le
-schéma.
+2.2. **Base de données :** **MySQL / MariaDB** en **production** (compatible avec
+l'hébergement Hostinger). En **développement local**, on utilise **SQLite** (un simple
+fichier, zéro configuration) : Laravel bascule de l'un à l'autre via le seul fichier
+`.env`, sans changer le code. Tout accès aux données passe par **Eloquent** (l'ORM de
+Laravel) et par des **migrations** versionnées, écrites de façon **agnostique** (pas de
+SQL propre à un moteur) — jamais de SQL écrit à la main pour modifier le schéma.
 
 2.3. **Interface :** stack **TALL** — **Blade + Livewire + Alpine.js + Tailwind CSS**.
 Pas de SPA séparée (React/Vue), pas d'API REST/GraphQL tant que le MVP n'a qu'un seul
@@ -230,3 +232,4 @@ plus facile à maintenir en solo.*
 | Version | Date       | Changement                                             |
 |---------|------------|--------------------------------------------------------|
 | 1.0.0   | 2026-09-07 | Version initiale : stack Laravel/Hostinger, MVP CRM (contacts, pipeline, activités), règles de style, tests, sécurité, perf, accessibilité. |
+| 1.1.0   | 2026-09-07 | Précision (art. 2.1/2.2) : Laravel 13.x ; SQLite en développement, MySQL en production, migrations agnostiques. |

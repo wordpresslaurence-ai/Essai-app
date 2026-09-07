@@ -17,17 +17,17 @@
 
 ## Phase 0 — Fondations du projet Laravel
 
-- [ ] **T001** — Initialiser le projet Laravel 12 (PHP 8.2+) dans le dépôt.
-  ✅ Fait quand : `php artisan --version` renvoie 12.x et l'appli démarre en local.
-- [ ] **T002** — Configurer la base MySQL et le `.env` (+ `.env.example` sans secret).
+- [x] **T001** — Initialiser le projet Laravel 13 (PHP 8.2+) dans le dépôt.
+  ✅ Fait quand : `php artisan --version` renvoie 13.x et l'appli démarre en local.
+- [x] **T002** — Configurer la base (SQLite en dev, MySQL en prod) et le `.env` (+ `.env.example` sans secret).
   ✅ Fait quand : la connexion DB fonctionne, `.env` est ignoré par Git. *(constitution art. 3.3)*
-- [ ] **T003** [P] — Installer et configurer **Laravel Pint** (PSR-12).
+- [x] **T003** [P] — Installer et configurer **Laravel Pint** (PSR-12).
   ✅ Fait quand : `./vendor/bin/pint --test` passe sur le dépôt.
-- [ ] **T004** [P] — Installer **Pest** et lancer la suite vide.
+- [x] **T004** [P] — Installer **Pest** et lancer la suite vide.
   ✅ Fait quand : `./vendor/bin/pest` s'exécute sans erreur.
-- [ ] **T005** — Installer **Breeze (stack Livewire)** : authentification + Tailwind + Alpine.
+- [x] **T005** — Installer **Breeze (stack Livewire)** : authentification + Tailwind + Alpine.
   ✅ Fait quand : inscription/connexion fonctionnent, layout de base en place. *(plan §4, §7)*
-- [ ] **T006** [P] — Mettre en place le fichier de langue `lang/fr` et forcer la locale `fr`.
+- [x] **T006** [P] — Mettre en place le fichier de langue `lang/fr` et forcer la locale `fr`.
   ✅ Fait quand : les messages de validation s'affichent en français. *(constitution art. 4.3)*
 
 ---
