@@ -1,0 +1,77 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Contact;
+use App\Models\Etiquette;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+
+/**
+ * Données de démonstration (usage développement uniquement).
+ * Lancer avec : php artisan db:seed --class=DemoSeeder
+ */
+class DemoSeeder extends Seeder
+{
+    public function run(): void
+    {
+        User::updateOrCreate(
+            ['email' => 'demo@crm.be'],
+            ['name' => 'Laurence', 'password' => bcrypt('password')]
+        );
+
+        $client = Etiquette::firstOrCreate(['nom' => 'Client'], ['couleur' => '#16a34a']);
+        $prospect = Etiquette::firstOrCreate(['nom' => 'Prospect'], ['couleur' => '#2563eb']);
+        Etiquette::firstOrCreate(['nom' => 'Fournisseur'], ['couleur' => '#d97706']);
+
+        $acme = Contact::firstOrCreate(['nom' => 'ACME Belgium SPRL'], [
+            'type' => Contact::TYPE_ENTREPRISE,
+            'email' => 'contact@acme.be',
+            'telephone' => '+32 2 123 45 67',
+            'numero_entreprise' => '0403.170.701',
+            'numero_tva' => 'BE0403.170.701',
+            'site_web' => 'https://acme.be',
+            'secteur' => 'Distribution',
+            'adresse_rue' => 'Rue de la Loi 12',
+            'adresse_code_postal' => '1000',
+            'adresse_ville' => 'Bruxelles',
+            'adresse_pays' => 'BE',
+        ]);
+        $acme->etiquettes()->syncWithoutDetaching([$client->id]);
+
+        $novatech = Contact::firstOrCreate(['nom' => 'NovaTech SA'], [
+            'type' => Contact::TYPE_ENTREPRISE,
+            'email' => 'info@novatech.be',
+            'telephone' => '+32 4 222 33 44',
+            'secteur' => 'Informatique',
+            'adresse_ville' => 'Liège',
+            'adresse_pays' => 'BE',
+        ]);
+        $novatech->etiquettes()->syncWithoutDetaching([$prospect->id]);
+
+        $marie = Contact::firstOrCreate(['nom' => 'Dubois', 'prenom' => 'Marie'], [
+            'type' => Contact::TYPE_PERSONNE,
+            'fonction' => 'Directrice achats',
+            'email' => 'marie.dubois@acme.be',
+            'telephone' => '+32 475 11 22 33',
+            'entreprise_id' => $acme->id,
+            'adresse_ville' => 'Bruxelles',
+            'adresse_pays' => 'BE',
+        ]);
+        $marie->etiquettes()->syncWithoutDetaching([$client->id]);
+
+        Contact::firstOrCreate(['nom' => 'Lambert', 'prenom' => 'Thomas'], [
+            'type' => Contact::TYPE_PERSONNE,
+            'fonction' => 'Directeur technique',
+            'email' => 't.lambert@novatech.be',
+            'entreprise_id' => $novatech->id,
+        ]);
+
+        Contact::firstOrCreate(['nom' => 'Peeters', 'prenom' => 'Sophie'], [
+            'type' => Contact::TYPE_PERSONNE,
+            'fonction' => 'Indépendante',
+            'email' => 'sophie.peeters@example.be',
+            'telephone' => '+32 498 55 66 77',
+        ]);
+    }
+}
