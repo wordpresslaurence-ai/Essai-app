@@ -6,18 +6,30 @@
 > [constitution](../constitution.md) — notamment l'accessibilité (art. 8) et la stack
 > Tailwind (art. 2.3).
 >
-> - **Statut :** validé (nom de marque en attente)
-> - **Version :** 0.2.0
+> - **Statut :** ✅ VALIDÉ (maquette approuvée par l'utilisateur le 2026-09-07)
+> - **Version :** 1.0.0
 > - **Date :** 2026-09-07
+> - **Maquette de référence :** artefact « Laurence B. — Maquette CRM » (tableau de bord,
+>   contacts, fiche) — source dans `design/maquette.html`.
 >
 > **Décisions validées avec l'utilisateur :**
 > - Marque : **« Laurence B. »**, avec le **logo fourni** (silhouette élégante encre marine +
->   trait doré + accents vert d'eau et lavande).
-> - Couleur primaire : **Or & Encre** — dérivée directement du logo (l'émeraude proposée au
->   départ est abandonnée au profit des couleurs réelles du logo, pour la cohérence de marque).
+>   trait doré + accents vert d'eau et lavande). *Fichier logo à ajouter au dépôt ; en
+>   attendant, un monogramme SVG en tient lieu.*
+> - **Style : skeuomorphisme / neumorphism** — surfaces en relief doux (double ombre :
+>   blanc en haut-gauche, ombre froide en bas-droite), champs « en creux » (inset),
+>   coins très arrondis, boutons glossy.
+> - **Palette « Or & Encre » sur fond clair** — dérivée du logo : or lumineux `#D4A82C`,
+>   encre `#33304A`, fond gris très clair légèrement lavande `#F3F2F8`, accents vert d'eau
+>   et lavande. (L'émeraude initiale et les fonds beiges sont abandonnés.)
+> - **Typographie :** titres en serif **Cormorant Garamond**, corps en **Figtree**.
+> - **Mise en page :** **navigation latérale** (sidebar) douce, cartes en relief.
+> - **Tableau de bord :** chiffres clés + **Nouveaux leads** (source + statut) +
+>   **mini-pipeline** + **tâches du jour**. Titre « Tableau de bord », pas d'emoji.
 > - Modes : **clair ET sombre**, avec un bouton de bascule.
-> - Priorités après le relooking (dans l'ordre) : **1. Tableau de bord d'accueil**,
->   **2. Améliorations liste/fiche**, **3. Module Pipeline**, **4. Module Activités**.
+> - Priorités roadmap (dans l'ordre) : **1. Tableau de bord**, **2. Améliorations
+>   liste/fiche**, **3. Module Pipeline**, **4. Module Activités** ; plus les nouvelles
+>   notions **leads / source / statut / tâches** (voir §12bis).
 
 ---
 
@@ -47,37 +59,40 @@
 
 ## 3. Couleurs
 
-Palette pensée pour le **mode clair et le mode sombre**. Les couleurs sont définies comme
-**jetons** (variables) réutilisables. La couleur primaire est **à valider** (§ Questions).
+Palette **validée**, pensée pour le **mode clair et le mode sombre**, définie comme **jetons**
+(variables CSS) réutilisables. Valeurs finales issues de la maquette approuvée.
 
-### Palette « Or & Encre » — dérivée du logo Laurence B.
+### Palette « Or & Encre » sur fond clair (validée)
 
-Couleurs extraites du logo : **encre marine** (structure), **or** (signature), **vert d'eau**
-et **lavande** (accents doux).
+> ⚠️ **Accessibilité :** l'or lumineux sert d'**accent** (boutons glossy, pastilles, icônes,
+> filets, focus) ; pour le **texte** on utilise une version assombrie `--accent #9A7A1C`
+> (lisible) et l'**encre** pour les titres. Contraste du texte vérifié AA.
 
-> ⚠️ **Accessibilité :** l'or pur sur blanc n'a pas un contraste suffisant pour du petit texte.
-> On utilise donc **l'encre marine comme couleur des boutons/actions** (contraste élevé) et
-> **l'or comme accent** (état actif, filets, icônes, survols, petites touches). En mode sombre,
-> l'or ressort pleinement sur le fond encre.
-
-| Rôle | Clair | Sombre | Usage |
+| Jeton | Clair | Sombre | Usage |
 |---|---|---|---|
-| **Encre (primaire action)** | `#2E2A47` | `#EDECF5` | Boutons principaux, texte de titre |
-| **Or (accent/signature)** | `#B8901F` | `#D4AF37` | Liens actifs, filets, icônes clés, survols, focus |
-| **Or clair (fond teinté)** | `#F5EAC9` | `#3A3320` | Puces, surlignage doux, badge « signature » |
-| **Fond de page** | `#F7F6F2` (ivoire) | `#1A1830` (encre profonde) | Arrière-plan général |
-| **Surface (cartes)** | `#FFFFFF` | `#26233F` | Cartes, tableaux |
-| **Bordure** | `#E7E4DC` | `#39355A` | Séparateurs, contours |
-| **Texte principal** | `#2E2A47` | `#F1F0F7` | Titres, contenu |
-| **Texte secondaire** | `#6B677E` | `#A9A6C0` | Libellés, métadonnées |
-| **Succès** | `#3F8F6B` (vert d'eau foncé) | `#5DBF98` | Confirmations |
-| **Alerte** | `#B8901F` (or) | `#D4AF37` | Doublons, avertissements |
-| **Erreur** | `#C0483B` (terracotta) | `#E27166` | Erreurs, suppression |
-| **Info** | `#6B74B0` (lavande foncé) | `#9AA2D8` | Informations neutres |
+| `--bg` | `#F3F2F8` | `#232035` | Fond de page (ground neumorphique) |
+| `--surface` | `#FBFBFE` | `#262340` | Cartes / surfaces en relief |
+| `--nm-d` / `--nm-l` | `#DEDCEA` / `#FFFFFF` | `#1A1830` / `#302C4C` | Ombres neumorphiques (basse / haute) |
+| `--gold` | `#D4A82C` | `#E0BC52` | Or lumineux : boutons, pastilles, anneaux |
+| `--gold-bright` | `#E4BE4A` | `#EBCD73` | Dégradé glossy des boutons |
+| `--gold-tint` | `#F7EDD1` | `#413920` | Fonds teintés or (avatars, badges) |
+| `--accent` | `#9A7A1C` | `#E4C264` | Or **texte** (liens, libellés dorés) — lisible |
+| `--ink` / `--text` | `#33304A` | `#EEECF7` | Titres, texte principal |
+| `--text-muted` | `#7C7890` | `#ABA7C4` | Libellés, métadonnées |
+| `--mint` / `--mint-tint` | `#4E8577` / `#E7F1EC` | `#84C6B6` / `#294540` | Vert d'eau : succès, accents, avatars |
+| `--lav` / `--lav-tint` | `#6C74B4` / `#ECEDF8` | `#A7AEE6` / `#31335E` | Lavande : info, accents, avatars |
+| `--terra` / `--terra-tint` | `#C0604F` / `#F8E7E2` | `#E68C7E` / `#4A2C2C` | Terracotta : erreur, statut « chaud » |
+
+### Relief neumorphique (jetons d'ombre)
+- **En relief (raised) :** `6px 6px 14px var(--nm-d), -6px -6px 14px var(--nm-l)` — cartes, boutons.
+- **En creux (inset) :** `inset 3px 3px 7px var(--nm-d), inset -3px -3px 7px var(--nm-l)` —
+  champs de recherche, colonnes de pipeline, statuts de tâche.
+- Coins : `22px` (cartes), `999px` (pastilles/boutons), `14px` (petits blocs).
 
 ### Couleurs d'accent pour les avatars et étiquettes
-Un jeu de teintes douces **tirées du logo** — or, vert d'eau, lavande, encre, terracotta —
-attribuées automatiquement selon le nom, pour des **avatars à initiales** élégants et cohérents.
+Cinq teintes douces — **or, vert d'eau, lavande, terracotta** (+ encre) — attribuées selon le
+nom, pour des **avatars à initiales** en relief. Sources de leads : LinkedIn `#0A66C2`,
+Facebook `#1877F2`, Instagram `#C13584`, e-mail = or, site web = vert d'eau.
 
 ---
 
@@ -244,3 +259,4 @@ modules **Pipeline** et **Activités**.
 |---|---|---|
 | 0.1.0 | 2026-09-07 | Brouillon initial du design system, en attente de validation. |
 | 0.2.0 | 2026-09-07 | Décisions validées : marque « Laurence B. » + logo fourni ; palette « Or & Encre » dérivée du logo (remplace l'émeraude) ; modes clair + sombre ; titres serif en option ; priorités de roadmap. |
+| 1.0.0 | 2026-09-07 | **Design validé.** Style skeuomorphique/neumorphism, palette finale sur fond clair, or lumineux, sidebar, tableau de bord (leads + pipeline + tâches). Maquette de référence ajoutée (`design/maquette.html`). |

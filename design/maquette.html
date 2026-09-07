@@ -1,0 +1,417 @@
+<title>Laurence B. — Maquette CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Figtree:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#F3F2F8; --surface:#FBFBFE;
+    --nm-d:#DEDCEA; --nm-l:#FFFFFF;                 /* ombres neumorphiques */
+    --mint:#4E8577; --mint-tint:#E7F1EC; --mint-deep:#3C6D60;
+    --lav:#6C74B4; --lav-tint:#ECEDF8;
+    --gold:#D4A82C; --gold-bright:#E4BE4A; --gold-tint:#F7EDD1;
+    --terra:#C0604F; --terra-tint:#F8E7E2;
+    --ink:#33304A; --text:#33304A; --text-muted:#7C7890;
+    --accent:#9A7A1C;                                /* or lisible sur ivoire */
+    --btn-text:#3A2E08;
+    --ring:rgba(212,168,44,.5);
+    --raise:6px 6px 14px var(--nm-d), -6px -6px 14px var(--nm-l);
+    --raise-sm:4px 4px 9px var(--nm-d), -4px -4px 9px var(--nm-l);
+    --inset:inset 3px 3px 7px var(--nm-d), inset -3px -3px 7px var(--nm-l);
+  }
+  :root:not([data-theme="light"]){ @media (prefers-color-scheme: dark){
+    --bg:#232035; --surface:#262340;
+    --nm-d:#1A1830; --nm-l:#302C4C;
+    --mint:#84C6B6; --mint-tint:#294540; --mint-deep:#9AD5C6;
+    --lav:#A7AEE6; --lav-tint:#31335E;
+    --gold:#E0BC52; --gold-bright:#EBCD73; --gold-tint:#413920;
+    --terra:#E68C7E; --terra-tint:#4A2C2C;
+    --ink:#EEECF7; --text:#EEECF7; --text-muted:#ABA7C4;
+    --accent:#E4C264;
+    --btn-text:#241E06;
+    --ring:rgba(224,188,82,.5);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#232035; --surface:#262340;
+    --nm-d:#1A1830; --nm-l:#302C4C;
+    --mint:#84C6B6; --mint-tint:#294540; --mint-deep:#9AD5C6;
+    --lav:#A7AEE6; --lav-tint:#31335E;
+    --gold:#E0BC52; --gold-bright:#EBCD73; --gold-tint:#413920;
+    --terra:#E68C7E; --terra-tint:#4A2C2C;
+    --ink:#EEECF7; --text:#EEECF7; --text-muted:#ABA7C4;
+    --accent:#E4C264;
+    --btn-text:#241E06;
+    --ring:rgba(224,188,82,.5);
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Figtree",system-ui,sans-serif;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .serif{font-family:"Cormorant Garamond","Georgia",serif}
+  h1,h2,h3,h4{margin:0;text-wrap:balance}
+  a{color:inherit;text-decoration:none}
+  :focus-visible{outline:none;box-shadow:0 0 0 3px var(--ring);border-radius:16px}
+  .wrap{max-width:1120px;margin:0 auto;padding:34px 20px 80px}
+  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .muted{color:var(--text-muted)}
+
+  .mark{flex:none}
+  .intro .brand{display:flex;align-items:center;gap:13px}
+  .intro .name{font-size:26px;font-weight:600;line-height:1}
+  .intro .sub{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--text-muted);margin-top:3px}
+  .intro-lede{font-size:20px;max-width:60ch;margin-top:16px;line-height:1.5}
+  .intro-hint{font-size:12.5px;color:var(--text-muted);margin-top:8px}
+  .switch{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:999px;
+    background:var(--surface);color:var(--text);font-weight:500;cursor:pointer;font-size:13px;
+    box-shadow:var(--raise-sm);border:0}
+  .switch:active{box-shadow:var(--inset)}
+
+  .cap{display:flex;align-items:baseline;gap:12px;margin:48px 6px 0}
+  .cap .n{font-family:"Cormorant Garamond",serif;font-size:16px;color:var(--accent);
+    width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex:none;font-weight:600;
+    background:var(--surface);box-shadow:var(--raise-sm)}
+  .cap h2{font-size:21px;font-weight:600}
+  .cap p{margin:2px 0 0;color:var(--text-muted);font-size:13px}
+
+  /* app frame */
+  .app{display:grid;grid-template-columns:212px 1fr;background:var(--bg);
+    border-radius:30px;overflow:hidden;box-shadow:var(--raise);margin-top:20px}
+  .side{padding:22px 16px;display:flex;flex-direction:column;gap:24px}
+  .side .brand{display:flex;align-items:center;gap:10px;padding:0 6px}
+  .side .brand .name{font-size:18px;font-weight:600}
+  .navlist{display:flex;flex-direction:column;gap:8px}
+  .navlist a{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:14px;color:var(--text-muted);font-weight:500}
+  .navlist a svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;flex:none}
+  .navlist a.on{background:var(--surface);color:var(--mint-deep);box-shadow:var(--raise-sm)}
+  .navlist a.on svg{stroke:var(--mint-deep)}
+  .navlist a:not(.on):hover{color:var(--text)}
+  .side .foot{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:16px;
+    background:var(--surface);box-shadow:var(--raise-sm)}
+  .avatar-me{width:34px;height:34px;border-radius:50%;background:var(--gold-tint);color:var(--accent);
+    display:grid;place-items:center;font-weight:600;box-shadow:var(--raise-sm)}
+  .main{padding:30px 32px 34px}
+
+  /* buttons */
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:11px 19px;border-radius:999px;font-weight:600;
+    font-size:13.5px;cursor:pointer;border:0}
+  .btn-primary{background:linear-gradient(145deg,var(--gold-bright),var(--gold));color:var(--btn-text);
+    box-shadow:var(--raise-sm)}
+  .btn-primary:active{box-shadow:var(--inset);color:var(--btn-text)}
+  .btn-ghost{background:var(--surface);color:var(--text);box-shadow:var(--raise-sm)}
+  .btn-ghost:active{box-shadow:var(--inset)}
+
+  .hello{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+  .hello h1{font-size:36px;font-weight:600}
+
+  /* stat tiles (raised) */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:26px}
+  .stat{border-radius:22px;padding:20px;background:var(--surface);box-shadow:var(--raise)}
+  .stat .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);font-weight:600}
+  .stat .v{font-family:"Cormorant Garamond",serif;font-size:46px;line-height:1;font-weight:600;margin-top:10px;
+    font-variant-numeric:tabular-nums}
+  .stat .d{font-size:12px;color:var(--text-muted);margin-top:8px}
+  .stat .ic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;float:right;
+    box-shadow:var(--raise-sm)}
+  .ic-mint{background:var(--mint-tint);color:var(--mint-deep)} .ic-gold{background:var(--gold-tint);color:var(--accent)}
+  .ic-lav{background:var(--lav-tint);color:var(--lav)} .ic-terra{background:var(--terra-tint);color:var(--terra)}
+  .ic svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+  .sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:32px}
+  .sec-head h3{font-family:"Cormorant Garamond",serif;font-size:23px;font-weight:600}
+  .sec-head .sub{font-size:12.5px;color:var(--text-muted);margin-top:2px}
+  .link-more{color:var(--accent);font-weight:600;font-size:13px}
+
+  /* leads */
+  .lead-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:16px}
+  .lead{background:var(--surface);border-radius:22px;padding:18px;display:flex;gap:13px;box-shadow:var(--raise)}
+  .lead .nm{font-weight:600}
+  .lead .role{font-size:12.5px;color:var(--text-muted)}
+  .lead .lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin:11px 0 5px}
+  .srcs{display:flex;gap:7px;flex-wrap:wrap}
+  .src{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:11.5px;
+    font-weight:600;background:var(--surface);color:var(--text);box-shadow:var(--raise-sm)}
+  .src .d{width:7px;height:7px;border-radius:50%;display:inline-block}
+  .status{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:11.5px;
+    font-weight:600;box-shadow:var(--raise-sm)}
+  .st-hot{background:var(--terra-tint);color:var(--terra)} .st-high{background:var(--mint-tint);color:var(--mint-deep)}
+  .st-med{background:var(--lav-tint);color:var(--lav)} .st-low{background:var(--surface);color:var(--text-muted)}
+
+  /* pipeline mini */
+  .pipe{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+  .pcol{background:var(--bg);border-radius:22px;padding:14px;box-shadow:var(--inset)}
+  .pcol h4{margin:0 0 11px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted);
+    display:flex;justify-content:space-between;align-items:center}
+  .pcol h4 .c{background:var(--surface);color:var(--text);border-radius:999px;padding:1px 9px;font-size:11px;box-shadow:var(--raise-sm)}
+  .deal{background:var(--surface);border-radius:15px;padding:12px 13px;margin-bottom:10px;box-shadow:var(--raise-sm)}
+  .deal:last-child{margin-bottom:0}
+  .deal .t{font-weight:600;font-size:13px}
+  .deal .who{font-size:11.5px;color:var(--text-muted);margin-top:2px}
+  .deal .a{font-family:"Cormorant Garamond",serif;font-size:19px;font-weight:600;color:var(--accent);margin-top:6px;
+    font-variant-numeric:tabular-nums}
+  .deal.win .a{color:var(--mint-deep)}
+
+  /* tasks */
+  .task-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+  .task{background:var(--surface);border-radius:20px;padding:17px;box-shadow:var(--raise)}
+  .task .top{display:flex;align-items:center;gap:10px}
+  .task .who{font-weight:600;font-size:13px}
+  .task .whom{font-size:11.5px;color:var(--text-muted)}
+  .task .tt{font-weight:600;margin-top:14px;display:flex;align-items:center;gap:9px}
+  .task .tt .b{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;flex:none;box-shadow:var(--raise-sm)}
+  .task .tt .b svg{width:16px;height:16px;stroke:var(--accent);fill:none;stroke-width:1.7}
+  .task .tm{font-size:12px;color:var(--text-muted);margin-top:5px}
+  .task .sp{margin-top:14px;display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;
+    background:var(--bg);box-shadow:var(--inset);font-size:12px;font-weight:600;color:var(--text)}
+  .task .sp .d{width:7px;height:7px;border-radius:50%;display:inline-block}
+
+  /* avatars */
+  .av{border-radius:50%;flex:none;display:grid;place-items:center;font-weight:600;box-shadow:var(--raise-sm)}
+  .av.sq{border-radius:14px}
+  .av-40{width:44px;height:44px;font-size:14px}
+  .av-34{width:34px;height:34px;font-size:12px}
+  .av-mint{background:var(--mint-tint);color:var(--mint-deep)}
+  .av-lav{background:var(--lav-tint);color:var(--lav)}
+  .av-gold{background:var(--gold-tint);color:var(--accent)}
+  .av-terra{background:var(--terra-tint);color:var(--terra)}
+
+  /* people rows */
+  .people{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .prow{display:flex;align-items:center;gap:13px;padding:11px 13px;border-radius:16px;background:var(--surface);box-shadow:var(--raise-sm)}
+  .prow .nm{font-weight:600}
+  .prow .mt{font-size:12.5px;color:var(--text-muted)}
+  .prow .rt{margin-left:auto;font-size:12px;color:var(--text-muted);white-space:nowrap}
+
+  /* tags */
+  .tag{display:inline-flex;align-items:center;padding:4px 11px;border-radius:999px;font-size:11.5px;font-weight:600;box-shadow:var(--raise-sm)}
+  .t-mint{background:var(--mint-tint);color:var(--mint-deep)} .t-lav{background:var(--lav-tint);color:var(--lav)}
+  .t-gold{background:var(--gold-tint);color:var(--accent)}
+  .dot{width:6px;height:6px;border-radius:50%;margin-right:6px;display:inline-block}
+
+  /* contacts cards */
+  .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:22px}
+  .search{flex:1;min-width:200px;display:flex;align-items:center;gap:9px;background:var(--bg);
+    border-radius:999px;padding:12px 18px;color:var(--text-muted);box-shadow:var(--inset)}
+  .search input{border:0;background:transparent;color:var(--text);font:inherit;width:100%;outline:none}
+  .search svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;flex:none}
+  .filter{padding:11px 16px;border-radius:999px;background:var(--surface);color:var(--text-muted);font-weight:500;font-size:13px;box-shadow:var(--raise-sm)}
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:20px}
+  .ccard{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border-radius:22px;padding:18px;box-shadow:var(--raise)}
+  .ccard .nm{font-weight:600;font-size:15px}
+  .ccard .meta{font-size:12.5px;color:var(--text-muted);margin-top:2px}
+  .ccard .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px;align-items:center}
+  .ccard .em{font-size:12.5px;color:var(--accent);font-weight:500}
+
+  /* fiche */
+  .fiche-head{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .fiche-head .av{width:66px;height:66px;font-size:22px}
+  .fiche-head h1{font-size:30px;font-weight:600}
+  .fiche-actions{margin-left:auto;display:flex;gap:10px}
+  .panel{background:var(--surface);border-radius:24px;padding:22px 24px;margin-top:20px;box-shadow:var(--raise)}
+  .kv{display:grid;grid-template-columns:repeat(2,1fr);gap:18px 26px}
+  .kv .k{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted);font-weight:600}
+  .kv .val{margin-top:3px;display:flex;align-items:center;gap:8px}
+  .kv .val svg{width:15px;height:15px;stroke:var(--accent);fill:none;stroke-width:1.7;flex:none}
+  .kv a{color:var(--accent);font-weight:500}
+  .placeholder{border-radius:20px;padding:22px;text-align:center;color:var(--text-muted);font-size:13px;
+    background:var(--bg);box-shadow:var(--inset)}
+  .block h3{font-family:"Cormorant Garamond",serif;font-size:19px;font-weight:600}
+
+  @media (max-width:860px){
+    .app{grid-template-columns:1fr}
+    .side{flex-direction:row;align-items:center;overflow-x:auto}
+    .side .foot,.side .brand .name{display:none}
+    .navlist{flex-direction:row}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .lead-grid,.task-grid,.pipe,.cards,.kv{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <g id="lb-mark">
+    <circle cx="45" cy="17" r="10" fill="none" stroke="var(--gold)" stroke-width="2.4"/>
+    <path d="M49 30 C16 44 18 82 46 86 C74 90 70 128 44 140" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M49 30 C82 44 80 82 46 86 C20 89 22 116 44 132" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" opacity=".5"/>
+    <path d="M45 40 C38 60 52 70 46 96 C42 114 45 124 44 132" fill="none" stroke="var(--gold)" stroke-width="1.9" stroke-linecap="round"/>
+    <path d="M23 60 C17 68 17 80 24 88" fill="none" stroke="var(--mint)" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
+    <path d="M67 104 C73 112 73 124 66 132" fill="none" stroke="var(--lav)" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
+    <circle cx="30" cy="66" r="1.7" fill="var(--gold)"/><circle cx="28.5" cy="72" r="1.4" fill="var(--gold)"/>
+    <circle cx="60" cy="110" r="1.7" fill="var(--lav)"/><circle cx="61.5" cy="105" r="1.4" fill="var(--lav)"/>
+  </g>
+</defs></svg>
+
+<div class="wrap">
+  <div class="intro">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+      <div class="brand">
+        <svg class="mark" width="42" height="66" viewBox="0 0 90 150"><use href="#lb-mark"/></svg>
+        <div><div class="name serif">Laurence B.</div><div class="sub">Carnet de relations</div></div>
+      </div>
+      <button class="switch" id="themeBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <span id="themeLabel">Mode sombre</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="side">
+      <div class="brand"><svg class="mark" width="26" height="42" viewBox="0 0 90 150"><use href="#lb-mark"/></svg><span class="name serif">Laurence B.</span></div>
+      <nav class="navlist">
+        <a class="on" href="#"><svg viewBox="0 0 24 24"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Accueil</a>
+        <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Contacts</a>
+        <a href="#"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Pipeline</a>
+        <a href="#"><svg viewBox="0 0 24 24"><path d="M20.6 13.4 12 22l-8-8V4h10z"/><circle cx="8.5" cy="8.5" r="1.2"/></svg>Étiquettes</a>
+      </nav>
+      <div class="foot"><span class="avatar-me">L</span><div><div style="font-weight:600;font-size:13px">Laurence</div><div class="muted" style="font-size:11.5px">Mon compte</div></div></div>
+    </aside>
+
+    <div class="main">
+      <div class="hello">
+        <div><div class="eyebrow">Lundi 7 septembre</div><h1 class="serif">Tableau de bord</h1></div>
+        <a class="btn btn-primary" href="#">+ Nouveau lead</a>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><span class="ic ic-mint"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></span><div class="k">Opportunités</div><div class="v">34</div><div class="d">en cours</div></div>
+        <div class="stat"><span class="ic ic-gold"><svg viewBox="0 0 24 24"><path d="M12 2l3 6 6 .9-4.5 4.2 1 6-5.5-3-5.5 3 1-6L3 8.9 9 8z"/></svg></span><div class="k">Gagnées</div><div class="v">20</div><div class="d">ce trimestre</div></div>
+        <div class="stat"><span class="ic ic-lav"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg></span><div class="k">Nouveaux leads</div><div class="v">7</div><div class="d">cette semaine</div></div>
+        <div class="stat"><span class="ic ic-terra"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div class="k">À relancer</div><div class="v">5</div><div class="d">en attente</div></div>
+      </div>
+
+      <div class="sec-head"><div><h3 class="serif">Nouveaux leads</h3><div class="sub">Prospects récents et leur origine</div></div><a class="link-more" href="#">Voir tout →</a></div>
+      <div class="lead-grid">
+        <div class="lead"><span class="av av-40 av-mint">SM</span><div style="min-width:0">
+          <div class="nm">Sophia Martinez</div><div class="role">Directrice marketing · TechNova</div>
+          <div class="lbl">Source</div><div class="srcs"><span class="src"><span class="d" style="background:#0A66C2"></span>LinkedIn</span><span class="src"><span class="d" style="background:var(--gold)"></span>E-mail</span></div>
+          <div class="lbl">Statut</div><span class="status st-hot">🔥 Client chaud</span></div></div>
+        <div class="lead"><span class="av av-40 av-lav">LA</span><div style="min-width:0">
+          <div class="nm">Liam Anderson</div><div class="role">Responsable financier · Vertex</div>
+          <div class="lbl">Source</div><div class="srcs"><span class="src"><span class="d" style="background:#0A66C2"></span>LinkedIn</span><span class="src"><span class="d" style="background:#1877F2"></span>Facebook</span></div>
+          <div class="lbl">Statut</div><span class="status st-high">Intérêt élevé</span></div></div>
+        <div class="lead"><span class="av av-40 av-terra">NB</span><div style="min-width:0">
+          <div class="nm">Noah Bennett</div><div class="role">Resp. opérations · BrightForge</div>
+          <div class="lbl">Source</div><div class="srcs"><span class="src"><span class="d" style="background:#C13584"></span>Instagram</span></div>
+          <div class="lbl">Statut</div><span class="status st-med">Intérêt moyen</span></div></div>
+        <div class="lead"><span class="av av-40 av-gold">EH</span><div style="min-width:0">
+          <div class="nm">Ethan Harper</div><div class="role">Développeur web · CodeWave</div>
+          <div class="lbl">Source</div><div class="srcs"><span class="src"><span class="d" style="background:var(--mint)"></span>Site web</span></div>
+          <div class="lbl">Statut</div><span class="status st-low">À qualifier</span></div></div>
+      </div>
+
+      <div class="sec-head"><div><h3 class="serif">Pipeline commercial</h3><div class="sub">Tes opportunités par étape</div></div><a class="link-more" href="#">Ouvrir →</a></div>
+      <div class="pipe">
+        <div class="pcol"><h4>Qualifié <span class="c">2</span></h4>
+          <div class="deal"><div class="t">Réassort trimestriel</div><div class="who">ACME Belgium</div><div class="a">4 200 €</div></div>
+          <div class="deal"><div class="t">Audit technique</div><div class="who">NovaTech</div><div class="a">1 800 €</div></div>
+        </div>
+        <div class="pcol"><h4>Proposition <span class="c">1</span></h4>
+          <div class="deal"><div class="t">Accompagnement coaching</div><div class="who">Sophie Peeters</div><div class="a">950 €</div></div>
+        </div>
+        <div class="pcol"><h4>Gagné <span class="c">1</span></h4>
+          <div class="deal win"><div class="t">Formation équipe</div><div class="who">ACME Belgium</div><div class="a">2 400 €</div></div>
+        </div>
+      </div>
+
+      <div class="sec-head"><div><h3 class="serif">Mes tâches du jour</h3><div class="sub">Rappels et rendez-vous · 3 aujourd'hui</div></div><a class="link-more" href="#">Agenda →</a></div>
+      <div class="task-grid">
+        <div class="task">
+          <div class="top"><span class="av av-34 av-mint">DT</span><div><div class="who">David Thompson</div><div class="whom">CEO · Innovate</div></div></div>
+          <div class="tt"><span class="b"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></svg></span>Appel Google Meet</div>
+          <div class="tm">Aujourd'hui · 14:00</div><span class="sp"><span class="d" style="background:var(--mint)"></span>Appel planifié</span>
+        </div>
+        <div class="task">
+          <div class="top"><span class="av av-34 av-lav">AW</span><div><div class="who">Ava Williams</div><div class="whom">CEO · BlueHorizon</div></div></div>
+          <div class="tt"><span class="b"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>Envoyer une proposition</div>
+          <div class="tm">Montant · 20 000 €</div><span class="sp"><span class="d" style="background:var(--gold)"></span>En attente</span>
+        </div>
+        <div class="task">
+          <div class="top"><span class="av av-34 av-terra">MJ</span><div><div class="who">Mia Johnson</div><div class="whom">Brand Manager · Creative</div></div></div>
+          <div class="tt"><span class="b"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></svg></span>Appel Google Meet</div>
+          <div class="tm">Aujourd'hui · 20:00</div><span class="sp"><span class="d" style="background:var(--mint)"></span>Appel planifié</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="side">
+      <div class="brand"><svg class="mark" width="26" height="42" viewBox="0 0 90 150"><use href="#lb-mark"/></svg><span class="name serif">Laurence B.</span></div>
+      <nav class="navlist">
+        <a href="#"><svg viewBox="0 0 24 24"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Accueil</a>
+        <a class="on" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Contacts</a>
+        <a href="#"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Pipeline</a>
+        <a href="#"><svg viewBox="0 0 24 24"><path d="M20.6 13.4 12 22l-8-8V4h10z"/><circle cx="8.5" cy="8.5" r="1.2"/></svg>Étiquettes</a>
+      </nav>
+      <div class="foot"><span class="avatar-me">L</span><div><div style="font-weight:600;font-size:13px">Laurence</div><div class="muted" style="font-size:11.5px">Mon compte</div></div></div>
+    </aside>
+    <div class="main">
+      <div class="hello"><div><div class="eyebrow">248 contacts</div><h1 class="serif">Mon carnet</h1></div><a class="btn btn-primary" href="#">+ Nouveau contact</a></div>
+      <div class="toolbar">
+        <span class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg><input placeholder="Rechercher un nom, un e-mail…"></span>
+        <span class="filter">Type ▾</span><span class="filter">Étiquette ▾</span>
+      </div>
+      <div class="cards">
+        <div class="ccard"><span class="av av-40 av-gold sq">AB</span><div style="min-width:0"><div class="nm">ACME Belgium SPRL</div><div class="meta">Distribution · Bruxelles</div><div class="row"><span class="tag t-mint"><span class="dot" style="background:var(--mint)"></span>Client</span><span class="em">contact@acme.be</span></div></div></div>
+        <div class="ccard"><span class="av av-40 av-mint">MD</span><div style="min-width:0"><div class="nm">Marie Dubois</div><div class="meta">Directrice achats · ACME Belgium</div><div class="row"><span class="tag t-mint"><span class="dot" style="background:var(--mint)"></span>Client</span><span class="em">marie.dubois@acme.be</span></div></div></div>
+        <div class="ccard"><span class="av av-40 av-lav">TL</span><div style="min-width:0"><div class="nm">Thomas Lambert</div><div class="meta">Directeur technique · NovaTech</div><div class="row"><span class="tag t-lav"><span class="dot" style="background:var(--lav)"></span>Prospect</span><span class="em">t.lambert@novatech.be</span></div></div></div>
+        <div class="ccard"><span class="av av-40 av-terra">SP</span><div style="min-width:0"><div class="nm">Sophie Peeters</div><div class="meta">Indépendante</div><div class="row"><span class="tag t-gold"><span class="dot" style="background:var(--gold)"></span>Fournisseur</span><span class="em">sophie.peeters@example.be</span></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="side">
+      <div class="brand"><svg class="mark" width="26" height="42" viewBox="0 0 90 150"><use href="#lb-mark"/></svg><span class="name serif">Laurence B.</span></div>
+      <nav class="navlist">
+        <a href="#"><svg viewBox="0 0 24 24"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Accueil</a>
+        <a class="on" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Contacts</a>
+        <a href="#"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Pipeline</a>
+        <a href="#"><svg viewBox="0 0 24 24"><path d="M20.6 13.4 12 22l-8-8V4h10z"/><circle cx="8.5" cy="8.5" r="1.2"/></svg>Étiquettes</a>
+      </nav>
+      <div class="foot"><span class="avatar-me">L</span><div><div style="font-weight:600;font-size:13px">Laurence</div><div class="muted" style="font-size:11.5px">Mon compte</div></div></div>
+    </aside>
+    <div class="main">
+      <a class="muted" href="#" style="font-size:13px">← Retour au carnet</a>
+      <div class="fiche-head" style="margin-top:14px">
+        <span class="av av-gold sq">AB</span>
+        <div><h1 class="serif">ACME Belgium SPRL</h1>
+          <div style="margin-top:8px;display:flex;gap:8px;align-items:center"><span class="tag t-mint"><span class="dot" style="background:var(--mint)"></span>Entreprise</span><span class="tag t-gold"><span class="dot" style="background:var(--gold)"></span>Client</span></div></div>
+        <div class="fiche-actions"><a class="btn btn-primary" href="#">Modifier</a><a class="btn btn-ghost" href="#">Archiver</a></div>
+      </div>
+      <div class="panel">
+        <div class="kv">
+          <div><div class="k">E-mail</div><div class="val"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><a href="#">contact@acme.be</a></div></div>
+          <div><div class="k">Téléphone</div><div class="val"><svg viewBox="0 0 24 24"><path d="M4 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L20 13l1 4v3a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 0-1z"/></svg><a href="#">+32 2 123 45 67</a></div></div>
+          <div><div class="k">N° d'entreprise</div><div class="val">0403.170.701</div></div>
+          <div><div class="k">N° de TVA</div><div class="val">BE0403.170.701</div></div>
+          <div><div class="k">Secteur</div><div class="val">Distribution</div></div>
+          <div><div class="k">Site web</div><div class="val"><a href="#">acme.be</a></div></div>
+          <div style="grid-column:1/-1"><div class="k">Adresse</div><div class="val">Rue de la Loi 12, 1000 Bruxelles</div></div>
+        </div>
+      </div>
+      <div class="pipe" style="grid-template-columns:1fr 1fr;margin-top:20px">
+        <div class="block"><h3>Personnes rattachées</h3>
+          <div class="people">
+            <div class="prow"><span class="av av-40 av-mint">MD</span><div><div class="nm">Marie Dubois</div><div class="mt">Directrice achats</div></div><span class="rt"><a style="color:var(--accent);font-weight:600" href="#">Voir</a></span></div>
+            <div class="prow"><span class="av av-40 av-lav">JD</span><div><div class="nm">Julien Denis</div><div class="mt">Responsable logistique</div></div><span class="rt"><a style="color:var(--accent);font-weight:600" href="#">Voir</a></span></div>
+          </div>
+        </div>
+        <div class="block"><h3>Activités &amp; opportunités</h3>
+          <div class="placeholder" style="margin-top:8px">Bientôt : rappels, rendez-vous et opportunités liés à ce contact.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="intro-hint" style="text-align:center;margin-top:40px">Maquette de validation — données fictives, ton vrai logo remplacera ce symbole.</p>
+</div>
+
+<script>
+  (function(){
+    var root=document.documentElement, btn=document.getElementById('themeBtn'), lbl=document.getElementById('themeLabel');
+    function cur(){var t=root.getAttribute('data-theme');return t||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}
+    function sync(){lbl.textContent=cur()==='dark'?'Mode clair':'Mode sombre';}
+    btn.addEventListener('click',function(){root.setAttribute('data-theme',cur()==='dark'?'light':'dark');sync();});
+    sync();
+  })();
+</script>
