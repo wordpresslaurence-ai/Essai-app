@@ -6,7 +6,7 @@
 > tâche `[P]` peut être faite en parallèle d'une autre `[P]` du même groupe.
 >
 > - **ID :** 001-contacts
-> - **Statut :** prêt à implémenter
+> - **Statut :** terminé — module Contacts livré (Phases 0 à 8)
 > - **Version :** 0.1.0
 > - **Date :** 2026-09-07
 >
@@ -34,50 +34,50 @@
 
 ## Phase 1 — Base de données (migrations)
 
-- [ ] **T010** — Migration table **`contacts`** (tous les champs du plan §2, index sur
+- [x] **T010** — Migration table **`contacts`** (tous les champs du plan §2, index sur
   `type`, `nom`, `email`, `entreprise_id` ; FK `entreprise_id → contacts.id`
   `onDelete('set null')` ; colonne `archived_at`).
   ✅ Fait quand : `migrate` passe ; la contrainte de détachement existe. *(EF-04, plan §2)*
-- [ ] **T011** [P] — Migration table **`etiquettes`** (`nom` unique, `couleur`).
+- [x] **T011** [P] — Migration table **`etiquettes`** (`nom` unique, `couleur`).
   ✅ Fait quand : `migrate` passe. *(EF-11)*
-- [ ] **T012** [P] — Migration table pivot **`contact_etiquette`**.
+- [x] **T012** [P] — Migration table pivot **`contact_etiquette`**.
   ✅ Fait quand : `migrate` passe ; clé composite en place. *(EF-11)*
 
 ---
 
 ## Phase 2 — Modèles Eloquent
 
-- [ ] **T020** — Modèle **`Contact`** : `$fillable`, casts, relations `entreprise()`,
+- [x] **T020** — Modèle **`Contact`** : `$fillable`, casts, relations `entreprise()`,
   `personnes()`, `etiquettes()`, accesseur `nomComplet`.
   ✅ Fait quand : les relations renvoient les bons enregistrements (vérifié par tinker/test). *(plan §3)*
-- [ ] **T021** — Scopes du modèle `Contact` : `personnes`, `entreprises`, `actifs`,
+- [x] **T021** — Scopes du modèle `Contact` : `personnes`, `entreprises`, `actifs`,
   `archives`, `recherche($terme)` (insensible à la casse) + global scope « actifs ».
   ✅ Fait quand : `Contact::recherche('x')->actifs()` filtre correctement. *(EF-05, 09, 10)*
-- [ ] **T022** [P] — Modèle **`Etiquette`** + relation `contacts()`.
+- [x] **T022** [P] — Modèle **`Etiquette`** + relation `contacts()`.
   ✅ Fait quand : l'association N–N fonctionne. *(EF-11)*
-- [ ] **T023** [P] — **Factories** `Contact` et `Etiquette` pour les tests.
+- [x] **T023** [P] — **Factories** `Contact` et `Etiquette` pour les tests.
   ✅ Fait quand : les factories produisent des données valides des deux types. *(plan §9)*
 
 ---
 
 ## Phase 3 — Règles de validation belges
 
-- [ ] **T030** [P] — Règle **`NumeroEntrepriseBe`** (10 chiffres, préfixe 0/1, clé de
+- [x] **T030** [P] — Règle **`NumeroEntrepriseBe`** (10 chiffres, préfixe 0/1, clé de
   contrôle modulo 97, normalisation des points/espaces).
   ✅ Fait quand : le **test unitaire T031** passe. *(EF-15, plan §5)*
-- [ ] **T031** [P] — Test Pest de `NumeroEntrepriseBe` : cas valide, clé fausse, mauvais format.
+- [x] **T031** [P] — Test Pest de `NumeroEntrepriseBe` : cas valide, clé fausse, mauvais format.
   ✅ Fait quand : les 3 cas sont couverts et verts.
-- [ ] **T032** [P] — Règle **`NumeroTvaBe`** (`BE` + n° d'entreprise valide ; cohérence
+- [x] **T032** [P] — Règle **`NumeroTvaBe`** (`BE` + n° d'entreprise valide ; cohérence
   avec `numero_entreprise` si présent).
   ✅ Fait quand : le **test unitaire T033** passe. *(EF-16, plan §5)*
-- [ ] **T033** [P] — Test Pest de `NumeroTvaBe` : valide + incohérent.
+- [x] **T033** [P] — Test Pest de `NumeroTvaBe` : valide + incohérent.
   ✅ Fait quand : les cas sont couverts et verts.
 
 ---
 
 ## Phase 4 — Autorisations
 
-- [ ] **T040** [P] — **`ContactPolicy`** et **`EtiquettePolicy`** (au MVP : l'utilisateur
+- [x] **T040** [P] — **`ContactPolicy`** et **`EtiquettePolicy`** (au MVP : l'utilisateur
   connecté a tous les droits, encapsulé pour évoluer).
   ✅ Fait quand : les policies sont enregistrées et appliquées aux composants. *(EF art. 6.4, plan §7)*
 
@@ -85,25 +85,25 @@
 
 ## Phase 5 — Interface Livewire
 
-- [ ] **T050** — Composant **`Contacts\Liste`** : tableau paginé, recherche live, filtres
+- [x] **T050** — Composant **`Contacts\Liste`** : tableau paginé, recherche live, filtres
   (type / étiquette / actif-archivé), tri par nom et date.
   ✅ Fait quand : recherche + filtres + pagination fonctionnent à l'écran. *(EF-05, 09, 10 ; plan §4)*
-- [ ] **T051** — Composant **`Contacts\Formulaire`** (création + édition) : champs
+- [x] **T051** — Composant **`Contacts\Formulaire`** (création + édition) : champs
   conditionnels selon `type`, validation branchée (email obligatoires, BCE/TVA).
   ✅ Fait quand : on crée et modifie personne + entreprise avec messages d'erreur FR. *(EF-01,03,06,07,12,14)*
-- [ ] **T052** — Détection de **doublons** dans `Formulaire` : avertissement non bloquant
+- [x] **T052** — Détection de **doublons** dans `Formulaire` : avertissement non bloquant
   (même email, ou nom + entreprise).
   ✅ Fait quand : un doublon potentiel affiche un avertissement sans empêcher l'enregistrement. *(EF-13)*
-- [ ] **T053** — Composant **`Contacts\FicheDetail`** : coordonnées, liste des personnes
+- [x] **T053** — Composant **`Contacts\FicheDetail`** : coordonnées, liste des personnes
   (si entreprise), emplacement réservé « historique activités/opportunités ».
   ✅ Fait quand : la fiche affiche les infos et les personnes rattachées. *(EF-02, 08, 22)*
-- [ ] **T054** — Actions **archiver / désarchiver / supprimer** (suppression avec modale de
+- [x] **T054** — Actions **archiver / désarchiver / supprimer** (suppression avec modale de
   confirmation Alpine).
   ✅ Fait quand : les 3 actions marchent ; l'archivé disparaît des listes actives. *(EF-04)*
-- [ ] **T055** [P] — Composant **`Contacts\GestionEtiquettes`** (CRUD léger) + association
+- [x] **T055** [P] — Composant **`Contacts\GestionEtiquettes`** (CRUD léger) + association
   d'étiquettes à un contact.
   ✅ Fait quand : on crée des étiquettes et on les associe à un contact. *(EF-11)*
-- [ ] **T056** [P] — Passe **accessibilité/responsive** : `<label>` associés, focus visible,
+- [x] **T056** [P] — Passe **accessibilité/responsive** : `<label>` associés, focus visible,
   navigation clavier, contrastes AA, affichage mobile.
   ✅ Fait quand : les écrans Contacts respectent l'article 8 de la constitution.
 
@@ -111,14 +111,14 @@
 
 ## Phase 6 — Import CSV
 
-- [ ] **T060** — Composant **`Contacts\ImportCsv`** : upload du fichier (stockage local),
+- [x] **T060** — Composant **`Contacts\ImportCsv`** : upload du fichier (stockage local),
   lecture du CSV.
   ✅ Fait quand : un CSV est chargé et ses lignes sont lues. *(EF-17, plan §6)*
-- [ ] **T061** — Écran de **mapping** colonnes CSV → champs contact.
+- [x] **T061** — Écran de **mapping** colonnes CSV → champs contact.
   ✅ Fait quand : l'utilisateur associe chaque colonne à un champ. *(EF-18)*
-- [ ] **T062** — **Récapitulatif** avant écriture : lignes valides / en erreur / doublons.
+- [x] **T062** — **Récapitulatif** avant écriture : lignes valides / en erreur / doublons.
   ✅ Fait quand : rien n'est écrit tant que l'utilisateur n'a pas confirmé. *(EF-19)*
-- [ ] **T063** — **Traitement** : insertion des lignes valides (transaction), rapport des
+- [x] **T063** — **Traitement** : insertion des lignes valides (transaction), rapport des
   lignes invalides ignorées (réutilise les règles de la Phase 3/5).
   ✅ Fait quand : valides importées, invalides rapportées sans faire échouer l'import. *(EF-20)*
 
@@ -126,7 +126,7 @@
 
 ## Phase 7 — Routes et navigation
 
-- [ ] **T070** — Déclarer les routes (`/contacts`, `/contacts/creer`,
+- [x] **T070** — Déclarer les routes (`/contacts`, `/contacts/creer`,
   `/contacts/{contact}`, `/contacts/{contact}/modifier`, `/contacts/import`,
   `/etiquettes`) derrière le middleware `auth`, + entrées de menu.
   ✅ Fait quand : toutes les pages sont accessibles depuis la navigation. *(plan §8)*
@@ -135,15 +135,15 @@
 
 ## Phase 8 — Tests de parcours (feature)
 
-- [ ] **T080** [P] — Test : créer personne + entreprise → visibles en liste. *(critère 1)*
-- [ ] **T081** [P] — Test : rattacher une personne à une entreprise → visible sur la fiche
+- [x] **T080** [P] — Test : créer personne + entreprise → visibles en liste. *(critère 1)*
+- [x] **T081** [P] — Test : rattacher une personne à une entreprise → visible sur la fiche
   entreprise. *(EF-08, critère 2)*
-- [ ] **T082** [P] — Test : supprimer une entreprise avec personnes → personnes détachées,
+- [x] **T082** [P] — Test : supprimer une entreprise avec personnes → personnes détachées,
   non supprimées. *(EF-04, critère... )*
-- [ ] **T083** [P] — Test : recherche + filtres (type, étiquette, statut). *(EF-09/10)*
-- [ ] **T084** [P] — Test : archiver puis désarchiver un contact. *(EF-04)*
-- [ ] **T085** [P] — Test : import CSV avec lignes valides + invalides. *(EF-17→20)*
-- [ ] **T086** — Vérifier que **toute la suite Pest est verte** et que **Pint** passe.
+- [x] **T083** [P] — Test : recherche + filtres (type, étiquette, statut). *(EF-09/10)*
+- [x] **T084** [P] — Test : archiver puis désarchiver un contact. *(EF-04)*
+- [x] **T085** [P] — Test : import CSV avec lignes valides + invalides. *(EF-17→20)*
+- [x] **T086** — Vérifier que **toute la suite Pest est verte** et que **Pint** passe.
   ✅ Fait quand : `pest` vert + `pint --test` propre → module « fini » au sens constitution art. 5.
 
 ---
