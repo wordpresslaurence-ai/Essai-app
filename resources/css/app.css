@@ -21,6 +21,7 @@
   --raise:6px 6px 14px var(--nm-d), -6px -6px 14px var(--nm-l);
   --raise-sm:4px 4px 9px var(--nm-d), -4px -4px 9px var(--nm-l);
   --inset:inset 3px 3px 7px var(--nm-d), inset -3px -3px 7px var(--nm-l);
+  --logo-bg:transparent;
 }
 :root:not([data-theme="light"]) { @media (prefers-color-scheme: dark) {
   --bg:#232035; --surface:#262340; --nm-d:#1A1830; --nm-l:#302C4C;
@@ -30,6 +31,7 @@
   --terra:#E68C7E; --terra-tint:#4A2C2C;
   --ink:#EEECF7; --text:#EEECF7; --text-muted:#ABA7C4;
   --accent:#E4C264; --btn-text:#241E06; --ring:rgba(224,188,82,.5);
+  --logo-bg:#F1EFE9;
 } }
 :root[data-theme="dark"] {
   --bg:#232035; --surface:#262340; --nm-d:#1A1830; --nm-l:#302C4C;
@@ -39,6 +41,7 @@
   --terra:#E68C7E; --terra-tint:#4A2C2C;
   --ink:#EEECF7; --text:#EEECF7; --text-muted:#ABA7C4;
   --accent:#E4C264; --btn-text:#241E06; --ring:rgba(224,188,82,.5);
+  --logo-bg:#F1EFE9;
 }
 
 @layer base {
@@ -52,7 +55,7 @@
   .lb-shell { display:grid; grid-template-columns:230px 1fr; min-height:100vh; background:var(--bg); }
   .lb-side { padding:22px 16px; display:flex; flex-direction:column; gap:22px; }
   .lb-brand { display:flex; align-items:center; gap:11px; padding:2px 6px; }
-  .lb-brand img { width:34px; height:52px; object-fit:contain; }
+  .lb-brand img { width:34px; height:52px; object-fit:contain; background:var(--logo-bg); border-radius:12px; padding:3px 5px; box-sizing:content-box; }
   .lb-brand .name { font-family:"Cormorant Garamond",serif; font-size:20px; font-weight:600; color:var(--ink); line-height:1; }
   .lb-brand .sub { font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--text-muted); margin-top:3px; }
   .lb-nav { display:flex; flex-direction:column; gap:8px; }
