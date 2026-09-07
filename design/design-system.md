@@ -6,9 +6,18 @@
 > [constitution](../constitution.md) — notamment l'accessibilité (art. 8) et la stack
 > Tailwind (art. 2.3).
 >
-> - **Statut :** proposition à valider
-> - **Version :** 0.1.0 (brouillon)
+> - **Statut :** validé (nom de marque en attente)
+> - **Version :** 0.2.0
 > - **Date :** 2026-09-07
+>
+> **Décisions validées avec l'utilisateur :**
+> - Marque : **« Laurence B. »**, avec le **logo fourni** (silhouette élégante encre marine +
+>   trait doré + accents vert d'eau et lavande).
+> - Couleur primaire : **Or & Encre** — dérivée directement du logo (l'émeraude proposée au
+>   départ est abandonnée au profit des couleurs réelles du logo, pour la cohérence de marque).
+> - Modes : **clair ET sombre**, avec un bouton de bascule.
+> - Priorités après le relooking (dans l'ordre) : **1. Tableau de bord d'accueil**,
+>   **2. Améliorations liste/fiche**, **3. Module Pipeline**, **4. Module Activités**.
 
 ---
 
@@ -23,13 +32,16 @@
 
 ---
 
-## 2. Identité de marque *(à valider)*
+## 2. Identité de marque
 
-- **Nom de l'application :** _à définir_ (proposition : un nom court et mémorisable —
-  ex. « Carnet », « Relations », « Rolodex », ou ton propre nom de marque).
-- **Logo :** un **monogramme** simple (1–2 lettres dans un carré arrondi coloré) généré en
-  CSS/SVG — pas de fichier lourd. Remplace le logo Laravel partout.
-- **Ton de voix :** amical et direct, tutoiement possible dans l'aide, phrases courtes.
+- **Nom de l'application :** **Laurence B.**
+- **Logo :** le **logo fourni** par l'utilisateur — une silhouette stylisée tout en courbes,
+  tracée à l'encre marine, avec un trait doré central et de fines touches vert d'eau et
+  lavande. Univers **raffiné, apaisant, bien-être**. Il remplace le logo Laravel partout.
+  - *Fichier à ajouter au dépôt (idéalement en SVG, sinon PNG à fond transparent) dans
+    `public/images/logo.svg` pour un rendu net. En attendant, un monogramme « LB » or-sur-encre
+    sert de repère dans la maquette.*
+- **Ton de voix :** chaleureux, humain, élégant. Phrases courtes, bienveillantes.
 
 ---
 
@@ -38,34 +50,44 @@
 Palette pensée pour le **mode clair et le mode sombre**. Les couleurs sont définies comme
 **jetons** (variables) réutilisables. La couleur primaire est **à valider** (§ Questions).
 
-### Proposition par défaut : « Émeraude & ardoise » (fraîche, professionnelle, chaleureuse)
+### Palette « Or & Encre » — dérivée du logo Laurence B.
+
+Couleurs extraites du logo : **encre marine** (structure), **or** (signature), **vert d'eau**
+et **lavande** (accents doux).
+
+> ⚠️ **Accessibilité :** l'or pur sur blanc n'a pas un contraste suffisant pour du petit texte.
+> On utilise donc **l'encre marine comme couleur des boutons/actions** (contraste élevé) et
+> **l'or comme accent** (état actif, filets, icônes, survols, petites touches). En mode sombre,
+> l'or ressort pleinement sur le fond encre.
 
 | Rôle | Clair | Sombre | Usage |
 |---|---|---|---|
-| **Primaire** | `emerald-600 #059669` | `emerald-500 #10b981` | Boutons d'action, liens, éléments actifs |
-| **Primaire (survol)** | `emerald-700` | `emerald-400` | État survol |
-| **Fond de page** | `#f8fafc` (slate-50) | `#0f172a` (slate-900) | Arrière-plan général |
-| **Surface (cartes)** | `#ffffff` | `#1e293b` (slate-800) | Cartes, tableaux |
-| **Bordure** | `#e2e8f0` (slate-200) | `#334155` (slate-700) | Séparateurs, contours |
-| **Texte principal** | `#0f172a` | `#f1f5f9` | Titres, contenu |
-| **Texte secondaire** | `#64748b` (slate-500) | `#94a3b8` | Libellés, métadonnées |
-| **Succès** | `#16a34a` | `#22c55e` | Confirmations |
-| **Alerte** | `#d97706` | `#f59e0b` | Doublons, avertissements |
-| **Erreur** | `#dc2626` | `#ef4444` | Erreurs, suppression |
-| **Info** | `#2563eb` | `#3b82f6` | Informations neutres |
+| **Encre (primaire action)** | `#2E2A47` | `#EDECF5` | Boutons principaux, texte de titre |
+| **Or (accent/signature)** | `#B8901F` | `#D4AF37` | Liens actifs, filets, icônes clés, survols, focus |
+| **Or clair (fond teinté)** | `#F5EAC9` | `#3A3320` | Puces, surlignage doux, badge « signature » |
+| **Fond de page** | `#F7F6F2` (ivoire) | `#1A1830` (encre profonde) | Arrière-plan général |
+| **Surface (cartes)** | `#FFFFFF` | `#26233F` | Cartes, tableaux |
+| **Bordure** | `#E7E4DC` | `#39355A` | Séparateurs, contours |
+| **Texte principal** | `#2E2A47` | `#F1F0F7` | Titres, contenu |
+| **Texte secondaire** | `#6B677E` | `#A9A6C0` | Libellés, métadonnées |
+| **Succès** | `#3F8F6B` (vert d'eau foncé) | `#5DBF98` | Confirmations |
+| **Alerte** | `#B8901F` (or) | `#D4AF37` | Doublons, avertissements |
+| **Erreur** | `#C0483B` (terracotta) | `#E27166` | Erreurs, suppression |
+| **Info** | `#6B74B0` (lavande foncé) | `#9AA2D8` | Informations neutres |
 
 ### Couleurs d'accent pour les avatars et étiquettes
-Un jeu de 8 teintes douces (emerald, sky, violet, amber, rose, teal, indigo, orange),
-attribuées automatiquement selon le nom, pour des **avatars à initiales** colorés et cohérents.
-
-*(Alternatives de couleur primaire proposées dans les questions : Indigo, Bleu océan, Violet.)*
+Un jeu de teintes douces **tirées du logo** — or, vert d'eau, lavande, encre, terracotta —
+attribuées automatiquement selon le nom, pour des **avatars à initiales** élégants et cohérents.
 
 ---
 
 ## 4. Typographie
 
-- **Police :** `Figtree` (déjà chargée par Breeze) ou `Inter` — moderne, très lisible.
+- **Police du corps :** `Figtree` (déjà chargée) ou `Inter` — moderne, très lisible.
   Repli : `system-ui, sans-serif`.
+- **Police des titres (option raffinée) :** un **serif élégant** type `Cormorant Garamond`
+  ou `Fraunces` pour les grands titres, en écho au caractère « bien-être » du logo. À
+  confirmer dans la maquette (sinon on garde tout en sans-serif).
 - **Échelle :**
   - Titre de page : 24 px / 600 (semibold)
   - Sous-titre / section : 18 px / 600
@@ -202,3 +224,4 @@ On vise un croisement : **la propreté de Linear + la convivialité de Pipedrive
 | Version | Date | Changement |
 |---|---|---|
 | 0.1.0 | 2026-09-07 | Brouillon initial du design system, en attente de validation. |
+| 0.2.0 | 2026-09-07 | Décisions validées : marque « Laurence B. » + logo fourni ; palette « Or & Encre » dérivée du logo (remplace l'émeraude) ; modes clair + sombre ; titres serif en option ; priorités de roadmap. |
