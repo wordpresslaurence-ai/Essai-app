@@ -5,8 +5,8 @@
 > Il doit rester conforme à la [constitution](../../constitution.md).
 >
 > - **ID :** 001-contacts
-> - **Statut :** brouillon à valider
-> - **Version :** 0.1.0
+> - **Statut :** validée
+> - **Version :** 1.0.0
 > - **Date :** 2026-09-07
 
 ---
@@ -78,6 +78,8 @@ Chaque exigence est numérotée et **vérifiable** (elle pourra devenir un test)
   **téléphone**, **site web**, **numéro d'entreprise (BCE/KBO)**, **numéro de TVA**,
   **adresse**, **secteur d'activité**, **étiquettes**, **notes** libres.
 - **EF-08** — Une entreprise affiche la **liste des personnes** qui lui sont rattachées.
+- **EF-08b** — Une personne est rattachée à **au plus une seule entreprise** (décision
+  MVP). Le multi-entreprises n'est pas géré.
 
 ### Recherche et organisation
 - **EF-09** — Le système permet de **rechercher** un contact par nom, prénom, raison
@@ -93,11 +95,30 @@ Chaque exigence est numérotée et **vérifiable** (elle pourra devenir un test)
   ou même nom + même entreprise) sans bloquer l'utilisateur.
 - **EF-14** — Les champs obligatoires (nom pour une personne, raison sociale pour une
   entreprise) sont contrôlés ; un message clair en français s'affiche sinon.
+- **EF-15** — Le **numéro d'entreprise (BCE/KBO)** est validé : 10 chiffres au format
+  belge `0XXX.XXX.XXX` (commençant par 0 ou 1), avec vérification de la **clé de
+  contrôle** officielle (modulo 97). Facultatif, mais s'il est renseigné il doit être
+  valide.
+- **EF-16** — Le **numéro de TVA** est validé au format belge `BE` + le numéro
+  d'entreprise à 10 chiffres. S'il est renseigné avec le numéro d'entreprise, leur
+  cohérence est vérifiée. Facultatif, mais valide s'il est renseigné.
+
+### Import de contacts
+- **EF-17** — Le système permet d'**importer des contacts depuis un fichier CSV**
+  (personnes et/ou entreprises), pour reprendre les données existantes issues d'Odoo.
+- **EF-18** — L'import propose une **correspondance des colonnes** du CSV vers les
+  champs du contact (nom, email, téléphone, entreprise, etc.).
+- **EF-19** — L'import affiche un **récapitulatif avant validation** (nombre de lignes,
+  lignes en erreur, doublons potentiels détectés) et n'écrit rien tant que
+  l'utilisateur n'a pas confirmé.
+- **EF-20** — Les lignes invalides (champ obligatoire manquant, email/BCE/TVA au mauvais
+  format) sont **signalées ligne par ligne** et **ignorées** sans faire échouer tout
+  l'import ; l'utilisateur voit le rapport des lignes rejetées.
 
 ### Traçabilité
-- **EF-15** — Chaque fiche conserve sa **date de création** et sa **date de dernière
+- **EF-21** — Chaque fiche conserve sa **date de création** et sa **date de dernière
   modification**.
-- **EF-16** — La fiche d'un contact affiche un emplacement pour l'**historique des
+- **EF-22** — La fiche d'un contact affiche un emplacement pour l'**historique des
   activités et opportunités liées** (rempli par les modules Pipeline et Activités —
   prévoir la place, contenu détaillé hors de cette spec).
 
@@ -120,8 +141,9 @@ Entreprise, Étiquette, Adresse.)*
 
 - Une **personne sans entreprise** (indépendant, particulier) → autorisé.
 - Une **entreprise sans aucune personne** → autorisé.
-- Suppression d'une **entreprise ayant des personnes rattachées** → demander quoi faire
-  (détacher les personnes plutôt que les supprimer). *À trancher : voir §8.*
+- Suppression d'une **entreprise ayant des personnes rattachées** → les personnes sont
+  **détachées** (elles restent, sans entreprise) ; elles ne sont jamais supprimées avec
+  l'entreprise. *(Décision actée.)*
 - **Doublon** détecté → avertir, ne pas bloquer.
 - Contact **archivé** → n'apparaît pas dans les listes/recherches actives par défaut,
   mais reste consultable via le filtre « archivés ».
@@ -138,25 +160,28 @@ Entreprise, Étiquette, Adresse.)*
 3. Je peux rechercher un contact par nom/email/téléphone et filtrer par type, étiquette
    et statut.
 4. Les champs obligatoires et le format d'email sont contrôlés, avec messages en français.
-5. Un doublon potentiel est signalé à la création.
-6. La liste est paginée et triable.
-7. Chaque parcours critique ci-dessus est couvert par un test (conformément à la
+5. Un numéro BCE et un numéro de TVA invalides sont refusés avec un message clair ;
+   renseignés valides, ils sont acceptés.
+6. Un doublon potentiel est signalé à la création.
+7. La liste est paginée et triable.
+8. Je peux importer un fichier CSV de contacts : voir le récapitulatif, corriger/ignorer
+   les lignes en erreur, puis confirmer l'import.
+9. Chaque parcours critique ci-dessus est couvert par un test (conformément à la
    constitution, article 5).
 
 ---
 
-## 8. Points à clarifier (décisions à valider avec l'utilisateur)
+## 8. Décisions actées
 
-- **[À CLARIFIER 1]** — Suppression d'une entreprise liée à des personnes : on
-  **détache** les personnes (elles restent, sans entreprise) — proposition par défaut —
-  ou on interdit tant qu'il reste des personnes rattachées ?
-- **[À CLARIFIER 2]** — Faut-il **importer les contacts existants depuis Odoo** dès ce
-  module (import CSV) ou plus tard ?
-- **[À CLARIFIER 3]** — Une personne peut-elle appartenir à **plusieurs entreprises** à
-  la fois, ou une seule suffit pour le MVP ? (proposition : une seule pour rester simple)
-- **[À CLARIFIER 4]** — Champs belges (numéro BCE/KBO, TVA) : simple **texte libre**
-  pour le MVP, ou **validation du format** dès maintenant ? (proposition : texte libre
-  au MVP)
+Tous les points en suspens ont été tranchés avec l'utilisateur :
+
+1. **Suppression d'une entreprise liée à des personnes** → les personnes sont
+   **détachées** (conservées, sans entreprise). *(voir EF-04, §6)*
+2. **Import Odoo** → **import CSV dès ce module**. *(voir EF-17 à EF-20)*
+3. **Personne ↔ entreprise** → **une seule entreprise** par personne au MVP.
+   *(voir EF-08b)*
+4. **Numéro BCE / TVA** → **format validé** (clé de contrôle belge), et non texte
+   libre. *(voir EF-15, EF-16)*
 
 ---
 
@@ -165,3 +190,4 @@ Entreprise, Étiquette, Adresse.)*
 | Version | Date       | Changement                        |
 |---------|------------|-----------------------------------|
 | 0.1.0   | 2026-09-07 | Brouillon initial du module Contacts. |
+| 1.0.0   | 2026-09-07 | Décisions actées : détachement des personnes, import CSV, une entreprise par personne, validation des formats BCE/TVA. Ajout des exigences d'import (EF-17→20) et de validation belge (EF-15, EF-16). |
