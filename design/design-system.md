@@ -203,6 +203,25 @@ On vise un croisement : **la propreté de Linear + la convivialité de Pipedrive
 
 ---
 
+## 12bis. Fonctionnalités validées pour la roadmap (nouveau)
+
+Décidées avec l'utilisateur pendant la phase design (à spécifier proprement ensuite,
+façon Spec Kit) :
+
+- **Leads** — un contact peut être un *lead* (prospect entrant) avec :
+  - une **source** : LinkedIn, Instagram, Facebook, E-mail, site web, Typeform, etc.
+    (liste extensible, avec pastille de couleur par source) ;
+  - un **statut / température** dans le CRM : *client chaud*, *intérêt élevé*,
+    *intérêt moyen*, *à qualifier*, etc.
+- **Tâches du jour** — rappels et rendez-vous (appel, envoi de proposition…) avec
+  un **statut** (planifié, en attente, terminé) et une heure/un montant.
+- **Tableau de bord** repensé autour de ces éléments : chiffres clés
+  (opportunités / gagnées / nouveaux leads / à relancer), section *Nouveaux leads*
+  (cartes avec source + statut), section *Mes tâches du jour*.
+
+Ces notions viendront **enrichir le module Contacts** et alimenteront les futurs
+modules **Pipeline** et **Activités**.
+
 ## 12. Fonctionnalités envisagées (backlog design)
 
 **Améliorations rapides des contacts**
