@@ -1,6 +1,8 @@
 <?php
 
 use App\Livewire\Actions\Logout;
+use App\Livewire\Activites\Formulaire as ActiviteFormulaire;
+use App\Livewire\Activites\Liste as ActivitesListe;
 use App\Livewire\Contacts\FicheDetail;
 use App\Livewire\Contacts\Formulaire;
 use App\Livewire\Contacts\GestionEtiquettes;
@@ -34,6 +36,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('pipeline', PipelineTableau::class)->name('pipeline.index');
     Route::get('pipeline/creer', PipelineFormulaire::class)->name('pipeline.creer');
     Route::get('pipeline/{opportunite}/modifier', PipelineFormulaire::class)->name('pipeline.modifier');
+
+    // Module Activités
+    Route::get('activites', ActivitesListe::class)->name('activites.index');
+    Route::get('activites/creer', ActiviteFormulaire::class)->name('activites.creer');
+    Route::get('activites/{activite}/modifier', ActiviteFormulaire::class)->name('activites.modifier');
 
     Route::post('logout', function (Logout $logout) {
         $logout();

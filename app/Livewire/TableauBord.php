@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Activite;
 use App\Models\Contact;
 use App\Models\Opportunite;
 use Illuminate\Contracts\View\View;
@@ -11,6 +12,12 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class TableauBord extends Component
 {
+    /** Coche une tâche du jour comme terminée. */
+    public function terminerActivite(int $id): void
+    {
+        Activite::findOrFail($id)->basculer();
+    }
+
     public function render(): View
     {
         // Aperçu du pipeline : compte + total par étape active.
@@ -46,6 +53,11 @@ class TableauBord extends Component
                 ->take(5)
                 ->get(),
             'apercuPipeline' => $apercuPipeline,
+            'tachesDuJour' => Activite::duJourOuEnRetard()
+                ->with('contact')
+                ->orderBy('echeance')
+                ->take(6)
+                ->get(),
         ]);
     }
 }

@@ -109,8 +109,40 @@
         @endif
 
         <div>
-            <h3 class="lb-h3" style="font-size:19px">Activités &amp; opportunités</h3>
-            <div class="lb-placeholder mt-3">🌿 Bientôt : rappels, rendez-vous et opportunités liés à ce contact.</div>
+            <div class="flex items-center justify-between">
+                <h3 class="lb-h3" style="font-size:19px">Opportunités</h3>
+                <a href="{{ route('pipeline.creer') }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>+ Ajouter</a>
+            </div>
+            <div class="lb-people mt-3">
+                @forelse ($contact->opportunites as $op)
+                    <a href="{{ route('pipeline.modifier', $op) }}" class="lb-prow" wire:navigate wire:key="op-{{ $op->id }}" style="text-decoration:none">
+                        <span class="lb-dot" style="width:10px;height:10px;background:var(--{{ \App\Models\Opportunite::couleurEtape($op->etape) }})"></span>
+                        <div style="min-width:0"><div class="nm lb-truncate">{{ $op->titre }}</div><div class="mt">{{ $op->libelleEtape() }}</div></div>
+                        @if ($op->montant)<span class="serif" style="margin-left:auto;font-weight:600;color:var(--accent)">{{ number_format($op->montant, 0, ',', ' ') }} €</span>@endif
+                    </a>
+                @empty
+                    <div class="lb-placeholder">Aucune opportunité.</div>
+                @endforelse
+            </div>
+
+            <div class="flex items-center justify-between mt-5">
+                <h3 class="lb-h3" style="font-size:19px">Activités</h3>
+                <a href="{{ route('activites.creer') }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>+ Ajouter</a>
+            </div>
+            <div class="lb-people mt-3">
+                @forelse ($contact->activites as $a)
+                    <a href="{{ route('activites.modifier', $a) }}" class="lb-prow" wire:navigate wire:key="ac-{{ $a->id }}" style="text-decoration:none">
+                        <span class="lb-dot" style="width:10px;height:10px;background:var(--{{ \App\Models\Activite::couleurType($a->type) }})"></span>
+                        <div style="min-width:0">
+                            <div class="nm lb-truncate" style="{{ $a->estTerminee() ? 'text-decoration:line-through;color:var(--text-muted)' : '' }}">{{ $a->titre }}</div>
+                            <div class="mt">{{ $a->libelleType() }}@if ($a->echeance) · {{ $a->echeance->translatedFormat('d/m/Y') }}@endif</div>
+                        </div>
+                        @if ($a->estTerminee())<span class="lb-tag lb-b-firm" style="margin-left:auto">✓</span>@elseif ($a->enRetard())<span class="lb-tag" style="margin-left:auto;background:var(--terra-tint);color:var(--terra)">En retard</span>@endif
+                    </a>
+                @empty
+                    <div class="lb-placeholder">Aucune activité.</div>
+                @endforelse
+            </div>
         </div>
     </div>
 

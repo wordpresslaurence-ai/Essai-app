@@ -75,6 +75,12 @@ class Contact extends Model
         return $this->hasMany(Opportunite::class);
     }
 
+    /** Les activités liées à ce contact (module Activités). */
+    public function activites(): HasMany
+    {
+        return $this->hasMany(Activite::class);
+    }
+
     // --- Scopes --------------------------------------------------------------
 
     /** Filtre les contacts de type « personne ». @param  Builder<Contact>  $query */

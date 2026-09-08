@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Activite;
 use App\Models\Contact;
 use App\Models\Etiquette;
 use App\Models\Opportunite;
@@ -91,6 +92,20 @@ class DemoSeeder extends Seeder
         ]);
         Opportunite::firstOrCreate(['titre' => 'Prospection salon'], [
             'contact_id' => $novatech->id, 'montant' => 600, 'etape' => Opportunite::ETAPE_NOUVEAU,
+        ]);
+
+        // Activités de démonstration
+        Activite::firstOrCreate(['titre' => 'Rappeler Marie Dubois'], [
+            'type' => Activite::TYPE_APPEL, 'contact_id' => $marie->id, 'echeance' => now()->setTime(11, 0),
+        ]);
+        Activite::firstOrCreate(['titre' => 'Envoyer la proposition à NovaTech'], [
+            'type' => Activite::TYPE_EMAIL, 'contact_id' => $novatech->id, 'echeance' => now()->setTime(14, 30),
+        ]);
+        Activite::firstOrCreate(['titre' => 'Café avec Sophie Peeters'], [
+            'type' => Activite::TYPE_RDV, 'contact_id' => $sophie->id, 'echeance' => now()->addDay()->setTime(16, 0),
+        ]);
+        Activite::firstOrCreate(['titre' => 'Relancer devis réassort'], [
+            'type' => Activite::TYPE_TACHE, 'contact_id' => $acme->id, 'echeance' => now()->subDay()->setTime(9, 0),
         ]);
     }
 }

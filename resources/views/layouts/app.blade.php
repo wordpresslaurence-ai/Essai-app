@@ -49,6 +49,10 @@
                         <svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h10M4 19h6"/></svg>
                         Pipeline
                     </a>
+                    <a href="{{ route('activites.index') }}" class="{{ request()->routeIs('activites.*') ? 'active' : '' }}" wire:navigate>
+                        <svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
+                        Activités
+                    </a>
                     <a href="{{ route('etiquettes.index') }}" class="{{ request()->routeIs('etiquettes.*') ? 'active' : '' }}" wire:navigate>
                         <svg viewBox="0 0 24 24"><path d="M20.6 13.4 12 22l-8-8V4h10z"/><circle cx="8.5" cy="8.5" r="1.2"/></svg>
                         Étiquettes

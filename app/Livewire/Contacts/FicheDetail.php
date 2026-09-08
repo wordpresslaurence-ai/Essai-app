@@ -43,7 +43,13 @@ class FicheDetail extends Component
 
     public function render(): View
     {
-        $this->contact->load(['entreprise', 'personnes', 'etiquettes']);
+        $this->contact->load([
+            'entreprise',
+            'personnes',
+            'etiquettes',
+            'opportunites' => fn ($q) => $q->orderByDesc('created_at'),
+            'activites' => fn ($q) => $q->with('opportunite')->orderByRaw('echeance is null')->orderBy('echeance'),
+        ]);
 
         return view('livewire.contacts.fiche-detail');
     }

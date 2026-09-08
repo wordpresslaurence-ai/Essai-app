@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Une opportunité commerciale (deal) positionnée sur une étape du pipeline.
@@ -83,6 +84,11 @@ class Opportunite extends Model
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);
+    }
+
+    public function activites(): HasMany
+    {
+        return $this->hasMany(Activite::class);
     }
 
     // --- Scopes --------------------------------------------------------------
