@@ -76,6 +76,20 @@
   .lb-btn-ghost { background:var(--surface); color:var(--text); box-shadow:var(--raise-sm); }
   .lb-btn-ghost:hover { color:var(--accent); }
   .lb-btn-ghost:active { box-shadow:var(--inset); }
+  .lb-btn-danger { background:var(--surface); color:var(--terra); box-shadow:var(--raise-sm); }
+  .lb-btn-danger:active { box-shadow:var(--inset); }
+
+  /* Grille clé/valeur (fiche) */
+  .lb-kv { display:grid; grid-template-columns:repeat(2,1fr); gap:18px 26px; }
+  .lb-kv .k { font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--text-muted); font-weight:600; }
+  .lb-kv .val { margin-top:3px; display:flex; align-items:center; gap:8px; color:var(--text); }
+  .lb-kv .val svg { width:15px; height:15px; stroke:var(--accent); fill:none; stroke-width:1.7; flex:none; }
+  .lb-kv a { color:var(--accent); font-weight:500; }
+  @media (max-width:760px){ .lb-kv { grid-template-columns:1fr; } }
+
+  /* Modale */
+  .lb-modal-backdrop { position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; background:rgba(20,18,40,.5); padding:16px; }
+  .lb-modal { background:var(--surface); border-radius:22px; box-shadow:var(--raise); max-width:440px; width:100%; padding:24px; }
   .lb-iconbtn { width:38px; height:38px; border-radius:12px; display:grid; place-items:center; background:var(--surface); color:var(--text-muted); box-shadow:var(--raise-sm); border:0; cursor:pointer; }
   .lb-iconbtn:hover { color:var(--accent); }
   .lb-iconbtn:active { box-shadow:var(--inset); }
