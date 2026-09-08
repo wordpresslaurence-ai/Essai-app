@@ -22,6 +22,25 @@ class Contact extends Model
 
     public const TYPE_ENTREPRISE = 'entreprise';
 
+    /** Sources d'acquisition d'un lead : libellé + couleur de pastille. */
+    public const SOURCES = [
+        'linkedin' => ['LinkedIn', '#0A66C2'],
+        'instagram' => ['Instagram', '#C13584'],
+        'facebook' => ['Facebook', '#1877F2'],
+        'email' => ['E-mail', 'var(--gold)'],
+        'site_web' => ['Site web', 'var(--mint)'],
+        'telephone' => ['Téléphone', 'var(--lav)'],
+        'autre' => ['Autre', 'var(--text-muted)'],
+    ];
+
+    /** Températures d'un lead : libellé + classe d'avatar (couleur). */
+    public const TEMPERATURES = [
+        'chaud' => ['Client chaud', 'terra'],
+        'eleve' => ['Intérêt élevé', 'mint'],
+        'moyen' => ['Intérêt moyen', 'lav'],
+        'a_qualifier' => ['À qualifier', 'muted'],
+    ];
+
     protected $fillable = [
         'type',
         'nom',
@@ -35,6 +54,8 @@ class Contact extends Model
         'numero_entreprise',
         'numero_tva',
         'secteur',
+        'source',
+        'temperature',
         'adresse_rue',
         'adresse_code_postal',
         'adresse_ville',
@@ -107,6 +128,12 @@ class Contact extends Model
         $query->whereNotNull('archived_at');
     }
 
+    /** Leads : contacts ayant une température. @param  Builder<Contact>  $query */
+    public function scopeLeads(Builder $query): void
+    {
+        $query->whereNotNull('temperature');
+    }
+
     /**
      * Recherche insensible à la casse sur nom, prénom, email, téléphone (EF-09).
      *
@@ -145,6 +172,23 @@ class Contact extends Model
     public function estArchive(): bool
     {
         return $this->archived_at !== null;
+    }
+
+    public function estLead(): bool
+    {
+        return $this->temperature !== null;
+    }
+
+    /** Libellé et couleur de la source (ou null). */
+    public function sourceInfo(): ?array
+    {
+        return $this->source ? (self::SOURCES[$this->source] ?? null) : null;
+    }
+
+    /** Libellé et couleur de la température (ou null). */
+    public function temperatureInfo(): ?array
+    {
+        return $this->temperature ? (self::TEMPERATURES[$this->temperature] ?? null) : null;
     }
 
     public function archiver(): void

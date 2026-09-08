@@ -41,6 +41,14 @@
             <option value="archives">Archivés</option>
         </select>
 
+        <select wire:model.live="temperature" class="lb-select" aria-label="Température">
+            <option value="">Toutes températures</option>
+            <option value="leads">Leads uniquement</option>
+            @foreach (\App\Models\Contact::TEMPERATURES as $cle => $info)
+                <option value="{{ $cle }}">{{ $info[0] }}</option>
+            @endforeach
+        </select>
+
         <select wire:model.live="tri" class="lb-select" aria-label="Trier par">
             <option value="nom">Trier : nom</option>
             <option value="updated_at">Trier : récent</option>
@@ -67,6 +75,12 @@
                             <span class="lb-dot" style="background:{{ $contact->estEntreprise() ? 'var(--mint)' : 'var(--lav)' }}"></span>
                             {{ $contact->estEntreprise() ? 'Entreprise' : 'Personne' }}
                         </span>
+                        @if ($info = $contact->temperatureInfo())
+                            <span class="lb-badge lb-av-{{ $info[1] === 'muted' ? 'gold' : $info[1] }}">{{ $contact->temperature === 'chaud' ? '🔥 ' : '' }}{{ $info[0] }}</span>
+                        @endif
+                        @if ($src = $contact->sourceInfo())
+                            <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $src[1] }}"></span>{{ $src[0] }}</span>
+                        @endif
                         @foreach ($contact->etiquettes as $et)
                             <span class="lb-tag" style="background:var(--surface)">
                                 <span class="lb-dot" style="background:{{ $et->couleur ?: 'var(--gold)' }}"></span>{{ $et->nom }}

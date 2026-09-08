@@ -14,6 +14,12 @@
                 @if ($contact->estArchive())
                     <span class="lb-tag" style="background:var(--gold-tint);color:var(--accent)">Archivé</span>
                 @endif
+                @if ($info = $contact->temperatureInfo())
+                    <span class="lb-badge lb-av-{{ $info[1] === 'muted' ? 'gold' : $info[1] }}">{{ $contact->temperature === 'chaud' ? '🔥 ' : '' }}{{ $info[0] }}</span>
+                @endif
+                @if ($src = $contact->sourceInfo())
+                    <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $src[1] }}"></span>{{ $src[0] }}</span>
+                @endif
                 @foreach ($contact->etiquettes as $et)
                     <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $et->couleur ?: 'var(--gold)' }}"></span>{{ $et->nom }}</span>
                 @endforeach

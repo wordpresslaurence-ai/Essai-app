@@ -31,6 +31,10 @@ class Liste extends Component
     #[Url]
     public string $statut = 'actifs';
 
+    /** Filtre lead : '' (tous), 'leads' (leads uniquement) ou une température précise. */
+    #[Url]
+    public string $temperature = '';
+
     /** Colonne de tri. */
     #[Url]
     public string $tri = 'nom';
@@ -42,7 +46,7 @@ class Liste extends Component
     /** Réinitialise la pagination dès qu'un filtre change. */
     public function updating($name): void
     {
-        if (in_array($name, ['recherche', 'type', 'etiquette', 'statut'], true)) {
+        if (in_array($name, ['recherche', 'type', 'etiquette', 'statut', 'temperature'], true)) {
             $this->resetPage();
         }
     }
@@ -81,6 +85,11 @@ class Liste extends Component
                 $this->statut === 'archives',
                 fn ($q) => $q->archives(),
                 fn ($q) => $q->actifs()
+            )
+            ->when($this->temperature === 'leads', fn ($q) => $q->leads())
+            ->when(
+                $this->temperature !== '' && $this->temperature !== 'leads',
+                fn ($q) => $q->where('temperature', $this->temperature)
             )
             ->orderBy($triAutorise, $sensAutorise)
             ->paginate(15);

@@ -48,6 +48,8 @@ class DemoSeeder extends Seeder
             'secteur' => 'Informatique',
             'adresse_ville' => 'Liège',
             'adresse_pays' => 'BE',
+            'source' => 'facebook',
+            'temperature' => 'eleve',
         ]);
         $novatech->etiquettes()->syncWithoutDetaching([$prospect->id]);
 
@@ -59,6 +61,8 @@ class DemoSeeder extends Seeder
             'entreprise_id' => $acme->id,
             'adresse_ville' => 'Bruxelles',
             'adresse_pays' => 'BE',
+            'source' => 'linkedin',
+            'temperature' => 'chaud',
         ]);
         $marie->etiquettes()->syncWithoutDetaching([$client->id]);
 
@@ -74,6 +78,8 @@ class DemoSeeder extends Seeder
             'fonction' => 'Indépendante',
             'email' => 'sophie.peeters@example.be',
             'telephone' => '+32 498 55 66 77',
+            'source' => 'instagram',
+            'temperature' => 'moyen',
         ]);
 
         // Opportunités de démonstration (pipeline)

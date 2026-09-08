@@ -119,6 +119,31 @@
             </div>
         </fieldset>
 
+        {{-- Lead : source & température --}}
+        <fieldset class="mt-6">
+            <legend class="lb-label" style="margin-bottom:10px">Lead (facultatif)</legend>
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label for="source" class="lb-label" style="font-weight:500;color:var(--text-muted)">Source</label>
+                    <select id="source" wire:model="source" class="lb-field">
+                        <option value="">—</option>
+                        @foreach (\App\Models\Contact::SOURCES as $cle => $info)
+                            <option value="{{ $cle }}">{{ $info[0] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label for="temperature" class="lb-label" style="font-weight:500;color:var(--text-muted)">Température</label>
+                    <select id="temperature" wire:model="temperature" class="lb-field">
+                        <option value="">—</option>
+                        @foreach (\App\Models\Contact::TEMPERATURES as $cle => $info)
+                            <option value="{{ $cle }}">{{ $info[0] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </fieldset>
+
         {{-- Notes --}}
         <div class="mt-5">
             <label for="notes" class="lb-label">Notes</label>

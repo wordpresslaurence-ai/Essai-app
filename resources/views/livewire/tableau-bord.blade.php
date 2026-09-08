@@ -44,6 +44,38 @@
         </div>
     </div>
 
+    {{-- Nouveaux leads --}}
+    @if ($leads->isNotEmpty())
+        <div class="mt-8">
+            <div class="flex items-end justify-between">
+                <div>
+                    <h3 class="lb-h3">Nouveaux leads</h3>
+                    <div class="lb-muted" style="font-size:12.5px">Prospects récents et leur origine</div>
+                </div>
+                <a href="{{ route('contacts.index', ['temperature' => 'leads']) }}" class="lb-accent" style="font-weight:600;font-size:13px;text-decoration:none" wire:navigate>Voir tout →</a>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2 mt-3">
+                @foreach ($leads as $lead)
+                    <a href="{{ route('contacts.fiche', $lead) }}" class="lb-card flex gap-3" wire:navigate wire:key="lead-{{ $lead->id }}" style="text-decoration:none;align-items:flex-start">
+                        <span class="lb-av lb-av-44 lb-av-{{ $lead->couleurAvatar() }} {{ $lead->estEntreprise() ? 'sq' : '' }}">{{ $lead->initiales() }}</span>
+                        <div style="min-width:0;flex:1">
+                            <div class="nm lb-truncate" style="font-weight:600;color:var(--ink)">{{ $lead->nomComplet() }}</div>
+                            <div class="lb-muted lb-truncate" style="font-size:12.5px">{{ $lead->estEntreprise() ? ($lead->secteur ?: 'Entreprise') : ($lead->fonction ?: 'Personne') }}@if ($lead->entreprise) · {{ $lead->entreprise->nom }}@endif</div>
+                            <div class="flex flex-wrap items-center gap-2 mt-2">
+                                @if ($info = $lead->temperatureInfo())
+                                    <span class="lb-badge lb-av-{{ $info[1] === 'muted' ? 'gold' : $info[1] }}">{{ $lead->temperature === 'chaud' ? '🔥 ' : '' }}{{ $info[0] }}</span>
+                                @endif
+                                @if ($src = $lead->sourceInfo())
+                                    <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $src[1] }}"></span>{{ $src[0] }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     {{-- Colonnes : derniers contacts + à venir --}}
     <div class="grid gap-6 lg:grid-cols-2 mt-8">
         {{-- Derniers contacts --}}
