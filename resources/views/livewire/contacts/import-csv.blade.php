@@ -1,110 +1,104 @@
-<div class="py-8">
-    <div class="max-w-3xl mx-auto sm:px-6 lg:px-8 space-y-6">
+<div>
+    <a href="{{ route('contacts.index') }}" class="lb-muted" style="font-size:13px;text-decoration:none" wire:navigate>← Retour au carnet</a>
+    <h1 class="lb-h1 mt-4">Importer des contacts (CSV)</h1>
 
-        <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Importer des contacts (CSV)</h1>
-
-        {{-- ÉTAPE 1 : upload --}}
-        @if ($etape === 'upload')
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 space-y-4">
-                <p class="text-sm text-gray-600 dark:text-gray-300">
-                    Sélectionnez un fichier CSV (par exemple exporté depuis Odoo). La première ligne
-                    doit contenir les noms de colonnes. Séparateur « , » ou « ; » accepté.
-                </p>
-                <div>
-                    <label for="fichier" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Fichier CSV</label>
-                    <input id="fichier" type="file" wire:model="fichier" accept=".csv,text/csv"
-                           class="mt-1 block w-full text-sm text-gray-700 dark:text-gray-200">
-                    <div wire:loading wire:target="fichier" class="mt-2 text-sm text-gray-500">Lecture du fichier…</div>
-                    @error('fichier') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
-                </div>
-                <a href="{{ route('contacts.index') }}" class="inline-block text-sm text-gray-600 dark:text-gray-300 hover:underline">← Annuler</a>
+    {{-- ÉTAPE 1 : upload --}}
+    @if ($etape === 'upload')
+        <div class="lb-card mt-5" style="padding:24px">
+            <p class="lb-muted" style="font-size:13.5px">
+                Sélectionne un fichier CSV (par exemple exporté depuis Odoo). La première ligne doit
+                contenir les noms de colonnes. Séparateur « , » ou « ; » accepté.
+            </p>
+            <div class="mt-4">
+                <label for="fichier" class="lb-label">Fichier CSV</label>
+                <input id="fichier" type="file" wire:model="fichier" accept=".csv,text/csv" class="lb-field" style="box-shadow:var(--raise-sm)">
+                <div wire:loading wire:target="fichier" class="lb-muted mt-2" style="font-size:13px">Lecture du fichier…</div>
+                @error('fichier') <p class="lb-error">{{ $message }}</p> @enderror
             </div>
-        @endif
+        </div>
+    @endif
 
-        {{-- ÉTAPE 2 : mapping + aperçu --}}
-        @if ($etape === 'mapping')
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 space-y-4">
-                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">1. Faire correspondre les colonnes</h2>
-                <p class="text-sm text-gray-600 dark:text-gray-300">Indiquez à quel champ correspond chaque colonne de votre fichier (ou « Ignorer »).</p>
-
-                <div class="space-y-2">
-                    @foreach ($entetes as $i => $entete)
-                        <div class="flex items-center gap-3">
-                            <span class="w-1/2 truncate text-sm text-gray-700 dark:text-gray-200" title="{{ $entete }}">{{ $entete ?: '(colonne '.($i + 1).')' }}</span>
-                            <span aria-hidden="true" class="text-gray-400">→</span>
-                            <select wire:model.live="mapping.{{ $i }}"
-                                    class="w-1/2 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">— Ignorer —</option>
-                                @foreach ($champs as $cle => $libelle)
-                                    <option value="{{ $cle }}">{{ $libelle }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            @if ($apercu)
-                <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 space-y-3">
-                    <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">2. Récapitulatif avant import</h2>
-                    <div class="grid grid-cols-3 gap-3 text-center">
-                        <div class="rounded-md bg-gray-50 dark:bg-gray-900/40 p-3">
-                            <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $apercu['total'] }}</p>
-                            <p class="text-xs text-gray-500">lignes</p>
-                        </div>
-                        <div class="rounded-md bg-green-50 dark:bg-green-900/30 p-3">
-                            <p class="text-2xl font-semibold text-green-700 dark:text-green-300">{{ $apercu['valides'] }}</p>
-                            <p class="text-xs text-green-600 dark:text-green-400">valides</p>
-                        </div>
-                        <div class="rounded-md bg-red-50 dark:bg-red-900/30 p-3">
-                            <p class="text-2xl font-semibold text-red-700 dark:text-red-300">{{ count($apercu['erreurs']) }}</p>
-                            <p class="text-xs text-red-600 dark:text-red-400">en erreur</p>
-                        </div>
+    {{-- ÉTAPE 2 : mapping + aperçu --}}
+    @if ($etape === 'mapping')
+        <div class="lb-card mt-5" style="padding:24px">
+            <h3 class="lb-h3" style="font-size:19px">1. Faire correspondre les colonnes</h3>
+            <p class="lb-muted" style="font-size:13px;margin-top:4px">Indique à quel champ correspond chaque colonne (ou « Ignorer »).</p>
+            <div class="mt-4 flex flex-col gap-2">
+                @foreach ($entetes as $i => $entete)
+                    <div class="flex items-center gap-3">
+                        <span class="lb-truncate" style="width:45%;font-size:13.5px" title="{{ $entete }}">{{ $entete ?: '(colonne '.($i + 1).')' }}</span>
+                        <span class="lb-muted" aria-hidden="true">→</span>
+                        <select wire:model.live="mapping.{{ $i }}" class="lb-field" style="width:45%">
+                            <option value="">— Ignorer —</option>
+                            @foreach ($champs as $cle => $libelle)
+                                <option value="{{ $cle }}">{{ $libelle }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    @if ($apercu['doublons'] > 0)
-                        <p class="text-sm text-amber-700 dark:text-amber-300">⚠️ {{ $apercu['doublons'] }} doublon(s) potentiel(s) détecté(s) (même e-mail) — ils seront tout de même importés.</p>
-                    @endif
+                @endforeach
+            </div>
+        </div>
 
-                    @if (count($apercu['erreurs']) > 0)
-                        <div class="max-h-48 overflow-y-auto rounded-md border border-gray-200 dark:border-gray-700 p-3 text-sm">
-                            <p class="font-medium text-gray-700 dark:text-gray-200 mb-1">Lignes en erreur (elles seront ignorées) :</p>
-                            <ul class="space-y-1">
-                                @foreach ($apercu['erreurs'] as $err)
-                                    <li class="text-red-600 dark:text-red-400">Ligne {{ $err['ligne'] }} : {{ implode(' ', $err['messages']) }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <div class="flex items-center justify-between pt-2">
-                        <button type="button" wire:click="recommencer" class="text-sm text-gray-600 dark:text-gray-300 hover:underline">← Choisir un autre fichier</button>
-                        <button type="button" wire:click="importer" @disabled($apercu['valides'] === 0)
-                                class="inline-flex items-center px-4 py-2 bg-indigo-600 rounded-md text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">
-                            Importer {{ $apercu['valides'] }} contact(s)
-                        </button>
+        @if ($apercu)
+            <div class="lb-card mt-4" style="padding:24px">
+                <h3 class="lb-h3" style="font-size:19px">2. Récapitulatif avant import</h3>
+                <div class="grid grid-cols-3 gap-3 mt-3 text-center">
+                    <div class="lb-inset" style="padding:14px">
+                        <div class="serif" style="font-size:28px;font-weight:600">{{ $apercu['total'] }}</div>
+                        <div class="lb-muted" style="font-size:12px">lignes</div>
+                    </div>
+                    <div class="lb-card-sm" style="background:var(--mint-tint)">
+                        <div class="serif" style="font-size:28px;font-weight:600;color:var(--mint-deep)">{{ $apercu['valides'] }}</div>
+                        <div style="font-size:12px;color:var(--mint-deep)">valides</div>
+                    </div>
+                    <div class="lb-card-sm" style="background:var(--terra-tint)">
+                        <div class="serif" style="font-size:28px;font-weight:600;color:var(--terra)">{{ count($apercu['erreurs']) }}</div>
+                        <div style="font-size:12px;color:var(--terra)">en erreur</div>
                     </div>
                 </div>
-            @endif
-        @endif
 
-        {{-- ÉTAPE 3 : terminé --}}
-        @if ($etape === 'termine')
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 space-y-3">
-                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Import terminé</h2>
-                <p class="text-green-700 dark:text-green-300">✅ {{ $rapport['importes'] }} contact(s) importé(s).</p>
-                @if (count($rapport['ignorees']) > 0)
-                    <p class="text-red-600 dark:text-red-400">{{ count($rapport['ignorees']) }} ligne(s) ignorée(s) (erreurs) :</p>
-                    <ul class="max-h-48 overflow-y-auto space-y-1 text-sm">
-                        @foreach ($rapport['ignorees'] as $err)
-                            <li class="text-red-600 dark:text-red-400">Ligne {{ $err['ligne'] }} : {{ implode(' ', $err['messages']) }}</li>
-                        @endforeach
-                    </ul>
+                @if ($apercu['doublons'] > 0)
+                    <p class="lb-accent mt-3" style="font-size:13px">⚠️ {{ $apercu['doublons'] }} doublon(s) potentiel(s) (même e-mail) — importés tout de même.</p>
                 @endif
-                <div class="flex gap-3 pt-2">
-                    <a href="{{ route('contacts.index') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 rounded-md text-sm font-medium text-white hover:bg-indigo-500">Voir mes contacts</a>
-                    <button type="button" wire:click="recommencer" class="text-sm text-gray-600 dark:text-gray-300 hover:underline">Importer un autre fichier</button>
+
+                @if (count($apercu['erreurs']) > 0)
+                    <div class="lb-inset mt-3" style="padding:14px;max-height:12rem;overflow-y:auto">
+                        <p style="font-weight:600;font-size:13px">Lignes en erreur (ignorées) :</p>
+                        <ul class="mt-1" style="font-size:12.5px;color:var(--terra)">
+                            @foreach ($apercu['erreurs'] as $err)
+                                <li>Ligne {{ $err['ligne'] }} : {{ implode(' ', $err['messages']) }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <div class="flex items-center justify-between mt-5">
+                    <button type="button" wire:click="recommencer" class="lb-muted" style="font-size:13px;background:none;border:0;cursor:pointer">← Choisir un autre fichier</button>
+                    <button type="button" wire:click="importer" @disabled($apercu['valides'] === 0) class="lb-btn lb-btn-primary" style="{{ $apercu['valides'] === 0 ? 'opacity:.5' : '' }}">
+                        Importer {{ $apercu['valides'] }} contact(s)
+                    </button>
                 </div>
             </div>
         @endif
-    </div>
+    @endif
+
+    {{-- ÉTAPE 3 : terminé --}}
+    @if ($etape === 'termine')
+        <div class="lb-card mt-5" style="padding:24px">
+            <h3 class="lb-h3" style="font-size:19px">Import terminé</h3>
+            <div class="lb-alert lb-alert-success mt-3">✅ {{ $rapport['importes'] }} contact(s) importé(s).</div>
+            @if (count($rapport['ignorees']) > 0)
+                <p style="color:var(--terra);font-size:13.5px;margin-top:10px">{{ count($rapport['ignorees']) }} ligne(s) ignorée(s) :</p>
+                <ul class="lb-inset mt-2" style="padding:14px;max-height:12rem;overflow-y:auto;font-size:12.5px;color:var(--terra)">
+                    @foreach ($rapport['ignorees'] as $err)
+                        <li>Ligne {{ $err['ligne'] }} : {{ implode(' ', $err['messages']) }}</li>
+                    @endforeach
+                </ul>
+            @endif
+            <div class="flex gap-3 mt-5">
+                <a href="{{ route('contacts.index') }}" class="lb-btn lb-btn-primary" wire:navigate>Voir mes contacts</a>
+                <button type="button" wire:click="recommencer" class="lb-btn lb-btn-ghost">Importer un autre fichier</button>
+            </div>
+        </div>
+    @endif
 </div>
