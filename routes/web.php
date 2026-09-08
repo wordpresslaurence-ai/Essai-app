@@ -6,6 +6,8 @@ use App\Livewire\Contacts\Formulaire;
 use App\Livewire\Contacts\GestionEtiquettes;
 use App\Livewire\Contacts\ImportCsv;
 use App\Livewire\Contacts\Liste;
+use App\Livewire\Pipeline\Formulaire as PipelineFormulaire;
+use App\Livewire\Pipeline\Tableau as PipelineTableau;
 use App\Livewire\TableauBord;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +29,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('contacts/{contact}', FicheDetail::class)->name('contacts.fiche');
     Route::get('contacts/{contact}/modifier', Formulaire::class)->name('contacts.modifier');
     Route::get('etiquettes', GestionEtiquettes::class)->name('etiquettes.index');
+
+    // Module Pipeline
+    Route::get('pipeline', PipelineTableau::class)->name('pipeline.index');
+    Route::get('pipeline/creer', PipelineFormulaire::class)->name('pipeline.creer');
+    Route::get('pipeline/{opportunite}/modifier', PipelineFormulaire::class)->name('pipeline.modifier');
 
     Route::post('logout', function (Logout $logout) {
         $logout();

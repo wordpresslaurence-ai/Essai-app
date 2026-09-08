@@ -28,19 +28,19 @@
         </div>
         <div class="lb-stat">
             <span class="lb-av lb-av-34 lb-av-lav ic" aria-hidden="true">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16M4 12h10M4 19h6"/></svg>
             </span>
-            <div class="k">Personnes</div>
-            <div class="v">{{ $nbPersonnes }}</div>
-            <div class="d">individus</div>
+            <div class="k">Opportunités</div>
+            <div class="v">{{ $nbOpportunites }}</div>
+            <div class="d">en cours</div>
         </div>
         <div class="lb-stat">
-            <span class="lb-av lb-av-34 lb-av-gold ic" aria-hidden="true">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+            <span class="lb-av lb-av-34 lb-av-mint ic" aria-hidden="true">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg>
             </span>
-            <div class="k">Archivés</div>
-            <div class="v">{{ $nbArchives }}</div>
-            <div class="d">consultables à part</div>
+            <div class="k">Gagnées</div>
+            <div class="v">{{ $nbGagnees }}</div>
+            <div class="d">opportunités</div>
         </div>
     </div>
 
@@ -78,14 +78,28 @@
             </div>
         </div>
 
-        {{-- À venir : pipeline & activités --}}
+        {{-- Aperçu du pipeline --}}
         <div>
-            <h3 class="lb-h3">Pipeline &amp; activités</h3>
-            <div class="lb-muted" style="font-size:12.5px">Prochains modules du CRM</div>
-            <div class="lb-placeholder mt-3" style="padding:34px 22px">
-                🌿 Bientôt ici : ton <strong>pipeline commercial</strong> (opportunités par étape)
-                et tes <strong>tâches du jour</strong> (rappels, rendez-vous).
+            <div class="flex items-end justify-between">
+                <div>
+                    <h3 class="lb-h3">Pipeline commercial</h3>
+                    <div class="lb-muted" style="font-size:12.5px">{{ number_format($montantEnCours, 0, ',', ' ') }} € en cours</div>
+                </div>
+                <a href="{{ route('pipeline.index') }}" class="lb-accent" style="font-weight:600;font-size:13px;text-decoration:none" wire:navigate>Ouvrir →</a>
             </div>
+
+            <div class="lb-people mt-3">
+                @foreach ($apercuPipeline as $etape => $col)
+                    <div class="lb-prow">
+                        <span class="lb-dot" style="width:12px;height:12px;background:var(--{{ $col['couleur'] }})"></span>
+                        <span class="nm">{{ $col['libelle'] }}</span>
+                        <span class="lb-muted" style="font-size:12px">· {{ $col['n'] }} opp.</span>
+                        <span class="serif" style="margin-left:auto;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums">{{ number_format($col['total'], 0, ',', ' ') }} €</span>
+                    </div>
+                @endforeach
+            </div>
+
+            <a href="{{ route('pipeline.creer') }}" class="lb-accent" style="display:inline-block;margin-top:12px;font-weight:600;font-size:13px;text-decoration:none" wire:navigate>+ Nouvelle opportunité</a>
         </div>
     </div>
 </div>

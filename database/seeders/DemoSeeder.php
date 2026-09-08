@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Contact;
 use App\Models\Etiquette;
+use App\Models\Opportunite;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -67,11 +68,29 @@ class DemoSeeder extends Seeder
             'entreprise_id' => $novatech->id,
         ]);
 
-        Contact::firstOrCreate(['nom' => 'Peeters', 'prenom' => 'Sophie'], [
+        $sophie = Contact::firstOrCreate(['nom' => 'Peeters', 'prenom' => 'Sophie'], [
             'type' => Contact::TYPE_PERSONNE,
             'fonction' => 'Indépendante',
             'email' => 'sophie.peeters@example.be',
             'telephone' => '+32 498 55 66 77',
+        ]);
+
+        // Opportunités de démonstration (pipeline)
+        Opportunite::firstOrCreate(['titre' => 'Réassort trimestriel'], [
+            'contact_id' => $acme->id, 'montant' => 4200, 'etape' => Opportunite::ETAPE_QUALIFIE,
+        ]);
+        Opportunite::firstOrCreate(['titre' => 'Audit technique'], [
+            'contact_id' => $novatech->id, 'montant' => 1800, 'etape' => Opportunite::ETAPE_QUALIFIE,
+        ]);
+        Opportunite::firstOrCreate(['titre' => 'Accompagnement coaching'], [
+            'contact_id' => $sophie->id, 'montant' => 950, 'etape' => Opportunite::ETAPE_PROPOSITION,
+        ]);
+        Opportunite::firstOrCreate(['titre' => 'Formation équipe'], [
+            'contact_id' => $acme->id, 'montant' => 2400, 'etape' => Opportunite::ETAPE_GAGNE,
+            'date_cloture' => now()->toDateString(),
+        ]);
+        Opportunite::firstOrCreate(['titre' => 'Prospection salon'], [
+            'contact_id' => $novatech->id, 'montant' => 600, 'etape' => Opportunite::ETAPE_NOUVEAU,
         ]);
     }
 }

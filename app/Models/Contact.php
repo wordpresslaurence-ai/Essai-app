@@ -69,6 +69,12 @@ class Contact extends Model
         return $this->belongsToMany(Etiquette::class);
     }
 
+    /** Les opportunités liées à ce contact (module Pipeline). */
+    public function opportunites(): HasMany
+    {
+        return $this->hasMany(Opportunite::class);
+    }
+
     // --- Scopes --------------------------------------------------------------
 
     /** Filtre les contacts de type « personne ». @param  Builder<Contact>  $query */
