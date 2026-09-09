@@ -1,6 +1,6 @@
 # Image de déploiement pour l'application Laravel « Laurence B. »
 # Convient à Railway, Render, Fly.io, ou tout hébergeur qui construit un Dockerfile.
-FROM php:8.3-cli-bookworm
+FROM php:8.4-cli-bookworm
 
 # Dépendances système + extensions PHP nécessaires à Laravel
 RUN apt-get update \
