@@ -13,7 +13,7 @@ use App\Livewire\Pipeline\Tableau as PipelineTableau;
 use App\Livewire\TableauBord;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome');
+Route::redirect('/', 'dashboard');
 
 Route::get('dashboard', TableauBord::class)
     ->middleware(['auth', 'verified'])
