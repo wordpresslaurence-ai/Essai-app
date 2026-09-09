@@ -3,6 +3,7 @@
 namespace App\Livewire\Contacts;
 
 use App\Models\Contact;
+use App\Models\Etiquette;
 use App\Rules\NumeroEntrepriseBe;
 use App\Rules\NumeroTvaBe;
 use Illuminate\Contracts\View\View;
@@ -52,6 +53,9 @@ class Formulaire extends Component
 
     public ?string $notes = null;
 
+    /** @var array<int> Étiquettes cochées pour ce contact. */
+    public array $etiquettesSelection = [];
+
     /** Pré-remplit le formulaire en mode édition. */
     public function mount(?Contact $contact = null): void
     {
@@ -63,6 +67,7 @@ class Formulaire extends Component
                 'secteur', 'source', 'temperature', 'adresse_rue', 'adresse_code_postal',
                 'adresse_ville', 'adresse_pays', 'notes',
             ]));
+            $this->etiquettesSelection = $contact->etiquettes->pluck('id')->all();
         }
     }
 
@@ -141,6 +146,9 @@ class Formulaire extends Component
             $message = 'Contact créé.';
         }
 
+        // Synchronise les étiquettes cochées avec le contact.
+        $cible->etiquettes()->sync($this->etiquettesSelection);
+
         session()->flash('message', $message);
 
         return $this->redirect(route('contacts.fiche', $cible), navigate: true);
@@ -156,6 +164,7 @@ class Formulaire extends Component
         return view('livewire.contacts.formulaire', [
             'entreprises' => $entreprises,
             'doublons' => $this->doublons,
+            'toutesEtiquettes' => Etiquette::orderBy('nom')->get(),
         ]);
     }
 }

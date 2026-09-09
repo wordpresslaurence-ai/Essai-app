@@ -144,6 +144,32 @@
             </div>
         </fieldset>
 
+        {{-- Étiquettes --}}
+        <fieldset class="mt-6">
+            <legend class="lb-label" style="margin-bottom:10px">Étiquettes</legend>
+            @if ($toutesEtiquettes->isEmpty())
+                <p class="lb-muted" style="font-size:13px">
+                    Aucune étiquette pour l'instant.
+                    <a href="{{ route('etiquettes.index') }}" wire:navigate style="color:var(--accent)">Créer une étiquette</a>.
+                </p>
+            @else
+                <div class="flex flex-wrap gap-x-4 gap-y-2">
+                    @foreach ($toutesEtiquettes as $et)
+                        <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">
+                            <input type="checkbox" wire:model="etiquettesSelection" value="{{ $et->id }}" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+                            <span class="lb-tag" style="background:var(--surface)">
+                                <span class="lb-dot" style="background:{{ $et->couleur ?: 'var(--gold)' }}"></span>{{ $et->nom }}
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+                <p class="lb-muted" style="font-size:12.5px;margin-top:8px">
+                    Coche les étiquettes à appliquer. Pour en créer ou en supprimer,
+                    va dans <a href="{{ route('etiquettes.index') }}" wire:navigate style="color:var(--accent)">Étiquettes</a>.
+                </p>
+            @endif
+        </fieldset>
+
         {{-- Notes --}}
         <div class="mt-5">
             <label for="notes" class="lb-label">Notes</label>
