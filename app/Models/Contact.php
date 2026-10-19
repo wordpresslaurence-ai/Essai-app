@@ -102,6 +102,18 @@ class Contact extends Model
         return $this->hasMany(Activite::class);
     }
 
+    /** Les e-mails synchronisés avec ce contact (assistant). */
+    public function emails(): HasMany
+    {
+        return $this->hasMany(Email::class);
+    }
+
+    /** Les analyses de l'assistant pour ce contact. */
+    public function analyses(): HasMany
+    {
+        return $this->hasMany(Analyse::class);
+    }
+
     // --- Scopes --------------------------------------------------------------
 
     /** Filtre les contacts de type « personne ». @param  Builder<Contact>  $query */
