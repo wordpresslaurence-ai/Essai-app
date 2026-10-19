@@ -30,6 +30,7 @@ class Opportunite extends Model
     protected $fillable = [
         'titre',
         'contact_id',
+        'categorie_id',
         'montant',
         'etape',
         'notes',
@@ -80,6 +81,11 @@ class Opportunite extends Model
     }
 
     // --- Relations -----------------------------------------------------------
+
+    public function categorie(): BelongsTo
+    {
+        return $this->belongsTo(Categorie::class);
+    }
 
     public function contact(): BelongsTo
     {

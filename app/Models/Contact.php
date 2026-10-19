@@ -56,6 +56,7 @@ class Contact extends Model
         'secteur',
         'source',
         'temperature',
+        'categorie_id',
         'adresse_rue',
         'adresse_code_postal',
         'adresse_ville',
@@ -112,6 +113,12 @@ class Contact extends Model
     public function analyses(): HasMany
     {
         return $this->hasMany(Analyse::class);
+    }
+
+    /** La catégorie (et donc le pôle) de ce contact. */
+    public function categorie(): BelongsTo
+    {
+        return $this->belongsTo(Categorie::class);
     }
 
     // --- Scopes --------------------------------------------------------------
