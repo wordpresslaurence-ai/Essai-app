@@ -6,7 +6,7 @@
 
 ---
 
-## T1 — Fondations (base de données & modèles) ⬜
+## T1 — Fondations (base de données & modèles) ✅
 - Migrations : `parametres` (valeurs chiffrées), `emails`, `analyses` (schéma de `plan.md` §3).
 - Modèles `Parametre`, `Email`, `Analyse` (+ casts `encrypted` sur les secrets, relations
   `Email→Contact`, `Analyse→Contact`).
