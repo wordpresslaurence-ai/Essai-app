@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Activite;
 use App\Models\Contact;
+use App\Models\Email;
 use App\Models\Etiquette;
 use App\Models\Opportunite;
 use App\Models\User;
@@ -66,7 +67,7 @@ class DemoSeeder extends Seeder
         ]);
         $marie->etiquettes()->syncWithoutDetaching([$client->id]);
 
-        Contact::firstOrCreate(['nom' => 'Lambert', 'prenom' => 'Thomas'], [
+        $thomas = Contact::firstOrCreate(['nom' => 'Lambert', 'prenom' => 'Thomas'], [
             'type' => Contact::TYPE_PERSONNE,
             'fonction' => 'Directeur technique',
             'email' => 't.lambert@novatech.be',
@@ -112,6 +113,43 @@ class DemoSeeder extends Seeder
         ]);
         Activite::firstOrCreate(['titre' => 'Relancer devis réassort'], [
             'type' => Activite::TYPE_TACHE, 'contact_id' => $acme->id, 'echeance' => now()->subDay()->setTime(9, 0),
+        ]);
+
+        // E-mails de démonstration (assistant) — pour tester l'analyse et le brief
+        $boite = 'laurencehomeharmony@gmail.com';
+
+        // Marie : dernier message REÇU -> « tu dois une réponse »
+        Email::firstOrCreate(['message_id' => 'demo-marie-1'], [
+            'contact_id' => $marie->id, 'direction' => Email::DIRECTION_SORTANT,
+            'de' => $boite, 'a' => $marie->email,
+            'objet' => 'Votre réassort trimestriel',
+            'extrait' => 'Bonjour Marie, voici notre proposition pour le réassort de ce trimestre. Je reste à votre écoute.',
+            'date_email' => now()->subDays(9), 'boite' => $boite, 'traite' => true,
+        ]);
+        Email::firstOrCreate(['message_id' => 'demo-marie-2'], [
+            'contact_id' => $marie->id, 'direction' => Email::DIRECTION_ENTRANT,
+            'de' => $marie->email, 'a' => $boite,
+            'objet' => 'Re: Votre réassort trimestriel',
+            'extrait' => 'Merci beaucoup ! Pouvez-vous préciser les délais de livraison et voir si une petite remise est possible ?',
+            'date_email' => now()->subDay(), 'boite' => $boite,
+        ]);
+
+        // Sophie : message REÇU récent -> « tu dois une réponse »
+        Email::firstOrCreate(['message_id' => 'demo-sophie-1'], [
+            'contact_id' => $sophie->id, 'direction' => Email::DIRECTION_ENTRANT,
+            'de' => $sophie->email, 'a' => $boite,
+            'objet' => 'Intéressée par un accompagnement',
+            'extrait' => "Bonjour, j'aimerais en savoir plus sur votre accompagnement coaching. Avez-vous des disponibilités pour un premier échange ?",
+            'date_email' => now()->subDays(2), 'boite' => $boite,
+        ]);
+
+        // Thomas : dernier message ENVOYÉ, ancien -> « à relancer »
+        Email::firstOrCreate(['message_id' => 'demo-thomas-1'], [
+            'contact_id' => $thomas->id, 'direction' => Email::DIRECTION_SORTANT,
+            'de' => $boite, 'a' => $thomas->email,
+            'objet' => "Proposition d'audit technique",
+            'extrait' => 'Bonjour Thomas, suite à notre échange, voici notre proposition d’audit technique. Dites-moi ce que vous en pensez.',
+            'date_email' => now()->subDays(12), 'boite' => $boite, 'traite' => true,
         ]);
     }
 }
