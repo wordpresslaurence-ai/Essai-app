@@ -57,14 +57,25 @@ Trois offres + une prospection d'un autre type :
 
 Boîte mail concernée pour démarrer : **`laurencehomeharmony@gmail.com`**.
 
-### 4.B — Sites WordPress *(à décrire 🎙️ — vocal à venir)*
-Boîte : `wordpresslaurence@gmail.com`. À compléter : cycle de projet (devis → maquette →
-dev → mise en ligne → maintenance/renouvellement hébergement), types de prospects, etc.
+### 4.B — Internet / Digital *(décrite ✅ — nom du pôle à confirmer)*
+
+Boîte : `wordpresslaurence@gmail.com`. Plusieurs activités, vouées à évoluer :
+
+1. **Sites WordPress**
+   - Activité qui **va probablement décroître** (sans disparaître) → à **garder** mais
+     **pas prioritaire**.
+   - Arrive surtout par **bouche-à-oreille** → peu de prospection.
+2. **PDF interactifs** (freebies / artefacts créés avec l'IA)
+   - Laurence **crée l'artefact à l'avance**, puis veut **vendre** : mail de prospection →
+     envoi → **suivi des réponses / relances**. → activité **active/prioritaire** du pôle.
+3. **Futur** : petits **bots**, **workshops IA**, autres « petites choses faites par l'IA »
+   (pas encore défini) → doivent pouvoir s'ajouter **facilement** (voir §5.bis).
 
 ---
 
 ## 5. Objets du domaine (ce que le CRM devra représenter)
 
+- **Pôle** et **Activité** (voir §5.bis) — la **taxonomie configurable** à deux niveaux.
 - **Contact** (déjà existant) — personne/entreprise, avec une « casquette » selon l'activité
   (un même contact peut être client web **et** élève prana).
 - **Offre / Programme** : Formation profs, Journée aura/chakras, (plus tard) prestations web.
@@ -77,12 +88,35 @@ dev → mise en ligne → maintenance/renouvellement hébergement), types de pro
 - **Réservation (booking)** : créneau pris via Fluent Booking (découverte, 1-to-1, journée).
 - **Réunion + transcription** : compte-rendu (tl;dv) collé → résumé + tâches.
 
-## 6. Pipelines (un **onglet par type de prospection**)
+## 5.bis — Taxonomie à deux niveaux (configurable par Laurence)
 
-1. **Formation profs** : prospection → découverte gratuite → RDV 1-to-1 → inscription (→ promo).
-2. **Journées aura/chakras** : intérêt → inscription payante (par date/lieu).
-3. **Salles / partenaires** : à contacter → dispo demandée → devis reçu → réservé.
-4. *(plus tard)* **Sites web**.
+Besoin explicite : pouvoir **ajouter facilement** de nouvelles activités. On ne fige donc pas
+les onglets ; on met une structure **à deux étages que Laurence gère elle-même** :
+
+```
+PÔLE (onglet principal)   →   ACTIVITÉ (sous-onglet, avec son propre pipeline)
+──────────────────────────────────────────────────────────────────────────────
+Prana                     →   Formation profs · Journée aura/chakras · Salles · (Workshops…)
+Internet / Digital        →   Sites web · PDF interactifs · Workshops IA · (Bots…)
+```
+
+- **Pôle** et **Activité** sont des données **créables depuis l'interface** (pas en dur dans le code).
+- Chaque **Activité** porte son **pipeline** (ses étapes), sa jauge de places s'il y a lieu, etc.
+- Chaque **contact / opportunité** est rangé par **pôle + activité**.
+- Nom du 2ᵉ pôle **à confirmer** : Internet / Digital / Numérique / Studio / Web & IA / Créations.
+
+## 6. Pipelines (une **Activité = un sous-onglet = un pipeline**)
+
+Exemples d'étapes (modifiables, chaque activité a les siennes) :
+
+- **Formation profs** : prospection → découverte gratuite → RDV 1-to-1 → inscription (→ promo).
+- **Journées aura/chakras** : intérêt → inscription payante (par date/lieu).
+- **Salles / partenaires** : à contacter → dispo demandée → devis reçu → réservé.
+- **PDF interactifs** : artefact prêt → prospection → envoi → relance → vendu.
+- **Sites web** : (surtout bouche-à-oreille) contact → devis → maquette → mise en ligne → maintenance.
+
+> Le **moteur « prospection → mail → suivi → relances »** est **transversal** : identique
+> pour toutes les activités. On le construit **une fois**, il sert partout.
 
 ## 7. Intégrations
 
@@ -128,26 +162,33 @@ Notes :
 | Salles | **même CRM**, **onglet séparé** par type de prospection |
 | Tâches / RDV | tâches **CRM**, RDV **Google Agenda** (via Fluent Booking) |
 | Odoo | **manuel** : coche « facturé » + n° + montant |
+| **Organisation** | **2 niveaux configurables** : Pôle → Activité (sous-onglets), ajoutables par Laurence |
+| **Pôles** | **Prana** et **Internet/Digital** (nom à confirmer) |
+| **Sites web** | activité **gardée mais non prioritaire** (déclin, bouche-à-oreille) |
+| **PDF interactifs** | activité **active** : artefact créé à l'avance → prospection → suivi |
+| **Moteur prospection/relances** | **transversal** à toutes les activités (construit une seule fois) |
 
 ## 10. Questions encore ouvertes
 
-- Vocal « **Sites WordPress** » à intégrer (§4.B).
+- **Nom du 2ᵉ pôle** : Internet / Digital / Numérique / Studio / Web & IA / Créations ?
 - Récupération des mails : **automatique** (toutes les X min) ou **à la demande** pour l'étape 1 ?
   *(pressenti : à la demande d'abord, plus simple.)*
 - Confirmer les **liens Fluent Booking** exacts + l'**URL du site**.
 - Langues à gérer en priorité (FR seul au départ ?).
 
-## 11. Priorisation pressentie (à valider après le vocal web)
+## 11. Priorisation pressentie
 
-1. **Brancher `laurencehomeharmony@` + journaliser les fils** des contacts connus sur la fiche.
-2. **Bouton « Analyse & relances »** : l'IA lit le fil → résumé + *qui relancer / pourquoi* +
-   **brouillon** (avec le bon lien Fluent Booking).
-3. **Brief du matin** : relances du jour + « tu dois une réponse ».
-4. **Webhook Fluent Booking** (après passage en Pro) : réservations → fiches/activités auto.
-5. **Sessions + liste d'attente** (formation, journées).
-6. Extension aux autres boîtes (Outlook, `wordpresslaurence@`) + pipeline **Sites web**.
+1. **Moteur de l'assistant** (transversal) : brancher `laurencehomeharmony@`, journaliser les
+   fils des contacts connus, bouton **« Analyse & relances »** (résumé + qui relancer/pourquoi
+   + **brouillon** avec le bon lien Fluent Booking), **brief du matin** (relances + « tu dois
+   une réponse »).
+2. **Taxonomie à 2 niveaux** (pôles / activités configurables).
+3. **Prospection PDF interactifs** (activité active : vendre les artefacts).
+4. **Prospection formation profs** (Prana) + **sessions / liste d'attente**.
+5. **Webhook Fluent Booking** (après passage en Pro) : réservations → fiches/activités auto.
+6. **Sites WordPress** (bas, bouche-à-oreille) + extension aux autres boîtes (`wordpresslaurence@`, Outlook).
 
 ---
 
-*Prochaine étape : compléter §4.B avec le vocal « sites WordPress », puis rédiger
-`spec.md` (périmètre précis) → `plan.md` → `tasks.md` pour la **brique 1**.*
+*Prochaine étape : trancher les questions ouvertes (§10), puis rédiger `spec.md` (périmètre
+précis) → `plan.md` → `tasks.md` pour la **brique 1** (le moteur de l'assistant).*
