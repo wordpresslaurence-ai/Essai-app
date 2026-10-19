@@ -168,6 +168,7 @@
   .lb-alert { border-radius:16px; padding:14px 16px; font-size:13.5px; box-shadow:var(--raise-sm); }
   .lb-alert-success { background:var(--mint-tint); color:var(--mint-deep); }
   .lb-alert-warn { background:var(--gold-tint); color:var(--accent); }
+  .lb-alert-danger { background:var(--terra-tint); color:var(--terra); }
 
   :focus-visible { outline:none; box-shadow:0 0 0 3px var(--ring); border-radius:12px; }
 }

@@ -8,6 +8,9 @@
     @if (session('message'))
         <div class="lb-alert lb-alert-success mt-5">{{ session('message') }}</div>
     @endif
+    @if (session('erreur'))
+        <div class="lb-alert lb-alert-danger mt-5">{{ session('erreur') }}</div>
+    @endif
 
     <form wire:submit="enregistrer" class="mt-5" style="max-width:720px">
 
@@ -95,7 +98,15 @@
         </fieldset>
 
         <div class="flex items-center justify-end gap-3 mt-6">
+            <button type="button" wire:click="testerConnexion" class="lb-btn lb-btn-ghost"
+                    wire:loading.attr="disabled" wire:target="testerConnexion">
+                <span wire:loading.remove wire:target="testerConnexion">Tester la connexion</span>
+                <span wire:loading wire:target="testerConnexion">Test en cours…</span>
+            </button>
             <button type="submit" class="lb-btn lb-btn-primary">Enregistrer</button>
         </div>
+        <p class="lb-muted" style="font-size:12px;text-align:right;margin-top:6px">
+            Enregistre d'abord si tu viens de saisir le mot de passe, puis teste la connexion.
+        </p>
     </form>
 </div>

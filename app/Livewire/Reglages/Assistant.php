@@ -3,9 +3,11 @@
 namespace App\Livewire\Reglages;
 
 use App\Models\Parametre;
+use App\Services\Email\LecteurEmails;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Throwable;
 
 /**
  * Réglages de l'assistant : connexion e-mail, clé API Claude, liens Fluent Booking
@@ -96,6 +98,20 @@ class Assistant extends Component
         $this->cleApiDefinie = filled($p->anthropic_api_key);
 
         session()->flash('message', 'Réglages enregistrés.');
+    }
+
+    /**
+     * Teste la connexion à la boîte e-mail avec les réglages enregistrés.
+     * Pense à enregistrer d'abord si tu viens de saisir le mot de passe.
+     */
+    public function testerConnexion(): void
+    {
+        try {
+            app(LecteurEmails::class)->tester();
+            session()->flash('message', 'Connexion à la boîte e-mail réussie.');
+        } catch (Throwable $e) {
+            session()->flash('erreur', $e->getMessage());
+        }
     }
 
     public function render(): View
