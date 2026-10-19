@@ -34,7 +34,7 @@
 - Bouton **« Synchroniser mes mails »** (provisoirement sur le tableau de bord).
 - **Tests** : association, entrant/sortant, déduplication, tâche créée pour inconnu, compte-rendu.
 
-## T5 — Fil des emails sur la fiche ⬜
+## T5 — Fil des emails sur la fiche ✅
 - Section **« Emails »** dans `FicheDetail` : liste chronologique, badge entrant/sortant,
   objet, date, aperçu. Style « Or & Encre » existant.
 - **Tests** : la fiche affiche les emails du contact, dans l'ordre.
