@@ -19,7 +19,7 @@
   3 liens Fluent Booking (pré-remplis avec les valeurs connues). Secrets jamais réaffichés en clair.
 - **Tests** : enregistrement, valeurs par défaut, champs secrets masqués.
 
-## T3 — Lecture IMAP (dépendance + service) ⬜
+## T3 — Lecture IMAP (dépendance + service) ✅
 - Ajouter la librairie IMAP (`webklex/php-imap` ou extension native).
 - Interface `LecteurEmails` + implémentation `ClientImap` (connexion depuis les réglages,
   liste des messages depuis `derniere_synchro_at`, borne 90 j à la 1ʳᵉ fois).
