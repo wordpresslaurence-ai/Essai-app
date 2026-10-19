@@ -30,6 +30,9 @@ Donner à Laurence un assistant, **dans le CRM**, qui :
 - Webhooks Fluent Booking, lecture de l'agenda Google, transcriptions tl;dv.
 - Autres boîtes (`wordpresslaurence@`, Outlook), prospection sortante automatisée.
 - Envoi d'emails depuis le CRM (l'assistant **rédige**, Laurence **envoie** depuis Gmail).
+- **Dépôt du brouillon directement dans la boîte Gmail** (dossier *Brouillons*, via IMAP) :
+  **gratuit** côté email et **sans surcoût IA**, mais ajouté en **brique ultérieure** (brique 1
+  = copier-coller).
 
 ## 3. Utilisateur
 
@@ -60,8 +63,9 @@ Laurence, **seule utilisatrice** (compte unique). Pas de multi-utilisateur.
     **N jours** (N réglable, défaut **5**).
   - *Réponse due* : le **dernier** message est **entrant** et **non traité** (Laurence n'a pas
     répondu). ⚠️ prioritaire.
-- **RF-4 — Mail inconnu** : au départ, simplement **ignoré** (journalisé dans un compteur
-  « X mails non rattachés »). *(La création auto de lead viendra plus tard.)*
+- **RF-4 — Mail inconnu** : pas de création automatique de prospect, mais l'assistant **crée une
+  tâche « Créer le prospect : <nom/adresse> »** (avec l'adresse et l'objet du mail), pour que
+  Laurence décide. Une seule tâche par adresse inconnue (pas de doublon).
 - **RF-5 — Analyse IA** : « Analyse & relances » envoie le fil du contact à l'API Claude et
   renvoie : (a) **résumé** court, (b) **verdict** (relancer oui/non + raison + délai conseillé),
   (c) **brouillon** en français, dans un ton chaleureux/pro, (d) **lien Fluent Booking** inséré
@@ -71,8 +75,16 @@ Laurence, **seule utilisatrice** (compte unique). Pas de multi-utilisateur.
   - appel visio 1-to-1 : `…event=appel-visio1`
   - séance découverte gratuite : page `https://homeharmony.be/seance-prana-gratuite/`
   - journée nettoyage aura : page `https://homeharmony.be/nettoyage-aura-chakras`
-- **RF-7 — Brief du matin** : liste « Réponses dues » (RF-3b) puis « À relancer » (RF-3a),
-  triées par ancienneté. Chaque ligne : contact + dernier échange + bouton vers la fiche.
+- **RF-7 — Brief du matin** : trois parties.
+  1. **Réponses dues** (RF-3b), prioritaires.
+  2. **À relancer** (RF-3a), triées par ancienneté.
+  3. **Suggestions du jour** : l'assistant se comporte comme un vrai assistant de suivi et
+     propose, en plus des deux listes, des actions utiles qu'il déduit des données (ex. « ce
+     prospect a ouvert la séance découverte mais n'a pas confirmé », « 3 personnes en liste
+     d'attente — pense à proposer une date », « ce client n'a pas eu de nouvelles depuis 2 mois »).
+  Chaque ligne : contact + contexte + bouton vers la fiche. Les suggestions sont générées par
+  **un seul appel** à l'API Claude (coût minime) ; les deux listes, elles, sont calculées
+  localement (gratuit).
 - **RF-8 — Synchronisation** : « Synchroniser » récupère les emails **depuis la dernière
   synchro** (ou les **90 derniers jours** à la première fois), **sans doublon** (clé = identifiant
   de message email).
@@ -91,6 +103,9 @@ Laurence, **seule utilisatrice** (compte unique). Pas de multi-utilisateur.
 
 ## 7. Intégrations & technique
 
+- **Hébergement** : cible de **production = Hostinger** (PHP + MySQL + accès IMAP sortant).
+  *(Test actuel sur Railway en SQLite.)* La synchro étant déclenchée par un **bouton**, aucune
+  tâche planifiée n'est nécessaire pour la brique 1.
 - **Gmail** : lecture **IMAP** avec **mot de passe d'application** (2FA à activer côté Google).
   Librairie IMAP côté Laravel. Lecture seule (aucun envoi).
 - **Claude** : **API Anthropic** côté serveur (clé en réglages, jamais dans le code/Git).
@@ -112,7 +127,8 @@ Laurence, **seule utilisatrice** (compte unique). Pas de multi-utilisateur.
    Fluent Booking quand c'est pertinent, et **enregistre** le résultat (horodaté). Rien n'est
    envoyé.
 5. Le **brief** liste correctement « réponses dues » et « à relancer » selon RF-3.
-6. Un mail d'une adresse **inconnue** n'est pas rattaché et n'empêche pas la synchro.
+6. Un mail d'une adresse **inconnue** n'est pas rattaché et **crée une tâche « Créer le
+   prospect »** (sans doublon), sans empêcher la synchro.
 7. Les **tests** (Pest) passent et le code est **formaté** (Pint).
 
 ## 9. Prérequis à la charge de Laurence (je la guiderai pas-à-pas)
