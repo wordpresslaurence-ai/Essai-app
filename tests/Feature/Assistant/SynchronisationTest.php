@@ -52,10 +52,14 @@ it('ne crée pas de doublon pour le même message', function () {
     $msg = recu('m3', 'client@example.com', [BOITE]);
 
     sync([$msg]);
-    $r = sync([$msg]); // deuxième passage
 
-    expect(Email::count())->toBe(1);
-    expect($r->ignores)->toBe(1);
+    // On force le message à être re-vu (comme un chevauchement de fenêtre de synchro)
+    Parametre::instance()->update(['derniere_synchro_at' => null]);
+    $r = sync([$msg]); // deuxième passage avec le même message_id
+
+    expect(Email::count())->toBe(1);  // pas de doublon
+    expect($r->ignores)->toBe(1);     // message re-vu mais ignoré (déjà présent)
+    expect($r->emailsImportes)->toBe(0);
 });
 
 it('crée une tâche « créer le prospect » pour un expéditeur inconnu', function () {
