@@ -1,0 +1,83 @@
+<?php
+
+use App\Models\Activite;
+use App\Models\Contact;
+use App\Models\Email;
+use App\Models\Parametre;
+use App\Services\Email\LecteurFactice;
+use App\Services\Email\MessageEmail;
+use App\Services\Email\SynchronisationEmails;
+use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+const BOITE = 'laurencehomeharmony@gmail.com';
+
+beforeEach(function () {
+    Parametre::instance()->update(['gmail_email' => BOITE]);
+});
+
+function recu(string $id, string $de, array $a, string $objet = 'Bonjour'): MessageEmail
+{
+    return new MessageEmail($id, $de, $a, $objet, 'Texte', Carbon::parse('2026-06-01 10:00'));
+}
+
+function sync(array $messages): App\Services\Email\ResultatSynchronisation
+{
+    return (new SynchronisationEmails(new LecteurFactice($messages)))->executer();
+}
+
+it('rattache un mail entrant au bon contact et le marque entrant', function () {
+    $contact = Contact::factory()->create(['email' => 'client@example.com']);
+
+    $r = sync([recu('m1', 'client@example.com', [BOITE])]);
+
+    expect($r->emailsImportes)->toBe(1);
+    $email = Email::first();
+    expect($email->contact_id)->toBe($contact->id);
+    expect($email->direction)->toBe(Email::DIRECTION_ENTRANT);
+});
+
+it('marque sortant un mail envoyé depuis la boîte', function () {
+    $contact = Contact::factory()->create(['email' => 'client@example.com']);
+
+    sync([recu('m2', BOITE, ['client@example.com'])]);
+
+    expect(Email::first()->direction)->toBe(Email::DIRECTION_SORTANT);
+});
+
+it('ne crée pas de doublon pour le même message', function () {
+    Contact::factory()->create(['email' => 'client@example.com']);
+    $msg = recu('m3', 'client@example.com', [BOITE]);
+
+    sync([$msg]);
+    $r = sync([$msg]); // deuxième passage
+
+    expect(Email::count())->toBe(1);
+    expect($r->ignores)->toBe(1);
+});
+
+it('crée une tâche « créer le prospect » pour un expéditeur inconnu', function () {
+    $r = sync([recu('m4', 'inconnu@example.com', [BOITE], 'Demande d’info')]);
+
+    expect($r->emailsImportes)->toBe(0);
+    expect($r->tachesCreees)->toBe(1);
+    $tache = Activite::where('type', Activite::TYPE_TACHE)->first();
+    expect($tache->contact_id)->toBeNull();
+    expect($tache->notes)->toContain('inconnu@example.com');
+});
+
+it('ne crée pas deux fois la tâche pour la même adresse inconnue', function () {
+    sync([recu('m5', 'inconnu@example.com', [BOITE])]);
+    $r = sync([recu('m6', 'inconnu@example.com', [BOITE])]);
+
+    expect(Activite::where('type', Activite::TYPE_TACHE)->count())->toBe(1);
+    expect($r->tachesCreees)->toBe(0);
+});
+
+it('met à jour la date de dernière synchronisation', function () {
+    expect(Parametre::instance()->derniere_synchro_at)->toBeNull();
+    sync([]);
+    expect(Parametre::instance()->fresh()->derniere_synchro_at)->not->toBeNull();
+});

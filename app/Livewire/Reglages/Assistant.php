@@ -4,6 +4,7 @@ namespace App\Livewire\Reglages;
 
 use App\Models\Parametre;
 use App\Services\Email\LecteurEmails;
+use App\Services\Email\SynchronisationEmails;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -116,6 +117,19 @@ class Assistant extends Component
         try {
             app(LecteurEmails::class)->tester();
             $this->testMessage = 'Connexion à la boîte e-mail réussie.';
+        } catch (Throwable $e) {
+            $this->testErreur = $e->getMessage();
+        }
+    }
+
+    /** Lance la synchronisation des e-mails avec la boîte configurée. */
+    public function synchroniser(): void
+    {
+        $this->reset('testMessage', 'testErreur');
+
+        try {
+            $resultat = app(SynchronisationEmails::class)->executer();
+            $this->testMessage = $resultat->resume();
         } catch (Throwable $e) {
             $this->testErreur = $e->getMessage();
         }

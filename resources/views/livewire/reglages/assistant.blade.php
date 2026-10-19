@@ -100,7 +100,12 @@
             </div>
         </fieldset>
 
-        <div class="flex items-center justify-end gap-3 mt-6">
+        <div class="flex flex-wrap items-center justify-end gap-3 mt-6">
+            <button type="button" wire:click="synchroniser" class="lb-btn lb-btn-ghost"
+                    wire:loading.attr="disabled" wire:target="synchroniser">
+                <span wire:loading.remove wire:target="synchroniser">Synchroniser mes mails</span>
+                <span wire:loading wire:target="synchroniser">Synchronisation…</span>
+            </button>
             <button type="button" wire:click="testerConnexion" class="lb-btn lb-btn-ghost"
                     wire:loading.attr="disabled" wire:target="testerConnexion">
                 <span wire:loading.remove wire:target="testerConnexion">Tester la connexion</span>
