@@ -13,7 +13,7 @@
 - Helper d'accès aux réglages (une seule ligne de `parametres`).
 - **Tests** : création/chiffrement des réglages ; relations ; un secret n'est jamais stocké en clair.
 
-## T2 — Écran Réglages ⬜
+## T2 — Écran Réglages ✅
 - Composant `Reglages\Assistant` + route `reglages.assistant` + entrée de menu « Réglages ».
 - Formulaire : Gmail, mot de passe d'application, clé API Claude, modèle, délai de relance (5),
   3 liens Fluent Booking (pré-remplis avec les valeurs connues). Secrets jamais réaffichés en clair.
