@@ -47,7 +47,7 @@
 - Liaison dans le conteneur de services (fake en environnement de test).
 - **Tests** : `AssistantFactice` renvoie une structure exploitable ; aucune vraie clé requise.
 
-## T7 — Analyse & relances (sur la fiche) ⬜
+## T7 — Analyse & relances (sur la fiche) ✅
 - Bouton **« Analyse & relances »** sur `FicheDetail` → appelle `AssistantIA`, affiche
   **résumé / verdict / brouillon** et **enregistre** une `Analyse` (horodatée).
 - Insertion du **bon lien Fluent Booking** selon le contexte (RF-6). Bouton **copier** le brouillon.
