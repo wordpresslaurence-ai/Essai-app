@@ -62,8 +62,8 @@ class Assistant extends Component
         $this->lien_journee_aura = $p->lien_journee_aura
             ?? 'https://homeharmony.be/nettoyage-aura-chakras';
 
-        $this->gmailMotDePasseDefini = filled($p->gmail_app_password);
-        $this->cleApiDefinie = filled($p->anthropic_api_key);
+        $this->gmailMotDePasseDefini = filled($p->secret('gmail_app_password'));
+        $this->cleApiDefinie = filled($p->secret('anthropic_api_key'));
     }
 
     public function enregistrer(): void
@@ -100,8 +100,8 @@ class Assistant extends Component
 
         // On vide les champs secrets et on rafraîchit les indicateurs
         $this->reset('gmail_app_password', 'anthropic_api_key');
-        $this->gmailMotDePasseDefini = filled($p->gmail_app_password);
-        $this->cleApiDefinie = filled($p->anthropic_api_key);
+        $this->gmailMotDePasseDefini = filled($p->secret('gmail_app_password'));
+        $this->cleApiDefinie = filled($p->secret('anthropic_api_key'));
 
         session()->flash('message', 'Réglages enregistrés.');
     }

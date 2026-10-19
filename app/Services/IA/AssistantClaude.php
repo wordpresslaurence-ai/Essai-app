@@ -74,12 +74,14 @@ class AssistantClaude implements AssistantIA
 
     private function envoyer(Parametre $p, string $systeme, string $utilisateur, int $maxTokens): string
     {
-        if (blank($p->anthropic_api_key)) {
-            throw new RuntimeException('Clé API Claude manquante : renseigne-la dans les Réglages.');
+        $cle = $p->secret('anthropic_api_key');
+
+        if (blank($cle)) {
+            throw new RuntimeException('Clé API Claude manquante ou illisible : (re)saisis-la dans les Réglages.');
         }
 
         $reponse = Http::withHeaders([
-            'x-api-key' => $p->anthropic_api_key,
+            'x-api-key' => $cle,
             'anthropic-version' => self::VERSION,
             'content-type' => 'application/json',
         ])->timeout(60)->post(self::URL, [

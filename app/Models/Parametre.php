@@ -47,11 +47,24 @@ class Parametre extends Model
         return static::firstOrCreate([]);
     }
 
+    /**
+     * Lit un secret chiffré en tolérant une clé de chiffrement incompatible
+     * (ex. APP_KEY régénérée) : renvoie null plutôt que de lever une exception.
+     */
+    public function secret(string $champ): ?string
+    {
+        try {
+            return $this->{$champ};
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     /** L'assistant est-il configuré (boîte + clé API) ? */
     public function estConfigure(): bool
     {
         return filled($this->gmail_email)
-            && filled($this->gmail_app_password)
-            && filled($this->anthropic_api_key);
+            && filled($this->secret('gmail_app_password'))
+            && filled($this->secret('anthropic_api_key'));
     }
 }
