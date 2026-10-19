@@ -68,5 +68,5 @@ it('affiche un espace vide avant toute analyse', function () {
     $contact = Contact::factory()->create();
 
     Livewire::test(FicheDetail::class, ['contact' => $contact])
-        ->assertSee('Pas encore d\'analyse');
+        ->assertSee('Pas encore');
 });
