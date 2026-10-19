@@ -39,7 +39,7 @@
   objet, date, aperçu. Style « Or & Encre » existant.
 - **Tests** : la fiche affiche les emails du contact, dans l'ordre.
 
-## T6 — Interface IA + client Claude ⬜
+## T6 — Interface IA + client Claude ✅
 - Interface `AssistantIA` (`analyserContact`, `suggestionsDuJour`).
 - Implémentation `AssistantClaude` (SDK officiel ou client HTTP Laravel ; clé chiffrée ; modèle
   économique par défaut ; erreurs gérées proprement).
