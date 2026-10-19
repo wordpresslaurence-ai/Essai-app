@@ -8,8 +8,11 @@
     @if (session('message'))
         <div class="lb-alert lb-alert-success mt-5">{{ session('message') }}</div>
     @endif
-    @if (session('erreur'))
-        <div class="lb-alert lb-alert-danger mt-5">{{ session('erreur') }}</div>
+    @if ($testMessage)
+        <div class="lb-alert lb-alert-success mt-5">{{ $testMessage }}</div>
+    @endif
+    @if ($testErreur)
+        <div class="lb-alert lb-alert-danger mt-5">{{ $testErreur }}</div>
     @endif
 
     <form wire:submit="enregistrer" class="mt-5" style="max-width:720px">

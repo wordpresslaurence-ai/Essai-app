@@ -44,9 +44,9 @@ it('le bouton Tester la connexion signale un succès', function () {
 
     Livewire::test(Assistant::class)
         ->call('testerConnexion')
-        ->assertHasNoErrors();
-
-    expect(session('message'))->toContain('réussie');
+        ->assertHasNoErrors()
+        ->assertSet('testErreur', null)
+        ->assertSet('testMessage', 'Connexion à la boîte e-mail réussie.');
 });
 
 it('le bouton Tester la connexion signale un échec proprement', function () {
@@ -54,7 +54,7 @@ it('le bouton Tester la connexion signale un échec proprement', function () {
     $this->app->bind(LecteurEmails::class, fn () => new LecteurFactice([], connexionOk: false));
 
     Livewire::test(Assistant::class)
-        ->call('testerConnexion');
-
-    expect(session('erreur'))->toContain('échouée');
+        ->call('testerConnexion')
+        ->assertSet('testMessage', null)
+        ->assertSet('testErreur', 'Connexion factice échouée.');
 });

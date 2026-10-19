@@ -40,6 +40,11 @@ class Assistant extends Component
 
     public bool $cleApiDefinie = false;
 
+    // Résultat du dernier test de connexion (affiché dans la vue)
+    public ?string $testMessage = null;
+
+    public ?string $testErreur = null;
+
     public function mount(): void
     {
         $p = Parametre::instance();
@@ -106,11 +111,13 @@ class Assistant extends Component
      */
     public function testerConnexion(): void
     {
+        $this->reset('testMessage', 'testErreur');
+
         try {
             app(LecteurEmails::class)->tester();
-            session()->flash('message', 'Connexion à la boîte e-mail réussie.');
+            $this->testMessage = 'Connexion à la boîte e-mail réussie.';
         } catch (Throwable $e) {
-            session()->flash('erreur', $e->getMessage());
+            $this->testErreur = $e->getMessage();
         }
     }
 
