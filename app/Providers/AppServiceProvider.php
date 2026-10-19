@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Services\Email\ClientImap;
 use App\Services\Email\LecteurEmails;
+use App\Services\IA\AssistantClaude;
+use App\Services\IA\AssistantIA;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -15,6 +17,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Lecture des e-mails : client IMAP réel par défaut (les tests injectent un factice).
         $this->app->bind(LecteurEmails::class, ClientImap::class);
+
+        // Assistant IA : client Claude réel par défaut (les tests injectent un factice).
+        $this->app->bind(AssistantIA::class, AssistantClaude::class);
     }
 
     /**
