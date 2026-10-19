@@ -27,7 +27,7 @@
 - Bouton **« Tester la connexion »** dans les Réglages (message clair si échec).
 - **Tests** : via `LecteurFactice` (aucun accès réseau réel).
 
-## T4 — Synchronisation ⬜
+## T4 — Synchronisation ✅
 - Service `SynchronisationEmails` : association par adresse (RF-1), marque entrant/sortant (RF-2),
   insertion **sans doublon** par `message_id` (RF-8), **tâche « Créer le prospect »** pour une
   adresse inconnue (RF-4, anti-doublon), **compte-rendu** (« X importés, Y tâches »).
