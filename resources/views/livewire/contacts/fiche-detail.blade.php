@@ -131,6 +131,32 @@
                 @endforelse
             </div>
 
+            {{-- Fil des e-mails (assistant) --}}
+            <div class="flex items-center justify-between mt-5">
+                <h3 class="lb-h3" style="font-size:19px">Emails</h3>
+                @if ($contact->emails->isNotEmpty())
+                    <span class="lb-muted" style="font-size:12px">{{ $contact->emails->count() }} message(s)</span>
+                @endif
+            </div>
+            <div class="lb-people mt-3">
+                @forelse ($contact->emails as $mail)
+                    <div class="lb-prow" wire:key="mail-{{ $mail->id }}">
+                        @if ($mail->estEntrant())
+                            <span class="lb-tag" style="background:var(--lav-tint);color:var(--lav)">Reçu</span>
+                        @else
+                            <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep)">Envoyé</span>
+                        @endif
+                        <div style="min-width:0">
+                            <div class="nm lb-truncate">{{ $mail->objet ?: '(sans objet)' }}</div>
+                            <div class="mt lb-truncate">{{ $mail->extrait }}</div>
+                        </div>
+                        <span class="lb-muted" style="margin-left:auto;font-size:12px;white-space:nowrap">{{ $mail->date_email?->translatedFormat('d/m/Y') }}</span>
+                    </div>
+                @empty
+                    <div class="lb-placeholder">Aucun e-mail synchronisé.</div>
+                @endforelse
+            </div>
+
             <div class="flex items-center justify-between mt-5">
                 <h3 class="lb-h3" style="font-size:19px">Activités</h3>
                 <a href="{{ route('activites.creer') }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>+ Ajouter</a>

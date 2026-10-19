@@ -49,6 +49,7 @@ class FicheDetail extends Component
             'etiquettes',
             'opportunites' => fn ($q) => $q->orderByDesc('created_at'),
             'activites' => fn ($q) => $q->with('opportunite')->orderByRaw('echeance is null')->orderBy('echeance'),
+            'emails' => fn ($q) => $q->orderByDesc('date_email'),
         ]);
 
         return view('livewire.contacts.fiche-detail');
