@@ -75,3 +75,5 @@ Deux options selon ton offre Hostinger :
 
 Dans les deux cas, pense à mettre `APP_ENV=production`, `APP_DEBUG=false`, une `APP_KEY` fixe,
 et à faire tourner `php artisan migrate --force` (le `Dockerfile` le fait automatiquement).
+
+<!-- Redéploiement manuel : 2026-10-19T09:49Z -->
