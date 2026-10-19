@@ -163,18 +163,32 @@ Notes :
 | Tâches / RDV | tâches **CRM**, RDV **Google Agenda** (via Fluent Booking) |
 | Odoo | **manuel** : coche « facturé » + n° + montant |
 | **Organisation** | **2 niveaux configurables** : Pôle → Activité (sous-onglets), ajoutables par Laurence |
-| **Pôles** | **Prana** et **Internet/Digital** (nom à confirmer) |
+| **Pôles** | **Prana** et **Digital** |
+| **Synchro mail** | **à la demande** (bouton) au départ |
+| **Langue** | **français seul** au départ |
 | **Sites web** | activité **gardée mais non prioritaire** (déclin, bouche-à-oreille) |
 | **PDF interactifs** | activité **active** : artefact créé à l'avance → prospection → suivi |
 | **Moteur prospection/relances** | **transversal** à toutes les activités (construit une seule fois) |
 
-## 10. Questions encore ouvertes
+## 10. Réglages confirmés & liens *(tranché ✅)*
 
-- **Nom du 2ᵉ pôle** : Internet / Digital / Numérique / Studio / Web & IA / Créations ?
-- Récupération des mails : **automatique** (toutes les X min) ou **à la demande** pour l'étape 1 ?
-  *(pressenti : à la demande d'abord, plus simple.)*
-- Confirmer les **liens Fluent Booking** exacts + l'**URL du site**.
-- Langues à gérer en priorité (FR seul au départ ?).
+**Réglages**
+- 2ᵉ pôle = **Digital**
+- Synchro mail = **à la demande** (bouton « synchroniser », pas d'automatique au départ)
+- Langue = **français seul**
+- Site Prana : **https://homeharmony.be**
+
+**Liens à insérer par l'assistant** (on privilégie la **page de destination** au lien Fluent
+Booking brut quand une page existe) :
+
+| Usage | Lien à insérer | Lien Fluent Booking brut |
+|---|---|---|
+| Formation — **appel visio 1-to-1** (gratuit) | *(lien booking)* | `https://homeharmony.be/?fluent-booking=calendar&host=siteweb&event=appel-visio1` |
+| Formation — **séance découverte gratuite** | `https://homeharmony.be/seance-prana-gratuite/` ⭐ | `…&event=gratuit-prana` |
+| **Journée nettoyage aura/chakras** | `https://homeharmony.be/nettoyage-aura-chakras` ⭐ | `…&event=aura` |
+
+⚠️ **À confirmer** : la **page d'offre de la formation profs** (le lien transmis pour « l'offre
+prana vidya » pointait vers la page *nettoyage aura* — probable erreur de copier-coller).
 
 ## 11. Priorisation pressentie
 
