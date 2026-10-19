@@ -2,19 +2,46 @@
 
 namespace App\Livewire\Contacts;
 
+use App\Models\Analyse;
 use App\Models\Contact;
+use App\Services\IA\AssistantIA;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Throwable;
 
 #[Layout('layouts.app')]
 class FicheDetail extends Component
 {
     public Contact $contact;
 
+    public ?string $analyseErreur = null;
+
     public function mount(Contact $contact): void
     {
         $this->contact = $contact;
+    }
+
+    /** Lance l'« Analyse & relances » du contact via l'assistant et l'enregistre. */
+    public function analyser(): void
+    {
+        $this->reset('analyseErreur');
+
+        try {
+            $r = app(AssistantIA::class)->analyser($this->contact);
+
+            Analyse::create([
+                'contact_id' => $this->contact->id,
+                'resume' => $r->resume,
+                'verdict' => $r->verdict,
+                'delai_conseille' => $r->delaiConseille,
+                'brouillon' => $r->brouillon,
+                'modele' => $r->modele,
+                'faite_le' => now(),
+            ]);
+        } catch (Throwable $e) {
+            $this->analyseErreur = $e->getMessage();
+        }
     }
 
     public function archiver(): void
@@ -52,6 +79,8 @@ class FicheDetail extends Component
             'emails' => fn ($q) => $q->orderByDesc('date_email'),
         ]);
 
-        return view('livewire.contacts.fiche-detail');
+        return view('livewire.contacts.fiche-detail', [
+            'derniereAnalyse' => $this->contact->analyses()->latest('faite_le')->first(),
+        ]);
     }
 }

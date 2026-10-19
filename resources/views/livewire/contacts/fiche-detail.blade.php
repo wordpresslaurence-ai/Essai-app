@@ -157,6 +157,50 @@
                 @endforelse
             </div>
 
+            {{-- Analyse & relances (assistant IA) --}}
+            <div class="flex items-center justify-between mt-5">
+                <h3 class="lb-h3" style="font-size:19px">Analyse &amp; relances</h3>
+                <button type="button" wire:click="analyser" class="lb-btn lb-btn-ghost"
+                        style="padding:7px 13px;font-size:12.5px"
+                        wire:loading.attr="disabled" wire:target="analyser">
+                    <span wire:loading.remove wire:target="analyser">Analyser</span>
+                    <span wire:loading wire:target="analyser">Analyse en cours…</span>
+                </button>
+            </div>
+
+            @if ($analyseErreur)
+                <div class="lb-alert lb-alert-danger mt-3">{{ $analyseErreur }}</div>
+            @endif
+
+            @if ($derniereAnalyse)
+                <div class="lb-card-sm mt-3" x-data="{ copie: false }">
+                    <div class="lb-kv"><div class="k">Résumé</div><div class="v">{{ $derniereAnalyse->resume }}</div></div>
+                    @if ($derniereAnalyse->verdict)
+                        <div class="lb-kv" style="margin-top:8px"><div class="k">À relancer ?</div><div class="v">{{ $derniereAnalyse->verdict }}@if ($derniereAnalyse->delai_conseille) <span class="lb-muted">· {{ $derniereAnalyse->delai_conseille }}</span>@endif</div></div>
+                    @endif
+
+                    @if ($derniereAnalyse->brouillon)
+                        <div style="margin-top:12px">
+                            <div class="lb-label" style="display:flex;align-items:center;justify-content:space-between">
+                                <span>Brouillon proposé</span>
+                                <button type="button" class="lb-accent" style="font-size:12px;font-weight:600;background:none;border:0;cursor:pointer"
+                                        x-on:click="navigator.clipboard.writeText($refs.brouillon.value); copie = true; setTimeout(() => copie = false, 2000)">
+                                    <span x-show="!copie">Copier</span>
+                                    <span x-show="copie" x-cloak>Copié ✓</span>
+                                </button>
+                            </div>
+                            <textarea x-ref="brouillon" readonly rows="6" class="lb-field" style="margin-top:6px">{{ $derniereAnalyse->brouillon }}</textarea>
+                        </div>
+                    @endif
+
+                    <p class="lb-muted" style="font-size:11.5px;margin-top:10px">
+                        Analyse du {{ $derniereAnalyse->faite_le?->translatedFormat('d/m/Y à H:i') }} · tu copies, tu envoies depuis ta boîte mail.
+                    </p>
+                </div>
+            @else
+                <div class="lb-placeholder mt-3">Pas encore d'analyse. Clique sur « Analyser » pour obtenir un conseil de relance et un brouillon.</div>
+            @endif
+
             <div class="flex items-center justify-between mt-5">
                 <h3 class="lb-h3" style="font-size:19px">Activités</h3>
                 <a href="{{ route('activites.creer') }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>+ Ajouter</a>
