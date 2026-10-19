@@ -98,7 +98,12 @@ class AssistantClaude implements AssistantIA
             throw new RuntimeException('L’assistant IA a refusé la requête : '.$detail.' (modèle '.$this->modele($p).').');
         }
 
-        $texte = (string) data_get($json, 'content.0.text', '');
+        // La réponse peut contenir plusieurs blocs (ex. « thinking » puis « text ») :
+        // on récupère tout le texte des blocs de type « text ».
+        $texte = collect(data_get($json, 'content', []))
+            ->filter(fn ($bloc) => is_array($bloc) && ($bloc['type'] ?? '') === 'text')
+            ->map(fn ($bloc) => (string) ($bloc['text'] ?? ''))
+            ->implode('');
 
         if (trim($texte) === '') {
             $cause = data_get($json, 'error.message')
