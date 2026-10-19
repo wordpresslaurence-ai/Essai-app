@@ -24,6 +24,11 @@ class Parametre extends Model
         'derniere_synchro_at',
     ];
 
+    /** Valeurs par défaut au niveau du modèle (reflétées dès la création). */
+    protected $attributes = [
+        'relance_delai_jours' => 5,
+    ];
+
     protected function casts(): array
     {
         return [
