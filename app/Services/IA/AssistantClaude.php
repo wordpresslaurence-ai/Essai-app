@@ -91,11 +91,24 @@ class AssistantClaude implements AssistantIA
             ],
         ]);
 
+        $json = $reponse->json();
+
         if ($reponse->failed()) {
-            throw new RuntimeException('L’assistant IA est indisponible ('.$reponse->status().'). Vérifie ta clé API.');
+            $detail = data_get($json, 'error.message') ?? data_get($json, 'error.type') ?? $reponse->status();
+            throw new RuntimeException('L’assistant IA a refusé la requête : '.$detail.' (modèle '.$this->modele($p).').');
         }
 
-        return (string) data_get($reponse->json(), 'content.0.text', '');
+        $texte = (string) data_get($json, 'content.0.text', '');
+
+        if (trim($texte) === '') {
+            $cause = data_get($json, 'error.message')
+                ?? data_get($json, 'stop_reason')
+                ?? 'réponse vide';
+            throw new RuntimeException('Réponse inattendue de l’assistant ('.$cause.', modèle '.$this->modele($p).'). '
+                .'Vérifie que ce modèle est disponible pour ta clé API, ou laisse le champ Modèle vide.');
+        }
+
+        return $texte;
     }
 
     private function modele(Parametre $p): string
