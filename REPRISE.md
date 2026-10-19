@@ -135,6 +135,19 @@ Tous protégés par authentification. Routes dans `routes/web.php`.
 | **Pipeline** | `Pipeline\Tableau`, `Pipeline\Formulaire` | Opportunités vue kanban par étape. |
 | **Activités** | `Activites\Liste`, `Activites\Formulaire` | Tâches, appels, rendez-vous, rappels. |
 | **Leads** | (champs `source`/`temperature` sur `Contact`) | Qualification des contacts entrants. |
+| **Assistant IA** (brique 1) | `Assistant\Brief`, `Reglages\Assistant`, services `Email\*` et `IA\*` | Lecture des e-mails (IMAP), fil sur la fiche, bouton « Analyse & relances » (API Claude), brief du matin (réponses dues / à relancer / suggestions). Specs : `specs/005-assistant-ia/`. |
+
+### Module Assistant IA (005) — notes
+- **Fournisseur IA** : Claude (API Anthropic), appelé **côté serveur** via le client HTTP de
+  Laravel (pas de SDK à installer). Clé + mot de passe Gmail **chiffrés** dans la table `parametres`.
+- **Lecture e-mail** : extension IMAP native (`imap_*`), derrière l'interface `LecteurEmails`
+  (implémentations `ClientImap` et `LecteurFactice`). L'IA est derrière `AssistantIA`
+  (`AssistantClaude` / `AssistantFactice`). **Les tests n'appellent jamais les vraies API**
+  (IMAP et Claude simulés) — voir `tests/Feature/Assistant/`.
+- **Jalon de test réel** : nécessite un **mot de passe d'application Gmail** et une **clé API
+  Anthropic** (collés dans l'écran Réglages). Hébergement final : **Hostinger** (MySQL + IMAP).
+- **Évolutions prévues** (hors brique 1) : taxonomie Pôle→Activité configurable, webhooks
+  Fluent Booking, agenda Google, transcriptions tl;dv, dépôt du brouillon dans Gmail.
 
 ### Les « étiquettes » affichées sur une fiche contact
 Attention, ce qui ressemble à des étiquettes sur une fiche vient de **4 sources différentes** :

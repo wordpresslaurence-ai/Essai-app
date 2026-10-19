@@ -57,13 +57,13 @@
 - Service `CalculRelances` : « réponses dues » (RF-3b) et « à relancer » (RF-3a, délai réglable).
 - **Tests** : jeux de dates couvrant les deux cas et les bornes.
 
-## T9 — Brief du matin ⬜
+## T9 — Brief du matin ✅
 - Composant `Assistant\Brief` + route `assistant.brief` + entrée de menu « Assistant ».
 - 3 blocs : **Réponses dues**, **À relancer** (via `CalculRelances`), **Suggestions du jour**
   (via `AssistantIA`, un seul appel). Bouton **« Synchroniser »** intégré.
 - **Tests** : les blocs listent les bons contacts ; suggestions via `AssistantFactice`.
 
-## T10 — Navigation, finitions & docs ⬜
+## T10 — Navigation, finitions & docs ✅
 - Entrées de menu « Assistant » et « Réglages » dans la barre latérale (icônes, thème clair/sombre).
 - Petites finitions UX (états vides, messages de synchro, chargement).
 - Mettre à jour `REPRISE.md` (nouveau module) et cocher ce `tasks.md`.
