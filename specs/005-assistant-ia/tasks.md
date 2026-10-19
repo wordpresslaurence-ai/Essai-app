@@ -53,7 +53,7 @@
 - Insertion du **bon lien Fluent Booking** selon le contexte (RF-6). Bouton **copier** le brouillon.
 - **Tests** (avec `AssistantFactice`) : l'analyse est enregistrée et affichée ; lien inséré.
 
-## T8 — Calcul des relances ⬜
+## T8 — Calcul des relances ✅
 - Service `CalculRelances` : « réponses dues » (RF-3b) et « à relancer » (RF-3a, délai réglable).
 - **Tests** : jeux de dates couvrant les deux cas et les bornes.
 
