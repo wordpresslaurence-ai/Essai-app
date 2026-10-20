@@ -59,3 +59,40 @@ it('exige une connexion pour accéder au brief', function () {
     auth()->logout();
     $this->get(route('assistant.brief'))->assertRedirect(route('login'));
 });
+
+it('crée une activité « Répondre » depuis le brief, sans doublon', function () {
+    $marie = Contact::factory()->create(['nom' => 'Dubois', 'prenom' => 'Marie']);
+    emailBrief($marie, Email::DIRECTION_ENTRANT, Carbon::now()->subDay()->toDateString());
+
+    $c = Livewire::test(Brief::class);
+    $c->call('creerActivite', $marie->id, 'repondre');
+
+    expect(App\Models\Activite::where('contact_id', $marie->id)
+        ->where('titre', 'Répondre à Marie Dubois')->count())->toBe(1);
+
+    // Un second appel ne crée pas de doublon.
+    $c->call('creerActivite', $marie->id, 'repondre');
+    expect(App\Models\Activite::where('contact_id', $marie->id)
+        ->where('titre', 'like', 'Répondre à %')->count())->toBe(1);
+});
+
+it('distingue les intentions « Répondre » et « Relancer » pour un même contact', function () {
+    $contact = Contact::factory()->create(['nom' => 'Lambert', 'prenom' => 'Thomas']);
+
+    $c = Livewire::test(Brief::class);
+    $c->call('creerActivite', $contact->id, 'repondre');
+    $c->call('creerActivite', $contact->id, 'relancer');
+
+    expect(App\Models\Activite::where('contact_id', $contact->id)->count())->toBe(2);
+});
+
+it('affiche « Déjà dans tes activités » quand la tâche existe déjà', function () {
+    $marie = Contact::factory()->create(['nom' => 'Dubois', 'prenom' => 'Marie']);
+    emailBrief($marie, Email::DIRECTION_ENTRANT, Carbon::now()->subDay()->toDateString());
+    App\Models\Activite::create([
+        'titre' => 'Répondre à Marie Dubois', 'type' => App\Models\Activite::TYPE_TACHE,
+        'contact_id' => $marie->id,
+    ]);
+
+    Livewire::test(Brief::class)->assertSee('✓ Activité');
+});

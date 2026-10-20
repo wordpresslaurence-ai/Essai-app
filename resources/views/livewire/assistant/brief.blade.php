@@ -25,14 +25,22 @@
     </div>
     <div class="lb-people mt-3">
         @forelse ($reponsesDues as $ligne)
-            <a href="{{ route('contacts.fiche', $ligne['contact']) }}" class="lb-prow" wire:navigate wire:key="rd-{{ $ligne['contact']->id }}" style="text-decoration:none">
+            <div class="lb-prow" wire:key="rd-{{ $ligne['contact']->id }}">
                 <span class="lb-tag" style="background:var(--lav-tint);color:var(--lav)">Reçu</span>
-                <div style="min-width:0">
+                <a href="{{ route('contacts.fiche', $ligne['contact']) }}" wire:navigate style="min-width:0;flex:1;text-decoration:none;color:inherit">
                     <div class="nm lb-truncate">{{ $ligne['contact']->nomComplet() }}</div>
                     <div class="mt lb-truncate">{{ $ligne['dernier']->objet ?: '(sans objet)' }}</div>
+                </a>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex:none">
+                    <span class="lb-muted" style="font-size:12px;white-space:nowrap">{{ $ligne['dernier']->date_email?->translatedFormat('d/m/Y') }}</span>
+                    @if (in_array($ligne['contact']->id, $dejaRepondre))
+                        <span class="lb-muted" style="font-size:12px;white-space:nowrap" title="Une tâche « Répondre » existe déjà">✓ Activité</span>
+                    @else
+                        <button type="button" wire:click="creerActivite({{ $ligne['contact']->id }}, 'repondre')"
+                                class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">+ Activité</button>
+                    @endif
                 </div>
-                <span class="lb-muted" style="margin-left:auto;font-size:12px;white-space:nowrap">{{ $ligne['dernier']->date_email?->translatedFormat('d/m/Y') }}</span>
-            </a>
+            </div>
         @empty
             <div class="lb-placeholder">Aucune réponse en attente. 🎉</div>
         @endforelse
@@ -45,14 +53,22 @@
     </div>
     <div class="lb-people mt-3">
         @forelse ($aRelancer as $ligne)
-            <a href="{{ route('contacts.fiche', $ligne['contact']) }}" class="lb-prow" wire:navigate wire:key="ar-{{ $ligne['contact']->id }}" style="text-decoration:none">
+            <div class="lb-prow" wire:key="ar-{{ $ligne['contact']->id }}">
                 <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep)">Envoyé</span>
-                <div style="min-width:0">
+                <a href="{{ route('contacts.fiche', $ligne['contact']) }}" wire:navigate style="min-width:0;flex:1;text-decoration:none;color:inherit">
                     <div class="nm lb-truncate">{{ $ligne['contact']->nomComplet() }}</div>
                     <div class="mt lb-truncate">{{ $ligne['dernier']->objet ?: '(sans objet)' }}</div>
+                </a>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex:none">
+                    <span class="lb-muted" style="font-size:12px;white-space:nowrap">{{ $ligne['dernier']->date_email?->translatedFormat('d/m/Y') }}</span>
+                    @if (in_array($ligne['contact']->id, $dejaRelancer))
+                        <span class="lb-muted" style="font-size:12px;white-space:nowrap" title="Une tâche « Relancer » existe déjà">✓ Activité</span>
+                    @else
+                        <button type="button" wire:click="creerActivite({{ $ligne['contact']->id }}, 'relancer')"
+                                class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">+ Activité</button>
+                    @endif
                 </div>
-                <span class="lb-muted" style="margin-left:auto;font-size:12px;white-space:nowrap">{{ $ligne['dernier']->date_email?->translatedFormat('d/m/Y') }}</span>
-            </a>
+            </div>
         @empty
             <div class="lb-placeholder">Rien à relancer pour l'instant.</div>
         @endforelse
