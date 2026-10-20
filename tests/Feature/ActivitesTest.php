@@ -74,3 +74,41 @@ it('supprime une activité', function () {
 
     expect(Activite::find($a->id))->toBeNull();
 });
+
+it('filtre les activités par pôle via le contact lié', function () {
+    $prana = App\Models\Pole::create(['nom' => 'Prana']);
+    $digital = App\Models\Pole::create(['nom' => 'Digital']);
+    $formation = App\Models\Categorie::create(['pole_id' => $prana->id, 'nom' => 'Formation profs']);
+    $sites = App\Models\Categorie::create(['pole_id' => $digital->id, 'nom' => 'Sites web']);
+
+    $cPrana = Contact::factory()->create(['categorie_id' => $formation->id]);
+    $cDigital = Contact::factory()->create(['categorie_id' => $sites->id]);
+
+    Activite::create(['titre' => 'ActiPrana', 'type' => Activite::TYPE_TACHE, 'contact_id' => $cPrana->id]);
+    Activite::create(['titre' => 'ActiDigital', 'type' => Activite::TYPE_TACHE, 'contact_id' => $cDigital->id]);
+
+    Livewire::test(Liste::class)
+        ->set('filtre', 'toutes')
+        ->set('pole', (string) $prana->id)
+        ->assertSee('ActiPrana')
+        ->assertDontSee('ActiDigital');
+});
+
+it('filtre les activités par catégorie via le contact lié', function () {
+    $prana = App\Models\Pole::create(['nom' => 'Prana']);
+    $formation = App\Models\Categorie::create(['pole_id' => $prana->id, 'nom' => 'Formation profs']);
+    $aura = App\Models\Categorie::create(['pole_id' => $prana->id, 'nom' => 'Journée aura']);
+
+    $cForm = Contact::factory()->create(['categorie_id' => $formation->id]);
+    $cAura = Contact::factory()->create(['categorie_id' => $aura->id]);
+
+    Activite::create(['titre' => 'ActiFormation', 'type' => Activite::TYPE_TACHE, 'contact_id' => $cForm->id]);
+    Activite::create(['titre' => 'ActiAura', 'type' => Activite::TYPE_TACHE, 'contact_id' => $cAura->id]);
+
+    Livewire::test(Liste::class)
+        ->set('filtre', 'toutes')
+        ->set('pole', (string) $prana->id)
+        ->set('categorie', (string) $formation->id)
+        ->assertSee('ActiFormation')
+        ->assertDontSee('ActiAura');
+});

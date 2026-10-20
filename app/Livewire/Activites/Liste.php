@@ -4,6 +4,7 @@ namespace App\Livewire\Activites;
 
 use App\Models\Activite;
 use App\Models\Contact;
+use App\Models\Pole;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -16,6 +17,20 @@ class Liste extends Component
     /** Filtre : a_faire (défaut), terminees, toutes. */
     #[Url]
     public string $filtre = 'a_faire';
+
+    /** Filtre par pôle (id) — via le contact lié. */
+    #[Url]
+    public string $pole = '';
+
+    /** Filtre par catégorie (id) — via le contact lié. */
+    #[Url]
+    public string $categorie = '';
+
+    /** Changer de pôle réinitialise la catégorie choisie. */
+    public function updatedPole(): void
+    {
+        $this->categorie = '';
+    }
 
     // Ajout rapide
     public string $titre = '';
@@ -57,6 +72,14 @@ class Liste extends Component
         $activites = Activite::with(['contact', 'opportunite'])
             ->when($this->filtre === 'a_faire', fn ($q) => $q->aFaire())
             ->when($this->filtre === 'terminees', fn ($q) => $q->terminees())
+            ->when($this->categorie !== '', fn ($q) => $q->whereHas(
+                'contact',
+                fn ($c) => $c->where('categorie_id', $this->categorie)
+            ))
+            ->when($this->categorie === '' && $this->pole !== '', fn ($q) => $q->whereHas(
+                'contact',
+                fn ($c) => $c->whereHas('categorie', fn ($cat) => $cat->where('pole_id', $this->pole))
+            ))
             ->orderByRaw('echeance is null')
             ->orderBy('echeance')
             ->get();
@@ -65,6 +88,7 @@ class Liste extends Component
             'activites' => $activites,
             'libelles' => Activite::libellesTypes(),
             'contacts' => Contact::actifs()->orderBy('nom')->get(['id', 'nom', 'prenom', 'type']),
+            'poles' => Pole::with('categories')->orderBy('ordre')->orderBy('nom')->get(),
         ]);
     }
 }

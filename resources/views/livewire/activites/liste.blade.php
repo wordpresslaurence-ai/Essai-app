@@ -39,13 +39,32 @@
     </form>
 
     {{-- Filtres --}}
-    <div class="flex gap-2 mt-5">
+    <div class="flex flex-wrap items-center gap-2 mt-5">
         @foreach (['a_faire' => 'À faire', 'terminees' => 'Terminées', 'toutes' => 'Toutes'] as $cle => $lib)
             <button type="button" wire:click="$set('filtre', '{{ $cle }}')"
                     class="lb-pill" style="cursor:pointer;border:0;{{ $filtre === $cle ? 'color:var(--accent)' : '' }}">
                 {{ $lib }}
             </button>
         @endforeach
+
+        @if ($poles->isNotEmpty())
+            <select wire:model.live="pole" class="lb-select" aria-label="Pôle" style="margin-left:auto">
+                <option value="">Tous les pôles</option>
+                @foreach ($poles as $p)
+                    <option value="{{ $p->id }}">{{ $p->nom }}</option>
+                @endforeach
+            </select>
+
+            @php($poleActif = $pole !== '' ? $poles->firstWhere('id', (int) $pole) : null)
+            @if ($poleActif && $poleActif->categories->isNotEmpty())
+                <select wire:model.live="categorie" class="lb-select" aria-label="Catégorie">
+                    <option value="">Toutes les catégories</option>
+                    @foreach ($poleActif->categories as $cat)
+                        <option value="{{ $cat->id }}">{{ $cat->nom }}</option>
+                    @endforeach
+                </select>
+            @endif
+        @endif
     </div>
 
     {{-- Liste --}}
