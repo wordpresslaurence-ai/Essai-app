@@ -96,3 +96,42 @@ it('affiche « Déjà dans tes activités » quand la tâche existe déjà', fun
 
     Livewire::test(Brief::class)->assertSee('✓ Activité');
 });
+
+it('clôture automatiquement une tâche « Répondre » quand le contact n\'est plus en réponse due', function () {
+    $contact = Contact::factory()->create(); // aucun e-mail entrant -> pas de réponse due
+    $tache = App\Models\Activite::create([
+        'titre' => 'Répondre à '.$contact->nomComplet(),
+        'type' => App\Models\Activite::TYPE_TACHE,
+        'contact_id' => $contact->id,
+    ]);
+
+    Livewire::test(Brief::class); // mount -> clôture auto
+
+    expect($tache->fresh()->terminee_at)->not->toBeNull();
+});
+
+it('ne clôture pas une tâche « Répondre » si le contact doit toujours une réponse', function () {
+    $marie = Contact::factory()->create(['nom' => 'Dubois', 'prenom' => 'Marie']);
+    emailBrief($marie, Email::DIRECTION_ENTRANT, Carbon::now()->subDay()->toDateString());
+    $tache = App\Models\Activite::create([
+        'titre' => 'Répondre à Marie Dubois', 'type' => App\Models\Activite::TYPE_TACHE, 'contact_id' => $marie->id,
+    ]);
+
+    Livewire::test(Brief::class);
+
+    expect($tache->fresh()->terminee_at)->toBeNull();
+});
+
+it('applique l\'échéance choisie à la tâche créée', function () {
+    $marie = Contact::factory()->create(['nom' => 'Dubois', 'prenom' => 'Marie']);
+    emailBrief($marie, Email::DIRECTION_ENTRANT, Carbon::now()->subDay()->toDateString());
+
+    $date = Carbon::now()->addDays(3)->toDateString();
+
+    Livewire::test(Brief::class)
+        ->set('echeanceReponse', $date)
+        ->call('creerActivite', $marie->id, 'repondre');
+
+    $t = App\Models\Activite::where('contact_id', $marie->id)->where('titre', 'like', 'Répondre à %')->first();
+    expect($t->echeance->toDateString())->toBe($date);
+});

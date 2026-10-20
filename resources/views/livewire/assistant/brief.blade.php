@@ -19,9 +19,14 @@
     @endif
 
     {{-- Réponses dues (prioritaire) --}}
-    <div class="flex items-center justify-between mt-6">
+    <div class="flex flex-wrap items-center justify-between gap-2 mt-6">
         <h3 class="lb-h3" style="font-size:19px">Tu dois une réponse</h3>
-        <span class="lb-tag" style="background:var(--terra-tint);color:var(--terra)">{{ $reponsesDues->count() }}</span>
+        <div class="flex items-center gap-2">
+            <label class="lb-muted" style="font-size:12px" title="Échéance des tâches « Répondre » créées ici">Échéance
+                <input type="date" wire:model="echeanceReponse" class="lb-field" style="padding:5px 8px;font-size:12px;width:auto;display:inline-block;margin-left:4px">
+            </label>
+            <span class="lb-tag" style="background:var(--terra-tint);color:var(--terra)">{{ $reponsesDues->count() }}</span>
+        </div>
     </div>
     <div class="lb-people mt-3">
         @forelse ($reponsesDues as $ligne)
@@ -47,9 +52,14 @@
     </div>
 
     {{-- À relancer --}}
-    <div class="flex items-center justify-between mt-6">
+    <div class="flex flex-wrap items-center justify-between gap-2 mt-6">
         <h3 class="lb-h3" style="font-size:19px">À relancer</h3>
-        <span class="lb-tag" style="background:var(--gold-tint);color:var(--accent)">{{ $aRelancer->count() }}</span>
+        <div class="flex items-center gap-2">
+            <label class="lb-muted" style="font-size:12px" title="Échéance des tâches « Relancer » créées ici">Échéance
+                <input type="date" wire:model="echeanceRelance" class="lb-field" style="padding:5px 8px;font-size:12px;width:auto;display:inline-block;margin-left:4px">
+            </label>
+            <span class="lb-tag" style="background:var(--gold-tint);color:var(--accent)">{{ $aRelancer->count() }}</span>
+        </div>
     </div>
     <div class="lb-people mt-3">
         @forelse ($aRelancer as $ligne)

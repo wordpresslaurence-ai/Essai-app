@@ -26,15 +26,55 @@ class Brief extends Component
 
     public ?string $suggestionsErreur = null;
 
+    /** Échéance appliquée aux tâches « Répondre » / « Relancer » créées depuis le brief. */
+    public ?string $echeanceReponse = null;
+
+    public ?string $echeanceRelance = null;
+
+    public function mount(): void
+    {
+        $this->echeanceReponse = now()->toDateString();
+        $this->echeanceRelance = now()->toDateString();
+
+        // Les tâches « Répondre »/« Relancer » dont le motif a disparu se clôturent seules.
+        $this->cloturerTachesResolues();
+    }
+
     /** Lance la synchronisation des e-mails. */
     public function synchroniser(): void
     {
         try {
             $resultat = app(SynchronisationEmails::class)->executer();
             session()->flash('message', $resultat->resume());
+            $this->cloturerTachesResolues();
         } catch (Throwable $e) {
             session()->flash('erreur', $e->getMessage());
         }
+    }
+
+    /**
+     * Clôture automatiquement les tâches « Répondre à … » / « Relancer … » non
+     * terminées dont le contact n'est plus, respectivement, en « réponse due » ou
+     * « à relancer » (parce que tu as répondu / la relance est partie).
+     */
+    private function cloturerTachesResolues(): void
+    {
+        $calc = new CalculRelances;
+
+        $dues = $calc->reponsesDues()->map(fn ($l) => $l['contact']->id)->all();
+        $relances = $calc->aRelancer()->map(fn ($l) => $l['contact']->id)->all();
+
+        Activite::whereNull('terminee_at')
+            ->whereNotNull('contact_id')
+            ->where('titre', 'like', 'Répondre à %')
+            ->whereNotIn('contact_id', $dues)
+            ->update(['terminee_at' => now()]);
+
+        Activite::whereNull('terminee_at')
+            ->whereNotNull('contact_id')
+            ->where('titre', 'like', 'Relancer %')
+            ->whereNotIn('contact_id', $relances)
+            ->update(['terminee_at' => now()]);
     }
 
     /** Demande à l'assistant des suggestions pour la journée (un seul appel). */
@@ -89,11 +129,13 @@ class Brief extends Component
             return;
         }
 
+        $echeance = $intention === 'relancer' ? $this->echeanceRelance : $this->echeanceReponse;
+
         Activite::create([
             'titre' => $titre,
             'type' => Activite::TYPE_TACHE,
             'contact_id' => $contactId,
-            'echeance' => now(),
+            'echeance' => filled($echeance) ? $echeance : now()->toDateString(),
         ]);
 
         session()->flash('message', 'Activité créée : '.$titre);
