@@ -21,13 +21,15 @@ yoga, pour l'inviter à découvrir la **formation de profs Prana Vidya**. Le bro
 ## 3. Périmètre
 
 **Inclus**
-- Un **« pitch de prospection »** réutilisable, saisi dans les **Réglages** : texte libre qui
-  décrit Prana Vidya, la formation de profs, à qui elle s'adresse et le ton souhaité. Il sert
-  de **matière** à l'IA (qui **n'invente aucun fait**).
-- Des **liens de l'offre par pôle** (Réglages) : un bloc de liens par pôle (pages de l'offre +
-  liens Fluent Booking). L'IA repère le **pôle du contact** (via sa catégorie) et **insère les
-  liens de ce pôle** dans le mail. Ton **expert, crédible et chaleureux, non insistant**, qui
-  **donne envie de s'inscrire**.
+- **Offre & liens par pôle** (Réglages, **source principale**) : pour chaque pôle, une courte
+  description de l'offre + les liens (pages de l'offre + Fluent Booking). L'IA repère le **pôle
+  du contact** (via sa catégorie) et s'appuie dessus. ⚠️ L'IA **ne peut pas ouvrir les liens** :
+  elle se fonde sur la description et présente les liens comme des appels à l'action.
+- Une **« note générale » facultative** (ancien pitch) : ton/contexte global qui s'applique à
+  toute la prospection. Non obligatoire.
+- L'IA combine les **bons métiers** (copywriting, marketing bienveillant, formatrice de profs
+  expérimentée). Ton **expert, crédible et chaleureux, non insistant**, qui **donne envie de
+  s'inscrire**. Le mail est **toujours complet** (pas coupé).
 - Sur la **fiche contact** : un bouton **« Rédiger un mail de prospection »** qui génère un
   **objet + un corps** de mail via Claude, personnalisé à partir du contact (nom, notes,
   étiquettes, catégorie) et du pitch.
@@ -56,8 +58,8 @@ yoga, pour l'inviter à découvrir la **formation de profs Prana Vidya**. Le bro
 
 - **RF-1** : l'assistant **ne fait que proposer** : jamais d'envoi, jamais d'enregistrement
   d'e-mail « envoyé » sans action de Laurence.
-- **RF-2** : si le **pitch** est vide, un message invite à le remplir d'abord (l'IA ne doit pas
-  inventer l'offre).
+- **RF-2** : si **ni l'offre du pôle ni une note générale** ne sont renseignées, un message
+  invite à remplir l'offre du pôle d'abord (l'IA ne doit pas inventer l'offre).
 - **RF-3** : si la **clé API** manque, message clair (comme pour l'analyse existante).
 - **RF-4** : le brouillon est en **français**, chaleureux et non insistant ; il peut inclure le
   **lien de séance découverte** si pertinent.

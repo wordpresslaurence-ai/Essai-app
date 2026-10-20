@@ -126,12 +126,29 @@ it('le client Claude rédige une prospection à partir du pitch (API simulée)',
     expect($r->corps)->toContain('Laurence');
 });
 
-it('refuse de rédiger une prospection sans pitch', function () {
+it('refuse de rédiger une prospection sans offre de pôle ni note générale', function () {
     Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test', 'pitch_prospection' => null]);
-    $contact = Contact::factory()->create();
+    $contact = Contact::factory()->create(); // sans catégorie -> sans pôle
 
     expect(fn () => (new App\Services\IA\AssistantClaude())->redigerProspection($contact))
         ->toThrow(RuntimeException::class);
+});
+
+it('rédige une prospection à partir de l’offre du pôle, sans note générale', function () {
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test', 'pitch_prospection' => null]);
+
+    $pole = App\Models\Pole::create(['nom' => 'Prana', 'liens_offre' => 'Formation profs : https://exemple.be/formation']);
+    $cat = App\Models\Categorie::create(['pole_id' => $pole->id, 'nom' => 'Formation profs']);
+    $contact = Contact::factory()->create(['categorie_id' => $cat->id]);
+
+    Http::fake([
+        'api.anthropic.com/*' => Http::response([
+            'content' => [['type' => 'text', 'text' => json_encode(['objet' => 'O', 'corps' => 'C Laurence'])]],
+        ], 200),
+    ]);
+
+    $r = (new AssistantClaude())->redigerProspection($contact);
+    expect($r->corps)->toContain('Laurence');
 });
 
 it('insère les liens du pôle du contact dans la requête de prospection', function () {

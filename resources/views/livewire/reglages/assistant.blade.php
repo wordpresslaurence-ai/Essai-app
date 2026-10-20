@@ -103,29 +103,20 @@
         {{-- Prospection --}}
         <fieldset class="lb-card mt-5" style="padding:18px">
             <legend class="lb-label" style="margin-bottom:10px">Prospection (profs de yoga)</legend>
-            <div>
-                <label for="pitch_prospection" class="lb-label">Pitch de prospection</label>
-                <textarea id="pitch_prospection" rows="6" wire:model="pitch_prospection" class="lb-field"
-                          placeholder="Explique qui tu es (Prana Vidya), ta formation de profs de yoga, à qui elle s'adresse, ce que tu proposes (séance découverte…), et le ton souhaité. L'assistant s'appuiera sur ce texte pour rédiger les mails — il n'inventera rien."></textarea>
-                @error('pitch_prospection') <p class="lb-error">{{ $message }}</p> @enderror
-                <p class="lb-muted" style="font-size:12.5px;margin-top:6px">
-                    Sert de base à l'assistant pour rédiger tes mails de prospection depuis la fiche d'un contact.
-                </p>
-            </div>
-
-            <div style="margin-top:18px">
-                <div class="lb-label">Liens de l'offre (par pôle)</div>
+            <div style="margin-bottom:4px">
+                <div class="lb-label">Offre &amp; liens (par pôle)</div>
                 <p class="lb-muted" style="font-size:12.5px;margin:2px 0 10px">
-                    Colle ici les liens de chaque pôle (pages de l'offre + liens Fluent Booking). Selon le
-                    <strong>pôle du contact</strong>, l'assistant ira chercher ces liens et les insérera dans le mail.
+                    Pour chaque pôle, décris <strong>brièvement l'offre</strong> (2–3 lignes) puis colle <strong>les liens</strong>
+                    (pages de l'offre + Fluent Booking). ⚠️ L'assistant <strong>ne peut pas ouvrir les liens</strong> : il s'appuie
+                    sur ta description. Selon le <strong>pôle du contact</strong>, il reprend cette offre et insère ces liens dans le mail.
                 </p>
                 @forelse ($poles as $pole)
                     <div wire:key="liens-{{ $pole->id }}" style="margin-top:10px">
                         <label for="liens-{{ $pole->id }}" class="lb-label" style="font-weight:500;color:var(--text-muted)">
                             <span class="lb-dot" style="background:{{ $pole->couleur ?: 'var(--mint)' }}"></span> {{ $pole->nom }}
                         </label>
-                        <textarea id="liens-{{ $pole->id }}" rows="3" wire:model="liensOffre.{{ $pole->id }}" class="lb-field"
-                                  placeholder="Un lien par ligne, avec un libellé si tu veux. Ex. Formation profs : https://… · Séance découverte : https://…"></textarea>
+                        <textarea id="liens-{{ $pole->id }}" rows="4" wire:model="liensOffre.{{ $pole->id }}" class="lb-field"
+                                  placeholder="Ex. Formation de profs de yoga Prana Vidya sur 3 stages de 3 jours, 10 places, avec une séance découverte offerte.&#10;Programme : https://…&#10;Séance découverte : https://…"></textarea>
                     </div>
                 @empty
                     <p class="lb-muted" style="font-size:12.5px">
@@ -133,6 +124,13 @@
                         <a href="{{ route('organisation.index') }}" wire:navigate style="color:var(--accent)">Organisation</a>.
                     </p>
                 @endforelse
+            </div>
+
+            <div style="margin-top:18px">
+                <label for="pitch_prospection" class="lb-label">Note générale (facultatif)</label>
+                <textarea id="pitch_prospection" rows="4" wire:model="pitch_prospection" class="lb-field"
+                          placeholder="Optionnel : un contexte ou un ton général qui s'applique à toute ta prospection (qui tu es, ta façon d'écrire…). L'offre et les liens de chaque pôle restent la base."></textarea>
+                @error('pitch_prospection') <p class="lb-error">{{ $message }}</p> @enderror
             </div>
         </fieldset>
 

@@ -54,26 +54,32 @@ class AssistantClaude implements AssistantIA
     {
         $p = Parametre::instance();
 
-        if (blank($p->pitch_prospection)) {
-            throw new RuntimeException('Renseigne d’abord ton « pitch de prospection » dans les Réglages.');
+        $contact->loadMissing('categorie.pole');
+        $offre = $contact->categorie?->pole?->liens_offre;
+
+        if (blank($offre) && blank($p->pitch_prospection)) {
+            throw new RuntimeException('Renseigne l’« Offre & liens » du pôle de ce contact dans les Réglages (ou, à défaut, un pitch général).');
         }
 
         $systeme = <<<'TXT'
-            Tu es l'assistant de Laurence (« Prana Vidya »), enseignante expérimentée. Rédige un
-            brouillon de mail de PROSPECTION en français vers un prof de yoga, pour l'inviter à
-            rejoindre sa formation. Appuie-toi UNIQUEMENT sur le « pitch » et les « liens de l'offre »
-            fournis : n'invente aucun fait, aucune date, aucun prix. Écris comme une experte crédible
-            et chaleureuse, JAMAIS insistante ni trop commerciale : donne sincèrement envie de
-            s'inscrire, avec une invitation claire et motivante. Intègre naturellement les liens
-            fournis (pages de l'offre et réservation) là où c'est pertinent, sans les empiler.
-            Personnalise avec les infos du contact. Réponds UNIQUEMENT par un objet JSON avec les
-            clés "objet" (court et engageant) et "corps" (le mail, signé « Laurence »).
+            Tu es l'assistant de Laurence (« Prana Vidya »). Pour ce mail, tu combines l'expertise
+            d'un rédacteur en copywriting, d'un spécialiste du marketing bienveillant et d'une
+            formatrice de profs de yoga expérimentée. Rédige un brouillon de mail de PROSPECTION en
+            français vers un prof de yoga, pour l'inviter à rejoindre la formation.
+            Appuie-toi sur « l'offre & les liens » du pôle et le contexte du contact fournis
+            ci-dessous : n'invente aucun fait, prix ou date qui n'y figure pas. Tu ne peux PAS ouvrir
+            les liens : fonde-toi sur la description fournie et présente les liens comme des appels à
+            l'action (« en savoir plus », « s'inscrire »). Style : expert, crédible et chaleureux,
+            JAMAIS insistant ni trop commercial ; donne sincèrement envie de s'inscrire avec une
+            invitation claire et motivante. Personnalise avec les infos du contact. Rédige un mail
+            COMPLET et termine toujours tes phrases (ne t'arrête jamais au milieu d'une phrase).
+            Réponds UNIQUEMENT par un objet JSON avec les clés "objet" (court et engageant) et
+            "corps" (le mail complet, signé « Laurence »).
             TXT;
 
-        $contact->loadMissing('categorie.pole');
         $utilisateur = $this->contexteProspection($contact, $p, $angle);
 
-        $texte = $this->envoyer($p, $systeme, $utilisateur, 1000);
+        $texte = $this->envoyer($p, $systeme, $utilisateur, 2000);
         $json = $this->decoderJson($texte);
 
         return new ResultatProspection(
@@ -190,16 +196,33 @@ class AssistantClaude implements AssistantIA
 
     private function contexteProspection(Contact $contact, Parametre $p, ?string $angle): string
     {
+        $categorie = $contact->relationLoaded('categorie') ? $contact->categorie : $contact->categorie()->first();
+        $pole = $categorie?->pole;
+
         $lignes = [];
-        $lignes[] = '### Pitch de Laurence (source de vérité, ne rien inventer en dehors)';
-        $lignes[] = (string) $p->pitch_prospection;
+
+        // Source principale : l'offre & les liens du pôle du contact.
+        if ($pole && filled($pole->liens_offre)) {
+            $lignes[] = '### Offre & liens du pôle « '.$pole->nom.' » (source principale, insère ces liens dans le mail)';
+            $lignes[] = (string) $pole->liens_offre;
+        } elseif (filled($p->lien_seance_decouverte)) {
+            $lignes[] = '### Lien disponible';
+            $lignes[] = 'Séance découverte : '.$p->lien_seance_decouverte;
+        }
+
+        // Note générale facultative (ancien « pitch »).
+        if (filled($p->pitch_prospection)) {
+            $lignes[] = '';
+            $lignes[] = '### Note générale de Laurence (contexte complémentaire)';
+            $lignes[] = (string) $p->pitch_prospection;
+        }
+
         $lignes[] = '';
         $lignes[] = '### Contact à prospecter';
         $lignes[] = 'Nom : '.$contact->nomComplet();
         if (filled($contact->notes)) {
             $lignes[] = 'Notes : '.$contact->notes;
         }
-        $categorie = $contact->relationLoaded('categorie') ? $contact->categorie : $contact->categorie()->first();
         if ($categorie) {
             $lignes[] = 'Catégorie : '.$categorie->libelleComplet();
         }
@@ -209,17 +232,6 @@ class AssistantClaude implements AssistantIA
         }
         if (filled($angle)) {
             $lignes[] = 'Angle souhaité par Laurence : '.$angle;
-        }
-
-        // Liens propres au pôle du contact (déduit de sa catégorie).
-        $pole = $categorie?->pole;
-        if ($pole && filled($pole->liens_offre)) {
-            $lignes[] = '';
-            $lignes[] = '### Liens de l\'offre pour le pôle « '.$pole->nom.' » (à insérer dans le mail)';
-            $lignes[] = (string) $pole->liens_offre;
-        } elseif (filled($p->lien_seance_decouverte)) {
-            // Repli : lien de séance découverte global si le pôle n'a pas de liens.
-            $lignes[] = 'Lien séance découverte : '.$p->lien_seance_decouverte;
         }
 
         return implode("\n", $lignes);
