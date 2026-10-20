@@ -13,7 +13,7 @@
         <div class="grid gap-5 sm:grid-cols-2 mt-5">
             <div>
                 <label for="contact_id" class="lb-label">Contact</label>
-                <select id="contact_id" wire:model="contact_id" class="lb-field">
+                <select id="contact_id" wire:model.live="contact_id" class="lb-field">
                     <option value="">— Aucun —</option>
                     @foreach ($contacts as $c)
                         <option value="{{ $c->id }}">{{ $c->nomComplet() }}</option>
@@ -28,13 +28,36 @@
             </div>
         </div>
 
-        <div class="mt-5 max-w-xs">
-            <label for="etape" class="lb-label">Étape</label>
-            <select id="etape" wire:model="etape" class="lb-field">
-                @foreach ($libelles as $cle => $lib)
-                    <option value="{{ $cle }}">{{ $lib }}</option>
-                @endforeach
-            </select>
+        <div class="grid gap-5 sm:grid-cols-2 mt-5">
+            <div>
+                <label for="etape" class="lb-label">Étape</label>
+                <select id="etape" wire:model="etape" class="lb-field">
+                    @foreach ($libelles as $cle => $lib)
+                        <option value="{{ $cle }}">{{ $lib }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="categorie_id" class="lb-label">Catégorie</label>
+                @if ($poles->isEmpty())
+                    <p class="lb-muted" style="font-size:13px;margin-top:6px">
+                        Aucun pôle.
+                        <a href="{{ route('organisation.index') }}" wire:navigate style="color:var(--accent)">En créer</a>.
+                    </p>
+                @else
+                    <select id="categorie_id" wire:model="categorie_id" class="lb-field">
+                        <option value="">— Sans catégorie —</option>
+                        @foreach ($poles as $pole)
+                            <optgroup label="{{ $pole->nom }}">
+                                @foreach ($pole->categories as $cat)
+                                    <option value="{{ $cat->id }}">{{ $cat->nom }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
+                    @error('categorie_id') <p class="lb-error">{{ $message }}</p> @enderror
+                @endif
+            </div>
         </div>
 
         <div class="mt-5">

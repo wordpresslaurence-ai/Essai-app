@@ -4,6 +4,7 @@ namespace App\Livewire\Contacts;
 
 use App\Models\Contact;
 use App\Models\Etiquette;
+use App\Models\Pole;
 use App\Rules\NumeroEntrepriseBe;
 use App\Rules\NumeroTvaBe;
 use Illuminate\Contracts\View\View;
@@ -43,6 +44,8 @@ class Formulaire extends Component
 
     public ?string $temperature = null;
 
+    public ?string $categorie_id = null;
+
     public ?string $adresse_rue = null;
 
     public ?string $adresse_code_postal = null;
@@ -67,6 +70,7 @@ class Formulaire extends Component
                 'secteur', 'source', 'temperature', 'adresse_rue', 'adresse_code_postal',
                 'adresse_ville', 'adresse_pays', 'notes',
             ]));
+            $this->categorie_id = $contact->categorie_id ? (string) $contact->categorie_id : null;
             $this->etiquettesSelection = $contact->etiquettes->pluck('id')->all();
         }
     }
@@ -87,6 +91,7 @@ class Formulaire extends Component
             'secteur' => ['nullable', 'string', 'max:255'],
             'source' => ['nullable', Rule::in(array_keys(Contact::SOURCES))],
             'temperature' => ['nullable', Rule::in(array_keys(Contact::TEMPERATURES))],
+            'categorie_id' => ['nullable', 'exists:categories,id'],
             'adresse_rue' => ['nullable', 'string', 'max:255'],
             'adresse_code_postal' => ['nullable', 'string', 'max:20'],
             'adresse_ville' => ['nullable', 'string', 'max:255'],
@@ -165,6 +170,7 @@ class Formulaire extends Component
             'entreprises' => $entreprises,
             'doublons' => $this->doublons,
             'toutesEtiquettes' => Etiquette::orderBy('nom')->get(),
+            'poles' => Pole::with('categories')->orderBy('ordre')->orderBy('nom')->get(),
         ]);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Livewire\Pipeline;
 
 use App\Models\Contact;
 use App\Models\Opportunite;
+use App\Models\Pole;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -18,6 +19,8 @@ class Formulaire extends Component
 
     public ?string $contact_id = null;
 
+    public ?string $categorie_id = null;
+
     public ?string $montant = null;
 
     public string $etape = Opportunite::ETAPE_NOUVEAU;
@@ -30,9 +33,27 @@ class Formulaire extends Component
             $this->opportunite = $opportunite;
             $this->titre = $opportunite->titre;
             $this->contact_id = $opportunite->contact_id ? (string) $opportunite->contact_id : null;
+            $this->categorie_id = $opportunite->categorie_id ? (string) $opportunite->categorie_id : null;
             $this->montant = $opportunite->montant !== null ? (string) $opportunite->montant : null;
             $this->etape = $opportunite->etape;
             $this->notes = $opportunite->notes;
+        }
+    }
+
+    /**
+     * RF-5 : à la sélection d'un contact, pré-remplit la catégorie avec celle du
+     * contact (sans écraser un choix déjà fait).
+     */
+    public function updatedContactId(?string $valeur): void
+    {
+        if (blank($valeur) || filled($this->categorie_id)) {
+            return;
+        }
+
+        $categorieContact = Contact::whereKey($valeur)->value('categorie_id');
+
+        if ($categorieContact) {
+            $this->categorie_id = (string) $categorieContact;
         }
     }
 
@@ -41,6 +62,7 @@ class Formulaire extends Component
         return [
             'titre' => ['required', 'string', 'max:255'],
             'contact_id' => ['nullable', 'exists:contacts,id'],
+            'categorie_id' => ['nullable', 'exists:categories,id'],
             'montant' => ['nullable', 'numeric', 'min:0'],
             'etape' => ['required', Rule::in(array_keys(Opportunite::libellesEtapes()))],
             'notes' => ['nullable', 'string'],
@@ -85,6 +107,7 @@ class Formulaire extends Component
         return view('livewire.pipeline.formulaire', [
             'contacts' => Contact::actifs()->orderBy('nom')->get(['id', 'nom', 'prenom', 'type']),
             'libelles' => Opportunite::libellesEtapes(),
+            'poles' => Pole::with('categories')->orderBy('ordre')->orderBy('nom')->get(),
         ]);
     }
 }

@@ -119,6 +119,36 @@
             </div>
         </fieldset>
 
+        {{-- Organisation : pôle / catégorie --}}
+        <fieldset class="mt-6">
+            <legend class="lb-label" style="margin-bottom:10px">Organisation (facultatif)</legend>
+            <div style="max-width:24rem">
+                <label for="categorie_id" class="lb-label" style="font-weight:500;color:var(--text-muted)">Catégorie</label>
+                @if ($poles->isEmpty())
+                    <p class="lb-muted" style="font-size:13px">
+                        Aucun pôle pour l'instant.
+                        <a href="{{ route('organisation.index') }}" wire:navigate style="color:var(--accent)">Créer des pôles & catégories</a>.
+                    </p>
+                @else
+                    <select id="categorie_id" wire:model="categorie_id" class="lb-field">
+                        <option value="">— Sans catégorie —</option>
+                        @foreach ($poles as $pole)
+                            <optgroup label="{{ $pole->nom }}">
+                                @foreach ($pole->categories as $cat)
+                                    <option value="{{ $cat->id }}">{{ $cat->nom }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
+                    @error('categorie_id') <p class="lb-error">{{ $message }}</p> @enderror
+                    <p class="lb-muted" style="font-size:12.5px;margin-top:8px">
+                        Le pôle est déduit de la catégorie. Gérer les sections dans
+                        <a href="{{ route('organisation.index') }}" wire:navigate style="color:var(--accent)">Organisation</a>.
+                    </p>
+                @endif
+            </div>
+        </fieldset>
+
         {{-- Lead : source & température --}}
         <fieldset class="mt-6">
             <legend class="lb-label" style="margin-bottom:10px">Lead (facultatif)</legend>
