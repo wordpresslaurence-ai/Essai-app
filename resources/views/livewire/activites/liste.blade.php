@@ -67,6 +67,29 @@
         @endif
     </div>
 
+    {{-- Bascule Liste / Calendrier --}}
+    <div class="flex flex-wrap items-center gap-3 mt-4">
+        <div class="flex gap-1" style="background:var(--bg);border-radius:999px;padding:4px;box-shadow:var(--inset)">
+            <button type="button" wire:click="$set('vue','liste')" class="lb-pill" style="border:0;cursor:pointer;{{ $vue === 'liste' ? 'color:var(--accent);box-shadow:var(--raise-sm)' : 'background:transparent;box-shadow:none' }}">Liste</button>
+            <button type="button" wire:click="$set('vue','calendrier')" class="lb-pill" style="border:0;cursor:pointer;{{ $vue === 'calendrier' ? 'color:var(--accent);box-shadow:var(--raise-sm)' : 'background:transparent;box-shadow:none' }}">Calendrier</button>
+        </div>
+
+        @if ($vue === 'calendrier')
+            <div class="flex gap-1" style="background:var(--bg);border-radius:999px;padding:4px;box-shadow:var(--inset)">
+                <button type="button" wire:click="$set('modeCalendrier','mois')" class="lb-pill" style="border:0;cursor:pointer;{{ $modeCalendrier === 'mois' ? 'color:var(--accent);box-shadow:var(--raise-sm)' : 'background:transparent;box-shadow:none' }}">Mois</button>
+                <button type="button" wire:click="$set('modeCalendrier','semaine')" class="lb-pill" style="border:0;cursor:pointer;{{ $modeCalendrier === 'semaine' ? 'color:var(--accent);box-shadow:var(--raise-sm)' : 'background:transparent;box-shadow:none' }}">Semaine</button>
+            </div>
+
+            <div class="flex items-center gap-2" style="margin-left:auto">
+                <button type="button" wire:click="periodePrecedente" class="lb-iconbtn" style="font-size:18px" aria-label="Période précédente">‹</button>
+                <button type="button" wire:click="aujourdhui" class="lb-pill" style="border:0;cursor:pointer">Aujourd'hui</button>
+                <button type="button" wire:click="periodeSuivante" class="lb-iconbtn" style="font-size:18px" aria-label="Période suivante">›</button>
+                <span class="serif" style="font-size:16px;font-weight:600;margin-left:6px">{{ $calendrier['libelle'] }}</span>
+            </div>
+        @endif
+    </div>
+
+    @if ($vue === 'liste')
     {{-- Liste --}}
     <div class="lb-people mt-4">
         @forelse ($activites as $a)
@@ -103,4 +126,7 @@
             <div class="lb-placeholder">Aucune activité {{ $filtre === 'a_faire' ? 'à faire' : ($filtre === 'terminees' ? 'terminée' : '') }}.</div>
         @endforelse
     </div>
+    @else
+        @include('livewire.activites._calendrier')
+    @endif
 </div>

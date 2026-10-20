@@ -112,3 +112,29 @@ it('filtre les activités par catégorie via le contact lié', function () {
         ->assertSee('ActiFormation')
         ->assertDontSee('ActiAura');
 });
+
+it('affiche la vue calendrier avec une activité datée', function () {
+    $contact = Contact::factory()->create();
+    Activite::create([
+        'titre' => 'RdvCalendrier', 'type' => Activite::TYPE_RDV,
+        'contact_id' => $contact->id, 'echeance' => now(),
+    ]);
+
+    Livewire::test(Liste::class)
+        ->set('filtre', 'toutes')
+        ->set('vue', 'calendrier')
+        ->assertOk()
+        ->assertSee('RdvCalendrier');
+});
+
+it('navigue entre les périodes du calendrier', function () {
+    Livewire::test(Liste::class)
+        ->set('vue', 'calendrier')
+        ->set('modeCalendrier', 'mois')
+        ->call('aujourdhui')
+        ->assertSet('dateRef', now()->toDateString())
+        ->call('periodeSuivante')
+        ->assertSet('dateRef', now()->addMonthNoOverflow()->toDateString())
+        ->call('periodePrecedente')
+        ->assertSet('dateRef', now()->toDateString());
+});
