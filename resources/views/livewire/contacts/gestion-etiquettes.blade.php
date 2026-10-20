@@ -24,11 +24,25 @@
     <div class="lb-people mt-5">
         @forelse ($etiquettes as $et)
             <div wire:key="e-{{ $et->id }}" class="lb-prow">
-                <span class="lb-dot" style="width:14px;height:14px;background:{{ $et->couleur ?? 'var(--gold)' }}"></span>
-                <span class="nm">{{ $et->nom }}</span>
-                <span class="lb-muted" style="font-size:12px">· {{ $et->contacts_count }} contact(s)</span>
-                <button type="button" wire:click="supprimer({{ $et->id }})" wire:confirm="Supprimer cette étiquette ?"
-                        class="lb-btn lb-btn-danger" style="margin-left:auto;padding:7px 13px;font-size:12.5px">Supprimer</button>
+                @if ($editId === $et->id)
+                    <form wire:submit="enregistrerEdition" class="flex flex-wrap items-center gap-3" style="flex:1">
+                        <input type="color" wire:model="editCouleur" class="lb-field" style="height:40px;width:52px;padding:4px;box-shadow:var(--raise-sm)">
+                        <input type="text" wire:model="editNom" class="lb-field" style="flex:1;min-width:10rem" autofocus>
+                        <button type="submit" class="lb-btn lb-btn-primary" style="padding:7px 13px;font-size:12.5px">Enregistrer</button>
+                        <button type="button" wire:click="annulerEdition" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px">Annuler</button>
+                        @error('editNom') <span class="lb-error">{{ $message }}</span> @enderror
+                    </form>
+                @else
+                    <span class="lb-dot" style="width:14px;height:14px;background:{{ $et->couleur ?? 'var(--gold)' }}"></span>
+                    <span class="nm">{{ $et->nom }}</span>
+                    <span class="lb-muted" style="font-size:12px">· {{ $et->contacts_count }} contact(s)</span>
+                    <div style="margin-left:auto" class="flex items-center gap-2">
+                        <button type="button" wire:click="editer({{ $et->id }})"
+                                class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px">Modifier</button>
+                        <button type="button" wire:click="supprimer({{ $et->id }})" wire:confirm="Supprimer cette étiquette ?"
+                                class="lb-btn lb-btn-danger" style="padding:7px 13px;font-size:12.5px">Supprimer</button>
+                    </div>
+                @endif
             </div>
         @empty
             <div class="lb-placeholder">Aucune étiquette pour l'instant.</div>

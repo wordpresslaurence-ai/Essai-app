@@ -168,8 +168,8 @@ Attention, ce qui ressemble à des étiquettes sur une fiche vient de **4 source
 2. La **température** (`🔥 Client chaud`…) — champ lead.
 3. La **source** (`LinkedIn`…) — champ lead.
 4. Les **vraies étiquettes** (ex. `Client`) — relation many-to-many, cochables dans le
-   formulaire du contact ; création/suppression dans l'écran **Étiquettes**.
-   (⚠️ Renommer/recolorer une étiquette existante n'est **pas encore** possible : voir §9.)
+   formulaire du contact ; création / **modification (renommer + recolorer)** / suppression
+   dans l'écran **Étiquettes**.
 
 ---
 
@@ -238,10 +238,10 @@ réinitialiser à un redéploiement. Pour des données persistantes : brancher *
 - ✅ En ligne sur Railway (SQLite de test).
 
 ### À faire / idées
-- 🔜 **Base MySQL persistante** (Railway puis Hostinger) pour de vraies données.
-- 🔜 **Édition d'une étiquette** (renommer / changer la couleur) — aujourd'hui on ne peut que
-  créer/supprimer.
-- 🔜 Déploiement **Hostinger** définitif.
+- 🔜 **Base MySQL persistante** (Hostinger) pour de vraies données.
+- 🔜 Déploiement **Hostinger** définitif (débloque aussi la **lecture Gmail IMAP** : Railway en
+  PHP 8.4 n'a pas l'extension IMAP).
+- 🔜 **Sessions & listes d'attente** (promos de 10, journées datées).
 - 💡 Glisser-déposer (drag & drop) dans le kanban du pipeline.
 - 💡 Toute nouvelle fonctionnalité → **repartir de la méthode Spec Kit** (§2).
 
