@@ -91,3 +91,45 @@ it('le client Claude parse une liste de suggestions', function () {
 
     expect($suggestions)->toBe(['Relancer Marie', 'Confirmer la salle']);
 });
+
+it('l’assistant factice rédige un mail de prospection', function () {
+    $assistant = new AssistantFactice();
+    $contact = Contact::factory()->create(['nom' => 'Martin', 'prenom' => 'Claire']);
+
+    $r = $assistant->redigerProspection($contact, 'enseigne le yin');
+    expect($r)->toBeInstanceOf(App\Services\IA\ResultatProspection::class);
+    expect($r->corps)->toContain('Claire');
+});
+
+it('le client Claude rédige une prospection à partir du pitch (API simulée)', function () {
+    Parametre::instance()->update([
+        'anthropic_api_key' => 'sk-ant-test',
+        'pitch_prospection' => 'Je forme des profs de yoga Prana Vidya.',
+    ]);
+
+    Http::fake([
+        'api.anthropic.com/*' => Http::response([
+            'content' => [[
+                'type' => 'text',
+                'text' => json_encode([
+                    'objet' => 'Rejoindre la formation Prana Vidya',
+                    'corps' => 'Bonjour, je serais ravie de vous présenter ma formation. Laurence',
+                ]),
+            ]],
+        ], 200),
+    ]);
+
+    $contact = Contact::factory()->create(['nom' => 'Martin', 'prenom' => 'Claire']);
+    $r = (new AssistantClaude())->redigerProspection($contact);
+
+    expect($r->objet)->toContain('Prana Vidya');
+    expect($r->corps)->toContain('Laurence');
+});
+
+it('refuse de rédiger une prospection sans pitch', function () {
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test', 'pitch_prospection' => null]);
+    $contact = Contact::factory()->create();
+
+    expect(fn () => (new App\Services\IA\AssistantClaude())->redigerProspection($contact))
+        ->toThrow(RuntimeException::class);
+});

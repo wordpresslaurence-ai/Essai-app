@@ -16,6 +16,12 @@ interface AssistantIA
     public function analyser(Contact $contact): ResultatAnalyse;
 
     /**
+     * Rédige un brouillon de mail de prospection (objet + corps) vers un prof de
+     * yoga, à partir du pitch des réglages et du contact. Ne l'envoie jamais.
+     */
+    public function redigerProspection(Contact $contact, ?string $angle = null): ResultatProspection;
+
+    /**
      * Suggestions proactives pour le brief du matin, à partir d'un contexte agrégé.
      *
      * @param  array<string, mixed>  $contexte

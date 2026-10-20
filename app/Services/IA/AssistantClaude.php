@@ -50,6 +50,36 @@ class AssistantClaude implements AssistantIA
         );
     }
 
+    public function redigerProspection(Contact $contact, ?string $angle = null): ResultatProspection
+    {
+        $p = Parametre::instance();
+
+        if (blank($p->pitch_prospection)) {
+            throw new RuntimeException('Renseigne d’abord ton « pitch de prospection » dans les Réglages.');
+        }
+
+        $systeme = <<<'TXT'
+            Tu es l'assistant de Laurence (« Prana Vidya »). Rédige un brouillon de mail de
+            PROSPECTION en français vers un prof de yoga, pour l'inviter à découvrir sa formation
+            de profs. Appuie-toi UNIQUEMENT sur le « pitch » fourni par Laurence : n'invente aucun
+            fait, aucune date, aucun prix. Ton chaleureux, sincère et NON insistant. Personnalise
+            avec les infos du contact si pertinent. Si un lien de séance découverte figure dans le
+            pitch ou le contexte, tu peux l'inclure. Réponds UNIQUEMENT par un objet JSON avec les
+            clés "objet" (court) et "corps" (le mail, signé « Laurence »).
+            TXT;
+
+        $utilisateur = $this->contexteProspection($contact, $p, $angle);
+
+        $texte = $this->envoyer($p, $systeme, $utilisateur, 1000);
+        $json = $this->decoderJson($texte);
+
+        return new ResultatProspection(
+            objet: (string) ($json['objet'] ?? 'Découvrir la formation Prana Vidya'),
+            corps: (string) ($json['corps'] ?? $texte),
+            modele: $this->modele($p),
+        );
+    }
+
     public function suggestions(array $contexte): array
     {
         $p = Parametre::instance();
@@ -151,6 +181,35 @@ class AssistantClaude implements AssistantIA
             .'appel visio = '.($p->lien_appel_visio ?: '—').' ; '
             .'séance découverte = '.($p->lien_seance_decouverte ?: '—').' ; '
             .'journée aura = '.($p->lien_journee_aura ?: '—');
+
+        return implode("\n", $lignes);
+    }
+
+    private function contexteProspection(Contact $contact, Parametre $p, ?string $angle): string
+    {
+        $lignes = [];
+        $lignes[] = '### Pitch de Laurence (source de vérité, ne rien inventer en dehors)';
+        $lignes[] = (string) $p->pitch_prospection;
+        $lignes[] = '';
+        $lignes[] = '### Contact à prospecter';
+        $lignes[] = 'Nom : '.$contact->nomComplet();
+        if (filled($contact->notes)) {
+            $lignes[] = 'Notes : '.$contact->notes;
+        }
+        $categorie = $contact->relationLoaded('categorie') ? $contact->categorie : $contact->categorie()->first();
+        if ($categorie) {
+            $lignes[] = 'Catégorie : '.$categorie->libelleComplet();
+        }
+        $etiquettes = $contact->relationLoaded('etiquettes') ? $contact->etiquettes : $contact->etiquettes()->get();
+        if ($etiquettes->isNotEmpty()) {
+            $lignes[] = 'Étiquettes : '.$etiquettes->pluck('nom')->implode(', ');
+        }
+        if (filled($angle)) {
+            $lignes[] = 'Angle souhaité par Laurence : '.$angle;
+        }
+        if (filled($p->lien_seance_decouverte)) {
+            $lignes[] = 'Lien séance découverte : '.$p->lien_seance_decouverte;
+        }
 
         return implode("\n", $lignes);
     }

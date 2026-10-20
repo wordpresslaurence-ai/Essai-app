@@ -15,6 +15,7 @@ class AssistantFactice implements AssistantIA
     public function __construct(
         private ?ResultatAnalyse $resultat = null,
         private array $suggestions = [],
+        private ?ResultatProspection $prospection = null,
     ) {}
 
     public function analyser(Contact $contact): ResultatAnalyse
@@ -24,6 +25,16 @@ class AssistantFactice implements AssistantIA
             verdict: 'À relancer.',
             delaiConseille: 'sous 2 jours',
             brouillon: 'Bonjour, je reviens vers vous… (brouillon factice)',
+            modele: 'factice',
+        );
+    }
+
+    public function redigerProspection(Contact $contact, ?string $angle = null): ResultatProspection
+    {
+        return $this->prospection ?? new ResultatProspection(
+            objet: 'Découvrir la formation Prana Vidya',
+            corps: 'Bonjour '.$contact->nomComplet().', (brouillon de prospection factice)'
+                .($angle ? ' — '.$angle : ''),
             modele: 'factice',
         );
     }
