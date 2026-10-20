@@ -49,6 +49,25 @@
             @endforeach
         </select>
 
+        @if ($poles->isNotEmpty())
+            <select wire:model.live="pole" class="lb-select" aria-label="Pôle">
+                <option value="">Tous les pôles</option>
+                @foreach ($poles as $p)
+                    <option value="{{ $p->id }}">{{ $p->nom }}</option>
+                @endforeach
+            </select>
+
+            @php($poleActif = $pole !== '' ? $poles->firstWhere('id', (int) $pole) : null)
+            @if ($poleActif && $poleActif->categories->isNotEmpty())
+                <select wire:model.live="categorie" class="lb-select" aria-label="Catégorie">
+                    <option value="">Toutes les catégories</option>
+                    @foreach ($poleActif->categories as $cat)
+                        <option value="{{ $cat->id }}">{{ $cat->nom }}</option>
+                    @endforeach
+                </select>
+            @endif
+        @endif
+
         <select wire:model.live="tri" class="lb-select" aria-label="Trier par">
             <option value="nom">Trier : nom</option>
             <option value="updated_at">Trier : récent</option>

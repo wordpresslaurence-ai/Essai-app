@@ -13,10 +13,29 @@
     @endif
 
     {{-- Bascule perdus --}}
-    <div class="flex items-center gap-3 mt-5">
+    <div class="flex flex-wrap items-center gap-3 mt-5">
         <button type="button" wire:click="$toggle('voirPerdus')" class="lb-pill" style="cursor:pointer;border:0">
             {{ $voirPerdus ? '✓ ' : '' }}Voir les perdus ({{ $nbPerdus }})
         </button>
+
+        @if ($poles->isNotEmpty())
+            <select wire:model.live="pole" class="lb-select" aria-label="Pôle">
+                <option value="">Tous les pôles</option>
+                @foreach ($poles as $p)
+                    <option value="{{ $p->id }}">{{ $p->nom }}</option>
+                @endforeach
+            </select>
+
+            @php($poleActif = $pole !== '' ? $poles->firstWhere('id', (int) $pole) : null)
+            @if ($poleActif && $poleActif->categories->isNotEmpty())
+                <select wire:model.live="categorie" class="lb-select" aria-label="Catégorie">
+                    <option value="">Toutes les catégories</option>
+                    @foreach ($poleActif->categories as $cat)
+                        <option value="{{ $cat->id }}">{{ $cat->nom }}</option>
+                    @endforeach
+                </select>
+            @endif
+        @endif
     </div>
 
     {{-- Kanban --}}

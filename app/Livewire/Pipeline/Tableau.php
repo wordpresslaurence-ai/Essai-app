@@ -3,6 +3,7 @@
 namespace App\Livewire\Pipeline;
 
 use App\Models\Opportunite;
+use App\Models\Pole;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -14,6 +15,20 @@ class Tableau extends Component
     /** Afficher aussi la colonne des opportunités perdues. */
     #[Url]
     public bool $voirPerdus = false;
+
+    /** Filtre par pôle (id). */
+    #[Url]
+    public string $pole = '';
+
+    /** Filtre par catégorie (id). */
+    #[Url]
+    public string $categorie = '';
+
+    /** Changer de pôle réinitialise la catégorie choisie. */
+    public function updatedPole(): void
+    {
+        $this->categorie = '';
+    }
 
     /** Déplace une opportunité vers une autre étape. */
     public function deplacer(int $opportuniteId, string $etape): void
@@ -40,6 +55,11 @@ class Tableau extends Component
 
         $opportunites = Opportunite::with('contact')
             ->whereIn('etape', $etapes)
+            ->when($this->categorie !== '', fn ($q) => $q->where('categorie_id', $this->categorie))
+            ->when(
+                $this->categorie === '' && $this->pole !== '',
+                fn ($q) => $q->whereHas('categorie', fn ($c) => $c->where('pole_id', $this->pole))
+            )
             ->orderByDesc('montant')
             ->get()
             ->groupBy('etape');
@@ -59,6 +79,7 @@ class Tableau extends Component
             'colonnes' => $colonnes,
             'libelles' => Opportunite::libellesEtapes(),
             'nbPerdus' => Opportunite::perdues()->count(),
+            'poles' => Pole::with('categories')->orderBy('ordre')->orderBy('nom')->get(),
         ]);
     }
 }

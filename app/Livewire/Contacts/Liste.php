@@ -4,6 +4,7 @@ namespace App\Livewire\Contacts;
 
 use App\Models\Contact;
 use App\Models\Etiquette;
+use App\Models\Pole;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -35,6 +36,14 @@ class Liste extends Component
     #[Url]
     public string $temperature = '';
 
+    /** Filtre par pôle (id). */
+    #[Url]
+    public string $pole = '';
+
+    /** Filtre par catégorie (id). */
+    #[Url]
+    public string $categorie = '';
+
     /** Colonne de tri. */
     #[Url]
     public string $tri = 'nom';
@@ -46,9 +55,15 @@ class Liste extends Component
     /** Réinitialise la pagination dès qu'un filtre change. */
     public function updating($name): void
     {
-        if (in_array($name, ['recherche', 'type', 'etiquette', 'statut', 'temperature'], true)) {
+        if (in_array($name, ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'pole', 'categorie'], true)) {
             $this->resetPage();
         }
+    }
+
+    /** Changer de pôle réinitialise la catégorie choisie. */
+    public function updatedPole(): void
+    {
+        $this->categorie = '';
     }
 
     /** Change la colonne de tri (ou inverse le sens si déjà active). */
@@ -64,7 +79,7 @@ class Liste extends Component
 
     public function reinitialiserFiltres(): void
     {
-        $this->reset(['recherche', 'type', 'etiquette', 'statut']);
+        $this->reset(['recherche', 'type', 'etiquette', 'statut', 'temperature', 'pole', 'categorie']);
         $this->resetPage();
     }
 
@@ -91,12 +106,18 @@ class Liste extends Component
                 $this->temperature !== '' && $this->temperature !== 'leads',
                 fn ($q) => $q->where('temperature', $this->temperature)
             )
+            ->when($this->categorie !== '', fn ($q) => $q->where('categorie_id', $this->categorie))
+            ->when(
+                $this->categorie === '' && $this->pole !== '',
+                fn ($q) => $q->whereHas('categorie', fn ($c) => $c->where('pole_id', $this->pole))
+            )
             ->orderBy($triAutorise, $sensAutorise)
             ->paginate(15);
 
         return view('livewire.contacts.liste', [
             'contacts' => $contacts,
             'etiquettes' => Etiquette::orderBy('nom')->get(),
+            'poles' => Pole::with('categories')->orderBy('ordre')->orderBy('nom')->get(),
         ]);
     }
 }
