@@ -71,3 +71,12 @@ it('exige une connexion pour accéder aux réglages', function () {
     auth()->logout();
     $this->get(route('reglages.assistant'))->assertRedirect(route('login'));
 });
+
+it('enregistre le pitch de prospection', function () {
+    Livewire::test(Assistant::class)
+        ->set('pitch_prospection', 'Je suis Laurence, je forme des profs de yoga Prana Vidya.')
+        ->call('enregistrer')
+        ->assertHasNoErrors();
+
+    expect(Parametre::instance()->pitch_prospection)->toBe('Je suis Laurence, je forme des profs de yoga Prana Vidya.');
+});

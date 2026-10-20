@@ -21,6 +21,7 @@ class Parametre extends Model
         'lien_appel_visio',
         'lien_seance_decouverte',
         'lien_journee_aura',
+        'pitch_prospection',
         'derniere_synchro_at',
     ];
 

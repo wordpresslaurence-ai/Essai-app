@@ -30,6 +30,10 @@ yoga, pour l'inviter à découvrir la **formation de profs Prana Vidya**. Le bro
 - Un champ **« angle / précision »** facultatif avant de générer (ex. « enseigne le vinyasa à
   Namur, rencontrée au salon »).
 - Résultat affiché dans une **zone éditable** avec un bouton **« Copier »**. **Aucun envoi.**
+- **Trace automatique** : à la génération, l'assistant crée (ou met à jour) **une tâche** sur le
+  contact — *« Envoyer le mail de prospection à … »* avec le brouillon dans les notes. À faire =
+  rappel d'envoyer ; cochée = trace de « déjà contacté ». (Dédupliquée : une seule tâche active
+  par contact, mise à jour si on régénère.)
 
 **Exclus (briques suivantes)**
 - **Envoi** du mail (manuel, hors CRM pour l'instant ; dépôt en brouillon Gmail plus tard).
@@ -53,8 +57,8 @@ yoga, pour l'inviter à découvrir la **formation de profs Prana Vidya**. Le bro
 - **RF-3** : si la **clé API** manque, message clair (comme pour l'analyse existante).
 - **RF-4** : le brouillon est en **français**, chaleureux et non insistant ; il peut inclure le
   **lien de séance découverte** si pertinent.
-- **RF-5** : la génération **ne modifie pas** le contact ; Laurence peut créer une activité
-  « mail de prospection » manuellement si elle le souhaite.
+- **RF-5** : la génération **ne modifie pas** le contact lui-même ; elle crée/met à jour une
+  **tâche de trace** (cf. §3), jamais un e-mail « envoyé ».
 
 ## 6. Écrans / données
 
@@ -77,7 +81,7 @@ yoga, pour l'inviter à découvrir la **formation de profs Prana Vidya**. Le bro
 - **T1** — Réglages : champ `pitch_prospection` (migration + modèle + écran) + test.
 - **T2** — Service : `redigerProspection` (interface + `AssistantClaude` + `AssistantFactice`
   + DTO `ResultatProspection`) + test (factice).
-- **T3** — Fiche contact : bouton + angle + zone résultat (copier) + test.
+- **T3** — Fiche contact : bouton + angle + zone résultat (copier) + **tâche de trace** (upsert) + test.
 
 ---
 

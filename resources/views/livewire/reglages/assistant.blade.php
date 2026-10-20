@@ -100,6 +100,20 @@
             </div>
         </fieldset>
 
+        {{-- Prospection --}}
+        <fieldset class="lb-card mt-5" style="padding:18px">
+            <legend class="lb-label" style="margin-bottom:10px">Prospection (profs de yoga)</legend>
+            <div>
+                <label for="pitch_prospection" class="lb-label">Pitch de prospection</label>
+                <textarea id="pitch_prospection" rows="6" wire:model="pitch_prospection" class="lb-field"
+                          placeholder="Explique qui tu es (Prana Vidya), ta formation de profs de yoga, à qui elle s'adresse, ce que tu proposes (séance découverte…), et le ton souhaité. L'assistant s'appuiera sur ce texte pour rédiger les mails — il n'inventera rien."></textarea>
+                @error('pitch_prospection') <p class="lb-error">{{ $message }}</p> @enderror
+                <p class="lb-muted" style="font-size:12.5px;margin-top:6px">
+                    Sert de base à l'assistant pour rédiger tes mails de prospection depuis la fiche d'un contact.
+                </p>
+            </div>
+        </fieldset>
+
         <div class="flex flex-wrap items-center justify-end gap-3 mt-6">
             <button type="button" wire:click="synchroniser" class="lb-btn lb-btn-ghost"
                     wire:loading.attr="disabled" wire:target="synchroniser">
