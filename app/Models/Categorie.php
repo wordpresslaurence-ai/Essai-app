@@ -35,6 +35,11 @@ class Categorie extends Model
         return $this->hasMany(Opportunite::class);
     }
 
+    public function seances(): HasMany
+    {
+        return $this->hasMany(Seance::class);
+    }
+
     /** Libellé « Pôle · Catégorie ». */
     public function libelleComplet(): string
     {

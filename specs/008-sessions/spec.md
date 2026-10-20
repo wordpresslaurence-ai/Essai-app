@@ -30,8 +30,8 @@ Gérer les **sessions datées** de Laurence (promos de **formation de profs** �
 **Inclus**
 - Écran **Sessions** : liste des sessions (à venir / passées), avec places prises/restantes ;
   filtre **Pôle → Catégorie**.
-- Création / modification d'une session : titre, **catégorie** (facultative), **date** (+ date de
-  fin facultative pour les formations sur plusieurs jours), **lieu**, **nombre de places**, notes.
+- Création / modification d'une session : titre, **catégorie** (facultative), **date** (une seule
+  date/heure ; détail des stages dans les notes), **lieu**, **nombre de places**, notes.
 - **Fiche session** : liste des **confirmés** et de la **liste d'attente** ; bouton **« Inscrire
   un contact »** ; actions **désinscrire / annuler**, **promouvoir** depuis l'attente.
 - **Liste d'attente automatique** (au-delà de la capacité) + **promotion automatique** du premier
@@ -61,8 +61,9 @@ Gérer les **sessions datées** de Laurence (promos de **formation de profs** �
 
 ## 5. Données (nouveaux éléments)
 
-- **Table `seances`** : `titre`, `categorie_id` (nullable, `nullOnDelete`), `date_debut`,
-  `date_fin` (nullable), `lieu` (nullable), `capacite` (unsigned, nullable), `notes`, timestamps.
+- **Table `seances`** : `titre`, `categorie_id` (nullable, `nullOnDelete`), `date_debut`
+  (date/heure, une seule date par session), `lieu` (nullable), `capacite` (unsigned, nullable),
+  `notes`, timestamps.
 - **Table `inscriptions`** : `seance_id` (cascade), `contact_id` (cascade), `statut`
   (`confirme`/`attente`/`annule`), `notes` (nullable), timestamps ; unicité logique d'une
   inscription active par (séance, contact).

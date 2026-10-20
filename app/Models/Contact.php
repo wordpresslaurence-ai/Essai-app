@@ -122,6 +122,12 @@ class Contact extends Model
         return $this->belongsTo(Categorie::class);
     }
 
+    /** Les inscriptions de ce contact à des séances (sessions). */
+    public function inscriptions(): HasMany
+    {
+        return $this->hasMany(Inscription::class);
+    }
+
     // --- Scopes --------------------------------------------------------------
 
     /** Filtre les contacts de type « personne ». @param  Builder<Contact>  $query */
