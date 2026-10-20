@@ -76,8 +76,9 @@
     @if ($suggestionsChargees)
         <div class="lb-card-sm mt-3">
             @forelse ($suggestions as $s)
-                <div class="lb-kv" style="{{ ! $loop->first ? 'margin-top:8px' : '' }}">
-                    <div class="k">💡</div><div class="v">{{ $s }}</div>
+                <div style="display:flex;align-items:flex-start;gap:10px;{{ ! $loop->first ? 'margin-top:10px' : '' }}">
+                    <span style="flex:none;font-size:15px;line-height:1.4">💡</span>
+                    <span style="color:var(--text)">{{ $s }}</span>
                 </div>
             @empty
                 <p class="lb-muted" style="font-size:13px">Aucune suggestion particulière aujourd'hui.</p>

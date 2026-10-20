@@ -79,27 +79,6 @@
             </div>
         </fieldset>
 
-        {{-- Liens Fluent Booking --}}
-        <fieldset class="lb-card mt-5" style="padding:18px">
-            <legend class="lb-label" style="margin-bottom:10px">Liens de réservation (Fluent Booking)</legend>
-
-            <div class="mb-4">
-                <label for="lien_appel_visio" class="lb-label">Appel visio 1-to-1 (gratuit)</label>
-                <input id="lien_appel_visio" type="url" wire:model="lien_appel_visio" class="lb-field">
-                @error('lien_appel_visio') <p class="lb-error">{{ $message }}</p> @enderror
-            </div>
-            <div class="mb-4">
-                <label for="lien_seance_decouverte" class="lb-label">Séance découverte gratuite</label>
-                <input id="lien_seance_decouverte" type="url" wire:model="lien_seance_decouverte" class="lb-field">
-                @error('lien_seance_decouverte') <p class="lb-error">{{ $message }}</p> @enderror
-            </div>
-            <div>
-                <label for="lien_journee_aura" class="lb-label">Journée nettoyage aura/chakras</label>
-                <input id="lien_journee_aura" type="url" wire:model="lien_journee_aura" class="lb-field">
-                @error('lien_journee_aura') <p class="lb-error">{{ $message }}</p> @enderror
-            </div>
-        </fieldset>
-
         {{-- Prospection --}}
         <fieldset class="lb-card mt-5" style="padding:18px">
             <legend class="lb-label" style="margin-bottom:10px">Prospection (profs de yoga)</legend>
