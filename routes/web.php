@@ -35,6 +35,12 @@ Route::middleware(['auth'])->group(function () {
     // Module Organisation : Pôles & Catégories (module 006)
     Route::get('organisation', \App\Livewire\Organisation\Gestion::class)->name('organisation.index');
 
+    // Module Sessions & listes d'attente (module 008)
+    Route::get('sessions', \App\Livewire\Sessions\Liste::class)->name('sessions.index');
+    Route::get('sessions/creer', \App\Livewire\Sessions\Formulaire::class)->name('sessions.creer');
+    Route::get('sessions/{seance}', \App\Livewire\Sessions\Fiche::class)->name('sessions.fiche');
+    Route::get('sessions/{seance}/modifier', \App\Livewire\Sessions\Formulaire::class)->name('sessions.modifier');
+
     // Assistant (module 005)
     Route::get('assistant', \App\Livewire\Assistant\Brief::class)->name('assistant.brief');
 
