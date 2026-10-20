@@ -78,10 +78,10 @@ yoga, pour l'inviter à découvrir la **formation de profs Prana Vidya**. Le bro
 
 ## 8. Découpage pressenti (tasks)
 
-- **T1** — Réglages : champ `pitch_prospection` (migration + modèle + écran) + test.
-- **T2** — Service : `redigerProspection` (interface + `AssistantClaude` + `AssistantFactice`
+- **T1 ✅** — Réglages : champ `pitch_prospection` (migration + modèle + écran) + test.
+- **T2 ✅** — Service : `redigerProspection` (interface + `AssistantClaude` + `AssistantFactice`
   + DTO `ResultatProspection`) + test (factice).
-- **T3** — Fiche contact : bouton + angle + zone résultat (copier) + **tâche de trace** (upsert) + test.
+- **T3 ✅** — Fiche contact : bouton + angle + zone résultat (copier) + **tâche de trace** (upsert) + test.
 
 ---
 

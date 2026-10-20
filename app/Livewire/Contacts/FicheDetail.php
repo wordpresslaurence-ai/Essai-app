@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Contacts;
 
+use App\Models\Activite;
 use App\Models\Analyse;
 use App\Models\Contact;
 use App\Services\IA\AssistantIA;
@@ -16,6 +17,15 @@ class FicheDetail extends Component
     public Contact $contact;
 
     public ?string $analyseErreur = null;
+
+    // Prospection
+    public string $angleProspection = '';
+
+    public ?string $prospectionObjet = null;
+
+    public ?string $prospectionCorps = null;
+
+    public ?string $prospectionErreur = null;
 
     public function mount(Contact $contact): void
     {
@@ -41,6 +51,43 @@ class FicheDetail extends Component
             ]);
         } catch (Throwable $e) {
             $this->analyseErreur = $e->getMessage();
+        }
+    }
+
+    /**
+     * Rédige un brouillon de mail de prospection via l'assistant et garde une
+     * trace sous forme de tâche « à envoyer » (dédupliquée par contact).
+     */
+    public function redigerProspection(): void
+    {
+        $this->reset('prospectionErreur', 'prospectionObjet', 'prospectionCorps');
+
+        try {
+            $r = app(AssistantIA::class)->redigerProspection($this->contact, $this->angleProspection ?: null);
+
+            $this->prospectionObjet = $r->objet;
+            $this->prospectionCorps = $r->corps;
+
+            $titre = 'Envoyer le mail de prospection à '.$this->contact->nomComplet();
+            $notes = 'Objet : '.$r->objet."\n\n".$r->corps;
+
+            $tache = Activite::where('contact_id', $this->contact->id)
+                ->whereNull('terminee_at')
+                ->where('titre', 'like', 'Envoyer le mail de prospection%')
+                ->first();
+
+            if ($tache) {
+                $tache->update(['titre' => $titre, 'notes' => $notes, 'type' => Activite::TYPE_TACHE]);
+            } else {
+                Activite::create([
+                    'titre' => $titre,
+                    'type' => Activite::TYPE_TACHE,
+                    'contact_id' => $this->contact->id,
+                    'notes' => $notes,
+                ]);
+            }
+        } catch (Throwable $e) {
+            $this->prospectionErreur = $e->getMessage();
         }
     }
 

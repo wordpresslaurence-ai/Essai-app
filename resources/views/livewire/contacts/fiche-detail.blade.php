@@ -211,6 +211,52 @@
                 <div class="lb-placeholder mt-3">Pas encore d'analyse. Clique sur « Analyser » pour obtenir un conseil de relance et un brouillon.</div>
             @endif
 
+            {{-- Prospection (assistant IA) --}}
+            <div class="flex items-center justify-between mt-5">
+                <h3 class="lb-h3" style="font-size:19px">Prospection</h3>
+            </div>
+            <div class="lb-card-sm mt-3" x-data="{ copie: false }">
+                <label for="angleProspection" class="lb-label" style="font-weight:500;color:var(--text-muted)">Angle (facultatif)</label>
+                <div class="flex flex-wrap items-end gap-3" style="margin-top:4px">
+                    <input id="angleProspection" type="text" wire:model="angleProspection" class="lb-field" style="flex:1;min-width:14rem"
+                           placeholder="ex. enseigne le yin à Namur, croisée au salon…">
+                    <button type="button" wire:click="redigerProspection" class="lb-btn lb-btn-primary"
+                            style="white-space:nowrap" wire:loading.attr="disabled" wire:target="redigerProspection">
+                        <span wire:loading.remove wire:target="redigerProspection">✍️ Rédiger un mail de prospection</span>
+                        <span wire:loading wire:target="redigerProspection">Rédaction…</span>
+                    </button>
+                </div>
+
+                @if ($prospectionErreur)
+                    <div class="lb-alert lb-alert-danger mt-3">{{ $prospectionErreur }}</div>
+                @endif
+
+                @if ($prospectionCorps !== null)
+                    <div style="margin-top:14px">
+                        <label class="lb-label" style="font-weight:500;color:var(--text-muted)">Objet</label>
+                        <input type="text" wire:model="prospectionObjet" x-ref="objet" class="lb-field" style="margin-top:4px">
+
+                        <div class="lb-label" style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+                            <span>Mail proposé</span>
+                            <button type="button" class="lb-accent" style="font-size:12px;font-weight:600;background:none;border:0;cursor:pointer"
+                                    x-on:click="navigator.clipboard.writeText('Objet : ' + $refs.objet.value + '\n\n' + $refs.corps.value); copie = true; setTimeout(() => copie = false, 2000)">
+                                <span x-show="!copie">Copier</span>
+                                <span x-show="copie" x-cloak>Copié ✓</span>
+                            </button>
+                        </div>
+                        <textarea wire:model="prospectionCorps" x-ref="corps" rows="9" class="lb-field" style="margin-top:6px"></textarea>
+
+                        <p class="lb-muted" style="font-size:11.5px;margin-top:10px">
+                            Relis, ajuste, puis copie — tu l'envoies depuis ta boîte mail. Une tâche « à envoyer » a été ajoutée à ce contact pour garder la trace.
+                        </p>
+                    </div>
+                @else
+                    <p class="lb-muted" style="font-size:12.5px;margin-top:10px">
+                        L'assistant rédige un brouillon à partir de ton <a href="{{ route('reglages.assistant') }}" wire:navigate style="color:var(--accent)">pitch de prospection</a>. Rien n'est envoyé automatiquement.
+                    </p>
+                @endif
+            </div>
+
             <div class="flex items-center justify-between mt-5">
                 <h3 class="lb-h3" style="font-size:19px">Activités</h3>
                 <a href="{{ route('activites.creer') }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>+ Ajouter</a>

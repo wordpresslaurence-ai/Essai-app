@@ -6,6 +6,7 @@ use App\Models\Contact;
 use App\Services\IA\AssistantFactice;
 use App\Services\IA\AssistantIA;
 use App\Services\IA\ResultatAnalyse;
+use App\Services\IA\ResultatProspection;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -48,6 +49,11 @@ it('affiche une erreur propre si l’assistant échoue', function () {
                 throw new RuntimeException('Clé API manquante.');
             }
 
+            public function redigerProspection(Contact $contact, ?string $angle = null): ResultatProspection
+            {
+                throw new RuntimeException('non utilisé');
+            }
+
             public function suggestions(array $contexte): array
             {
                 return [];
@@ -69,4 +75,38 @@ it('affiche un espace vide avant toute analyse', function () {
 
     Livewire::test(FicheDetail::class, ['contact' => $contact])
         ->assertSee('Pas encore');
+});
+
+it('rédige une prospection, affiche le brouillon et crée une tâche de trace', function () {
+    $this->app->bind(AssistantIA::class, fn () => new AssistantFactice(
+        prospection: new ResultatProspection(
+            objet: 'Rejoindre la formation Prana Vidya',
+            corps: 'Bonjour, je serais ravie de vous présenter ma formation. Laurence',
+            modele: 'test',
+        )
+    ));
+
+    $contact = Contact::factory()->create(['nom' => 'Martin', 'prenom' => 'Claire']);
+
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->set('angleProspection', 'fait du yin')
+        ->call('redigerProspection')
+        ->assertSet('prospectionErreur', null)
+        ->assertSet('prospectionObjet', 'Rejoindre la formation Prana Vidya');
+
+    expect(App\Models\Activite::where('contact_id', $contact->id)
+        ->where('titre', 'like', 'Envoyer le mail de prospection%')->count())->toBe(1);
+});
+
+it('ne crée pas de doublon de tâche de prospection si on régénère', function () {
+    $this->app->bind(AssistantIA::class, fn () => new AssistantFactice(
+        prospection: new ResultatProspection(objet: 'O', corps: 'C', modele: 't')
+    ));
+    $contact = Contact::factory()->create();
+
+    $c = Livewire::test(FicheDetail::class, ['contact' => $contact]);
+    $c->call('redigerProspection');
+    $c->call('redigerProspection');
+
+    expect(App\Models\Activite::where('contact_id', $contact->id)->count())->toBe(1);
 });

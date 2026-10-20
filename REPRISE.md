@@ -137,6 +137,7 @@ Tous protégés par authentification. Routes dans `routes/web.php`.
 | **Leads** | (champs `source`/`temperature` sur `Contact`) | Qualification des contacts entrants. |
 | **Assistant IA** (brique 1) | `Assistant\Brief`, `Reglages\Assistant`, services `Email\*` et `IA\*` | Lecture des e-mails (IMAP), fil sur la fiche, bouton « Analyse & relances » (API Claude), brief du matin (réponses dues / à relancer / suggestions). Specs : `specs/005-assistant-ia/`. |
 | **Organisation** (brique 2) | `Organisation\Gestion` | Pôles & Catégories que Laurence crée/renomme/supprime elle-même. Champ Catégorie sur contacts et opportunités (le pôle est déduit), filtres Pôle → Catégorie sur Contacts et Pipeline, badge sur la fiche. Specs : `specs/006-poles-categories/`. |
+| **Prospection** (brique 7) | `Reglages\Assistant` (pitch), `Contacts\FicheDetail` (bouton), services `IA\*` | L'assistant rédige un brouillon de mail de prospection (prof de yoga) depuis la fiche contact, à partir du « pitch de prospection » des Réglages. Jamais envoyé ; une tâche « à envoyer » est créée comme trace. Specs : `specs/007-prospection/`. |
 
 ### Module Organisation / Pôles & Catégories (006) — notes
 - Deux niveaux : **Pôle** (Prana, Digital…) → **Catégorie** (Formation profs, Journée aura,
