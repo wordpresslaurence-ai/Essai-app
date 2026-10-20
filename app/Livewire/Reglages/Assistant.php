@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Reglages;
 
+use App\Models\Categorie;
 use App\Models\Parametre;
 use App\Models\Pole;
 use App\Services\Email\LecteurEmails;
@@ -34,8 +35,11 @@ class Assistant extends Component
 
     public ?string $pitch_prospection = null;
 
-    /** Liens de l'offre par pôle : [pole_id => texte]. */
-    public array $liensOffre = [];
+    /** Description de l'offre par catégorie : [categorie_id => texte]. */
+    public array $offres = [];
+
+    /** Liens par catégorie : [categorie_id => [ ['libelle' => , 'url' => ], … ] ]. */
+    public array $liens = [];
 
     // Secrets : champs de saisie (vides au chargement), remplacés uniquement si saisis
     public string $gmail_app_password = '';
@@ -69,9 +73,10 @@ class Assistant extends Component
             ?? 'https://homeharmony.be/nettoyage-aura-chakras';
         $this->pitch_prospection = $p->pitch_prospection;
 
-        $this->liensOffre = Pole::orderBy('ordre')->orderBy('nom')->get()
-            ->mapWithKeys(fn (Pole $pole) => [$pole->id => $pole->liens_offre])
-            ->all();
+        foreach (Categorie::all() as $cat) {
+            $this->offres[$cat->id] = $cat->offre;
+            $this->liens[$cat->id] = array_values($cat->liens ?? []);
+        }
 
         $this->gmailMotDePasseDefini = filled($p->secret('gmail_app_password'));
         $this->cleApiDefinie = filled($p->secret('anthropic_api_key'));
@@ -86,9 +91,13 @@ class Assistant extends Component
             'lien_appel_visio' => ['nullable', 'url', 'max:255'],
             'lien_seance_decouverte' => ['nullable', 'url', 'max:255'],
             'lien_journee_aura' => ['nullable', 'url', 'max:255'],
-            'pitch_prospection' => ['nullable', 'string', 'max:5000'],
-            'liensOffre' => ['array'],
-            'liensOffre.*' => ['nullable', 'string', 'max:5000'],
+            'pitch_prospection' => ['nullable', 'string'],
+            'offres' => ['array'],
+            'offres.*' => ['nullable', 'string'],
+            'liens' => ['array'],
+            'liens.*' => ['array'],
+            'liens.*.*.libelle' => ['nullable', 'string', 'max:255'],
+            'liens.*.*.url' => ['nullable', 'string', 'max:2000'],
             'gmail_app_password' => ['nullable', 'string', 'max:255'],
             'anthropic_api_key' => ['nullable', 'string', 'max:255'],
         ]);
@@ -103,9 +112,21 @@ class Assistant extends Component
         $p->lien_journee_aura = $donnees['lien_journee_aura'];
         $p->pitch_prospection = $donnees['pitch_prospection'];
 
-        // Liens de l'offre par pôle
-        foreach ($this->liensOffre as $poleId => $texte) {
-            Pole::whereKey($poleId)->update(['liens_offre' => filled($texte) ? $texte : null]);
+        // Offre & liens par catégorie
+        foreach ($this->offres as $categorieId => $description) {
+            $liensCat = collect($this->liens[$categorieId] ?? [])
+                ->filter(fn ($l) => filled($l['url'] ?? null))
+                ->map(fn ($l) => [
+                    'libelle' => trim((string) ($l['libelle'] ?? '')),
+                    'url' => trim((string) $l['url']),
+                ])
+                ->values()
+                ->all();
+
+            Categorie::whereKey($categorieId)->update([
+                'offre' => filled($description) ? $description : null,
+                'liens' => $liensCat !== [] ? $liensCat : null,
+            ]);
         }
 
         // Secrets : on ne remplace que si un nouveau contenu a été saisi
@@ -124,6 +145,20 @@ class Assistant extends Component
         $this->cleApiDefinie = filled($p->secret('anthropic_api_key'));
 
         session()->flash('message', 'Réglages enregistrés.');
+    }
+
+    /** Ajoute une ligne de lien (vide) à une catégorie. */
+    public function ajouterLien(int $categorieId): void
+    {
+        $this->liens[$categorieId][] = ['libelle' => '', 'url' => ''];
+    }
+
+    /** Retire une ligne de lien d'une catégorie. */
+    public function supprimerLien(int $categorieId, int $index): void
+    {
+        if (isset($this->liens[$categorieId][$index])) {
+            array_splice($this->liens[$categorieId], $index, 1);
+        }
     }
 
     /**
@@ -158,7 +193,7 @@ class Assistant extends Component
     public function render(): View
     {
         return view('livewire.reglages.assistant', [
-            'poles' => Pole::orderBy('ordre')->orderBy('nom')->get(),
+            'poles' => Pole::with('categories')->orderBy('ordre')->orderBy('nom')->get(),
         ]);
     }
 }

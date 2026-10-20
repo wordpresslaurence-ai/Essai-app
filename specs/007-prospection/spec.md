@@ -21,10 +21,11 @@ yoga, pour l'inviter à découvrir la **formation de profs Prana Vidya**. Le bro
 ## 3. Périmètre
 
 **Inclus**
-- **Offre & liens par pôle** (Réglages, **source principale**) : pour chaque pôle, une courte
-  description de l'offre + les liens (pages de l'offre + Fluent Booking). L'IA repère le **pôle
-  du contact** (via sa catégorie) et s'appuie dessus. ⚠️ L'IA **ne peut pas ouvrir les liens** :
-  elle se fonde sur la description et présente les liens comme des appels à l'action.
+- **Offre & liens par catégorie** (Réglages, **source principale**) : accordéon par catégorie
+  (groupées par pôle). Chaque catégorie a une **description d'offre sans limite** (on peut coller
+  toute la page de vente) + une **liste de liens** (libellé + URL) qu'on **ajoute/supprime**.
+  L'IA repère la **catégorie du contact** et s'appuie dessus. ⚠️ L'IA **ne peut pas ouvrir les
+  liens** : elle se fonde sur la description et présente les liens comme des appels à l'action.
 - Une **« note générale » facultative** (ancien pitch) : ton/contexte global qui s'applique à
   toute la prospection. Non obligatoire.
 - L'IA combine les **bons métiers** (copywriting, marketing bienveillant, formatrice de profs

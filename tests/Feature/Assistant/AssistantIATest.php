@@ -134,11 +134,14 @@ it('refuse de rédiger une prospection sans offre de pôle ni note générale', 
         ->toThrow(RuntimeException::class);
 });
 
-it('rédige une prospection à partir de l’offre du pôle, sans note générale', function () {
+it('rédige une prospection à partir de l’offre de la catégorie, sans note générale', function () {
     Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test', 'pitch_prospection' => null]);
 
-    $pole = App\Models\Pole::create(['nom' => 'Prana', 'liens_offre' => 'Formation profs : https://exemple.be/formation']);
-    $cat = App\Models\Categorie::create(['pole_id' => $pole->id, 'nom' => 'Formation profs']);
+    $pole = App\Models\Pole::create(['nom' => 'Prana']);
+    $cat = App\Models\Categorie::create([
+        'pole_id' => $pole->id, 'nom' => 'Formation profs',
+        'offre' => 'Formation de profs de yoga sur 3 stages.',
+    ]);
     $contact = Contact::factory()->create(['categorie_id' => $cat->id]);
 
     Http::fake([
@@ -151,14 +154,15 @@ it('rédige une prospection à partir de l’offre du pôle, sans note général
     expect($r->corps)->toContain('Laurence');
 });
 
-it('insère les liens du pôle du contact dans la requête de prospection', function () {
-    Parametre::instance()->update([
-        'anthropic_api_key' => 'sk-ant-test',
-        'pitch_prospection' => 'Je forme des profs de yoga.',
-    ]);
+it('insère les liens de la catégorie du contact dans la requête de prospection', function () {
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test', 'pitch_prospection' => null]);
 
-    $pole = App\Models\Pole::create(['nom' => 'Prana', 'liens_offre' => 'Formation : https://exemple.be/formation-prana']);
-    $cat = App\Models\Categorie::create(['pole_id' => $pole->id, 'nom' => 'Formation profs']);
+    $pole = App\Models\Pole::create(['nom' => 'Prana']);
+    $cat = App\Models\Categorie::create([
+        'pole_id' => $pole->id, 'nom' => 'Formation profs',
+        'offre' => 'Formation de profs de yoga Prana Vidya.',
+        'liens' => [['libelle' => 'Programme', 'url' => 'https://exemple.be/formation-prana']],
+    ]);
     $contact = Contact::factory()->create(['categorie_id' => $cat->id]);
 
     Http::fake([

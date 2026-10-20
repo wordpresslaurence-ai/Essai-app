@@ -11,7 +11,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Categorie extends Model
 {
-    protected $fillable = ['pole_id', 'nom', 'couleur', 'ordre'];
+    protected $fillable = ['pole_id', 'nom', 'couleur', 'ordre', 'offre', 'liens'];
+
+    protected function casts(): array
+    {
+        return [
+            'liens' => 'array',
+        ];
+    }
 
     public function pole(): BelongsTo
     {

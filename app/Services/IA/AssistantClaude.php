@@ -55,10 +55,11 @@ class AssistantClaude implements AssistantIA
         $p = Parametre::instance();
 
         $contact->loadMissing('categorie.pole');
-        $offre = $contact->categorie?->pole?->liens_offre;
+        $cat = $contact->categorie;
+        $aOffre = $cat && (filled($cat->offre) || ! empty($cat->liens));
 
-        if (blank($offre) && blank($p->pitch_prospection)) {
-            throw new RuntimeException('Renseigne l’« Offre & liens » du pôle de ce contact dans les Réglages (ou, à défaut, un pitch général).');
+        if (! $aOffre && blank($p->pitch_prospection)) {
+            throw new RuntimeException('Renseigne l’« Offre & liens » de la catégorie de ce contact dans les Réglages (ou, à défaut, une note générale).');
         }
 
         $systeme = <<<'TXT'
@@ -66,7 +67,7 @@ class AssistantClaude implements AssistantIA
             d'un rédacteur en copywriting, d'un spécialiste du marketing bienveillant et d'une
             formatrice de profs de yoga expérimentée. Rédige un brouillon de mail de PROSPECTION en
             français vers un prof de yoga, pour l'inviter à rejoindre la formation.
-            Appuie-toi sur « l'offre & les liens » du pôle et le contexte du contact fournis
+            Appuie-toi sur « l'offre & les liens » de la catégorie et le contexte du contact fournis
             ci-dessous : n'invente aucun fait, prix ou date qui n'y figure pas. Tu ne peux PAS ouvrir
             les liens : fonde-toi sur la description fournie et présente les liens comme des appels à
             l'action (« en savoir plus », « s'inscrire »). Style : expert, crédible et chaleureux,
@@ -197,14 +198,25 @@ class AssistantClaude implements AssistantIA
     private function contexteProspection(Contact $contact, Parametre $p, ?string $angle): string
     {
         $categorie = $contact->relationLoaded('categorie') ? $contact->categorie : $contact->categorie()->first();
-        $pole = $categorie?->pole;
 
         $lignes = [];
 
-        // Source principale : l'offre & les liens du pôle du contact.
-        if ($pole && filled($pole->liens_offre)) {
-            $lignes[] = '### Offre & liens du pôle « '.$pole->nom.' » (source principale, insère ces liens dans le mail)';
-            $lignes[] = (string) $pole->liens_offre;
+        // Source principale : l'offre & les liens de la catégorie du contact.
+        if ($categorie && (filled($categorie->offre) || ! empty($categorie->liens))) {
+            $lignes[] = '### Offre « '.$categorie->libelleComplet().' » (source principale)';
+            if (filled($categorie->offre)) {
+                $lignes[] = (string) $categorie->offre;
+            }
+            $liens = collect($categorie->liens ?? [])
+                ->filter(fn ($l) => filled($l['url'] ?? null));
+            if ($liens->isNotEmpty()) {
+                $lignes[] = 'Liens à insérer dans le mail (comme appels à l\'action) :';
+                foreach ($liens as $lien) {
+                    $libelle = trim((string) ($lien['libelle'] ?? ''));
+                    $url = trim((string) $lien['url']);
+                    $lignes[] = '- '.($libelle !== '' ? $libelle.' : ' : '').$url;
+                }
+            }
         } elseif (filled($p->lien_seance_decouverte)) {
             $lignes[] = '### Lien disponible';
             $lignes[] = 'Séance découverte : '.$p->lien_seance_decouverte;

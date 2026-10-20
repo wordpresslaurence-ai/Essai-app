@@ -81,13 +81,37 @@ it('enregistre le pitch de prospection', function () {
     expect(Parametre::instance()->pitch_prospection)->toBe('Je suis Laurence, je forme des profs de yoga Prana Vidya.');
 });
 
-it('enregistre les liens de l’offre par pôle', function () {
+it('enregistre l’offre et les liens par catégorie (sans limite de taille)', function () {
     $pole = App\Models\Pole::create(['nom' => 'Prana']);
+    $cat = App\Models\Categorie::create(['pole_id' => $pole->id, 'nom' => 'Formation profs']);
+
+    $pageDeVente = str_repeat('Description longue de mon offre. ', 400); // > 5000 caractères
 
     Livewire::test(Assistant::class)
-        ->set("liensOffre.{$pole->id}", 'Formation : https://exemple.be/formation-prana')
+        ->set("offres.{$cat->id}", $pageDeVente)
+        ->call('ajouterLien', $cat->id)
+        ->set("liens.{$cat->id}.0.libelle", 'Programme')
+        ->set("liens.{$cat->id}.0.url", 'https://exemple.be/formation-prana')
         ->call('enregistrer')
         ->assertHasNoErrors();
 
-    expect($pole->fresh()->liens_offre)->toContain('https://exemple.be/formation-prana');
+    $cat->refresh();
+    expect(mb_strlen((string) $cat->offre))->toBeGreaterThan(5000);
+    expect($cat->liens)->toBe([['libelle' => 'Programme', 'url' => 'https://exemple.be/formation-prana']]);
+});
+
+it('retire un lien d’une catégorie', function () {
+    $pole = App\Models\Pole::create(['nom' => 'Prana']);
+    $cat = App\Models\Categorie::create(['pole_id' => $pole->id, 'nom' => 'Formation profs']);
+
+    Livewire::test(Assistant::class)
+        ->call('ajouterLien', $cat->id)
+        ->set("liens.{$cat->id}.0.url", 'https://exemple.be/a')
+        ->call('ajouterLien', $cat->id)
+        ->set("liens.{$cat->id}.1.url", 'https://exemple.be/b')
+        ->call('supprimerLien', $cat->id, 0)
+        ->call('enregistrer')
+        ->assertHasNoErrors();
+
+    expect($cat->fresh()->liens)->toBe([['libelle' => '', 'url' => 'https://exemple.be/b']]);
 });
