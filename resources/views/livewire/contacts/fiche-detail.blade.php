@@ -141,6 +141,26 @@
                 @endforelse
             </div>
 
+            {{-- Inscriptions aux sessions --}}
+            @if ($contact->inscriptions->isNotEmpty())
+                <h3 class="lb-h3 mt-5" style="font-size:19px">Inscriptions</h3>
+                <div class="lb-people mt-3">
+                    @foreach ($contact->inscriptions as $ins)
+                        @if ($ins->seance)
+                            <a href="{{ route('sessions.fiche', $ins->seance) }}" class="lb-prow" wire:navigate wire:key="ins-{{ $ins->id }}" style="text-decoration:none">
+                                <span class="lb-tag" style="{{ $ins->estEnAttente() ? 'background:var(--gold-tint);color:var(--accent)' : 'background:var(--mint-tint);color:var(--mint-deep)' }}">{{ $ins->estEnAttente() ? 'En attente' : 'Confirmé' }}</span>
+                                <div style="min-width:0">
+                                    <div class="nm lb-truncate">{{ $ins->seance->titre }}</div>
+                                    @if ($ins->seance->date_debut)
+                                        <div class="mt">{{ $ins->seance->date_debut->translatedFormat('d/m/Y') }}</div>
+                                    @endif
+                                </div>
+                            </a>
+                        @endif
+                    @endforeach
+                </div>
+            @endif
+
             {{-- Fil des e-mails (assistant) --}}
             <div class="flex items-center justify-between mt-5">
                 <h3 class="lb-h3" style="font-size:19px">Emails</h3>

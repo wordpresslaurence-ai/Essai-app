@@ -125,6 +125,7 @@ class FicheDetail extends Component
             'opportunites' => fn ($q) => $q->orderByDesc('created_at'),
             'activites' => fn ($q) => $q->with('opportunite')->orderByRaw('echeance is null')->orderBy('echeance'),
             'emails' => fn ($q) => $q->orderByDesc('date_email'),
+            'inscriptions' => fn ($q) => $q->with('seance')->where('statut', '!=', 'annule')->latest(),
         ]);
 
         return view('livewire.contacts.fiche-detail', [

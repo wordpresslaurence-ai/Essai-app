@@ -89,12 +89,12 @@ Gérer les **sessions datées** de Laurence (promos de **formation de profs** �
 
 ## 8. Découpage pressenti (tasks)
 
-- **T1** — Données : tables `seances`, `inscriptions` + modèles + relations + logique
+- **T1 ✅** — Données : tables `seances`, `inscriptions` + modèles + relations + logique
   (inscrire / promouvoir / places restantes) + tests.
-- **T2** — Écran **Sessions / Liste** (places, badges, filtres, onglets) + route + nav + tests.
-- **T3** — **Formulaire** de session (créer/éditer) + tests.
-- **T4** — **Fiche session** : inscrits, inscrire, promouvoir, désinscrire + tests.
-- **T5** — Encart **Inscriptions** sur la fiche contact + **seed** de démo + docs.
+- **T2 ✅** — Écran **Sessions / Liste** (places, badges, filtres, onglets) + route + nav + tests.
+- **T3 ✅** — **Formulaire** de session (créer/éditer) + tests.
+- **T4 ✅** — **Fiche session** : inscrits, inscrire, promouvoir, désinscrire + tests.
+- **T5 ✅** — Encart **Inscriptions** sur la fiche contact + **seed** de démo + docs.
 
 ---
 

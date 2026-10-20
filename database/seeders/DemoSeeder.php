@@ -9,6 +9,7 @@ use App\Models\Email;
 use App\Models\Etiquette;
 use App\Models\Opportunite;
 use App\Models\Pole;
+use App\Models\Seance;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -174,5 +175,25 @@ class DemoSeeder extends Seeder
             'extrait' => 'Bonjour Thomas, suite à notre échange, voici notre proposition d’audit technique. Dites-moi ce que vous en pensez.',
             'date_email' => now()->subDays(12), 'boite' => $boite, 'traite' => true,
         ]);
+
+        // Sessions de démonstration (formations & journées)
+        $promo = Seance::firstOrCreate(['titre' => 'Formation profs — Promo mars'], [
+            'categorie_id' => $catFormation->id,
+            'date_debut' => now()->addMonths(2)->setTime(9, 30),
+            'lieu' => 'Namur',
+            'capacite' => 10,
+            'notes' => '3 stages de 3 jours (détails à préciser).',
+        ]);
+        foreach ([$marie, $sophie, $thomas] as $participant) {
+            $promo->inscrire($participant);
+        }
+
+        $journee = Seance::firstOrCreate(['titre' => 'Journée aura & chakras — Avril'], [
+            'categorie_id' => $catAura->id,
+            'date_debut' => now()->addWeeks(3)->setTime(10, 0),
+            'lieu' => 'Liège',
+            'capacite' => 8,
+        ]);
+        $journee->inscrire($sophie);
     }
 }
