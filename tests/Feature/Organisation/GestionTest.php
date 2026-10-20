@@ -117,6 +117,45 @@ it('supprime une catégorie', function () {
     expect(Categorie::find($cat->id))->toBeNull();
 });
 
+it('renomme un pôle', function () {
+    $pole = Pole::create(['nom' => 'Pranaa']);
+
+    Livewire::test(Gestion::class)
+        ->call('editerPole', $pole->id)
+        ->assertSet('poleEditNom', 'Pranaa')
+        ->set('poleEditNom', 'Prana')
+        ->call('renommerPole')
+        ->assertHasNoErrors();
+
+    expect(Pole::find($pole->id)->nom)->toBe('Prana');
+});
+
+it('refuse de renommer un pôle avec un nom déjà pris', function () {
+    Pole::create(['nom' => 'Prana']);
+    $digital = Pole::create(['nom' => 'Digital']);
+
+    Livewire::test(Gestion::class)
+        ->call('editerPole', $digital->id)
+        ->set('poleEditNom', 'Prana')
+        ->call('renommerPole')
+        ->assertHasErrors(['poleEditNom']);
+
+    expect(Pole::find($digital->id)->nom)->toBe('Digital');
+});
+
+it('renomme une catégorie', function () {
+    $pole = Pole::create(['nom' => 'Prana']);
+    $cat = Categorie::create(['pole_id' => $pole->id, 'nom' => 'Formation prof']);
+
+    Livewire::test(Gestion::class)
+        ->call('editerCategorie', $cat->id)
+        ->set('categorieEditNom', 'Formation profs')
+        ->call('renommerCategorie')
+        ->assertHasNoErrors();
+
+    expect(Categorie::find($cat->id)->nom)->toBe('Formation profs');
+});
+
 it('exige une connexion pour accéder à l’organisation', function () {
     auth()->logout();
     $this->get(route('organisation.index'))->assertRedirect(route('login'));

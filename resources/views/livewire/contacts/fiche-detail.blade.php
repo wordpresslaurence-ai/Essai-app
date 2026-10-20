@@ -20,6 +20,9 @@
                 @if ($src = $contact->sourceInfo())
                     <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $src[1] }}"></span>{{ $src[0] }}</span>
                 @endif
+                @if ($contact->categorie)
+                    <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $contact->categorie->couleur ?: 'var(--mint)' }}"></span>{{ $contact->categorie->libelleComplet() }}</span>
+                @endif
                 @foreach ($contact->etiquettes as $et)
                     <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $et->couleur ?: 'var(--gold)' }}"></span>{{ $et->nom }}</span>
                 @endforeach

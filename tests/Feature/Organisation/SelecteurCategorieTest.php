@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Contacts\FicheDetail;
 use App\Livewire\Contacts\Formulaire as ContactFormulaire;
 use App\Livewire\Pipeline\Formulaire as PipelineFormulaire;
 use App\Models\Categorie;
@@ -65,6 +66,13 @@ it('pré-remplit la catégorie de l’opportunité avec celle du contact choisi 
     Livewire::test(PipelineFormulaire::class)
         ->set('contact_id', (string) $contact->id)
         ->assertSet('categorie_id', (string) $this->formation->id);
+});
+
+it('affiche le pôle · catégorie en badge sur la fiche contact', function () {
+    $contact = Contact::factory()->create(['categorie_id' => $this->formation->id]);
+
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->assertSee('Prana · Formation profs');
 });
 
 it('n’écrase pas une catégorie déjà choisie quand on sélectionne un contact', function () {

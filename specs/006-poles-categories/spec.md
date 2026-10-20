@@ -102,9 +102,9 @@ Et pouvoir **filtrer** contacts et pipeline par Pôle → Catégorie (des « ong
 
 - **T1 ✅** — Données : tables `poles`, `categories` + `categorie_id` sur contacts/opportunités + modèles + tests. *(CI verte, commit 2ed361d)*
 - **T2 ✅** — Écran **Pôles & Catégories** (gestion CRUD + couleurs) + tests. *(CI verte, commit f19ceab)*
-- **T3** — **Sélecteur de Catégorie** dans les formulaires contact & opportunité + tests.
-- **T4** — **Filtres** Pôle → Catégorie sur Contacts et Pipeline + tests.
-- **T5** — Badges sur la fiche + **seed** (pôles/catégories + démo) + finitions + docs.
+- **T3 ✅** — **Sélecteur de Catégorie** dans les formulaires contact & opportunité + tests. *(CI verte, commit 018ca8e)*
+- **T4 ✅** — **Filtres** Pôle → Catégorie sur Contacts et Pipeline + tests. *(CI verte, commit 1efcf24)*
+- **T5 ✅** — Badge sur la fiche + **renommage** (pôles/catégories) + **seed** (pôles/catégories + démo) + docs.
 
 ---
 

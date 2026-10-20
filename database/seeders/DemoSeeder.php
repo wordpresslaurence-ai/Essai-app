@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Activite;
+use App\Models\Categorie;
 use App\Models\Contact;
 use App\Models\Email;
 use App\Models\Etiquette;
 use App\Models\Opportunite;
+use App\Models\Pole;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -26,6 +28,16 @@ class DemoSeeder extends Seeder
         $client = Etiquette::firstOrCreate(['nom' => 'Client'], ['couleur' => '#16a34a']);
         $prospect = Etiquette::firstOrCreate(['nom' => 'Prospect'], ['couleur' => '#2563eb']);
         Etiquette::firstOrCreate(['nom' => 'Fournisseur'], ['couleur' => '#d97706']);
+
+        // Organisation : pôles & catégories (section 006). Laurence peut en ajouter d'autres.
+        $prana = Pole::firstOrCreate(['nom' => 'Prana'], ['couleur' => '#4E8577', 'ordre' => 1]);
+        $digital = Pole::firstOrCreate(['nom' => 'Digital'], ['couleur' => '#6C74B4', 'ordre' => 2]);
+
+        $catFormation = Categorie::firstOrCreate(['pole_id' => $prana->id, 'nom' => 'Formation profs de yoga'], ['couleur' => '#4E8577', 'ordre' => 1]);
+        $catAura = Categorie::firstOrCreate(['pole_id' => $prana->id, 'nom' => 'Journée aura & chakras'], ['couleur' => '#C98A5E', 'ordre' => 2]);
+        Categorie::firstOrCreate(['pole_id' => $prana->id, 'nom' => 'Recherche de salle'], ['couleur' => '#9AA5B1', 'ordre' => 3]);
+        $catSites = Categorie::firstOrCreate(['pole_id' => $digital->id, 'nom' => 'Sites web'], ['couleur' => '#6C74B4', 'ordre' => 1]);
+        Categorie::firstOrCreate(['pole_id' => $digital->id, 'nom' => 'PDF interactifs'], ['couleur' => '#B08BC0', 'ordre' => 2]);
 
         $acme = Contact::firstOrCreate(['nom' => 'ACME Belgium SPRL'], [
             'type' => Contact::TYPE_ENTREPRISE,
@@ -100,6 +112,17 @@ class DemoSeeder extends Seeder
         Opportunite::firstOrCreate(['titre' => 'Prospection salon'], [
             'contact_id' => $novatech->id, 'montant' => 600, 'etape' => Opportunite::ETAPE_NOUVEAU,
         ]);
+
+        // Affectation de quelques contacts/opportunités de démo à des catégories.
+        $marie->update(['categorie_id' => $catFormation->id]);
+        $acme->update(['categorie_id' => $catFormation->id]);
+        $sophie->update(['categorie_id' => $catAura->id]);
+        $novatech->update(['categorie_id' => $catSites->id]);
+        $thomas->update(['categorie_id' => $catSites->id]);
+
+        Opportunite::where('titre', 'Formation équipe')->update(['categorie_id' => $catFormation->id]);
+        Opportunite::where('titre', 'Accompagnement coaching')->update(['categorie_id' => $catAura->id]);
+        Opportunite::where('titre', 'Audit technique')->update(['categorie_id' => $catSites->id]);
 
         // Activités de démonstration
         Activite::firstOrCreate(['titre' => 'Rappeler Marie Dubois'], [

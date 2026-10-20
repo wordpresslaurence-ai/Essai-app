@@ -28,6 +28,15 @@ class Gestion extends Component
 
     public ?string $categorieCouleur = '#6C74B4';
 
+    // Renommage en ligne
+    public ?int $poleEditId = null;
+
+    public string $poleEditNom = '';
+
+    public ?int $categorieEditId = null;
+
+    public string $categorieEditNom = '';
+
     public function ajouterPole(): void
     {
         $donnees = $this->validate([
@@ -45,6 +54,33 @@ class Gestion extends Component
     {
         $pole->delete(); // catégories supprimées, contacts/opportunités détachés
         session()->flash('message', 'Pôle supprimé.');
+    }
+
+    public function editerPole(Pole $pole): void
+    {
+        $this->resetValidation();
+        $this->poleEditId = $pole->id;
+        $this->poleEditNom = $pole->nom;
+        $this->categorieEditId = null;
+    }
+
+    public function renommerPole(): void
+    {
+        $pole = Pole::findOrFail($this->poleEditId);
+
+        $donnees = $this->validate([
+            'poleEditNom' => ['required', 'string', 'max:255', Rule::unique('poles', 'nom')->ignore($pole->id)],
+        ]);
+
+        $pole->update(['nom' => $donnees['poleEditNom']]);
+        $this->poleEditId = null;
+        session()->flash('message', 'Pôle renommé.');
+    }
+
+    public function annulerEditionPole(): void
+    {
+        $this->poleEditId = null;
+        $this->resetValidation();
     }
 
     public function ajouterCategorie(): void
@@ -75,6 +111,38 @@ class Gestion extends Component
     {
         $categorie->delete(); // contacts/opportunités détachés
         session()->flash('message', 'Catégorie supprimée.');
+    }
+
+    public function editerCategorie(Categorie $categorie): void
+    {
+        $this->resetValidation();
+        $this->categorieEditId = $categorie->id;
+        $this->categorieEditNom = $categorie->nom;
+        $this->poleEditId = null;
+    }
+
+    public function renommerCategorie(): void
+    {
+        $categorie = Categorie::findOrFail($this->categorieEditId);
+
+        $donnees = $this->validate([
+            'categorieEditNom' => [
+                'required', 'string', 'max:255',
+                Rule::unique('categories', 'nom')->where('pole_id', $categorie->pole_id)->ignore($categorie->id),
+            ],
+        ], [
+            'categorieEditNom.unique' => 'Cette catégorie existe déjà dans ce pôle.',
+        ]);
+
+        $categorie->update(['nom' => $donnees['categorieEditNom']]);
+        $this->categorieEditId = null;
+        session()->flash('message', 'Catégorie renommée.');
+    }
+
+    public function annulerEditionCategorie(): void
+    {
+        $this->categorieEditId = null;
+        $this->resetValidation();
     }
 
     public function render(): View

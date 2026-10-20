@@ -55,23 +55,46 @@
             <div wire:key="pole-{{ $pole->id }}" class="lb-card" style="padding:18px">
                 <div class="flex items-center gap-3">
                     <span class="lb-dot" style="width:16px;height:16px;background:{{ $pole->couleur ?? 'var(--mint)' }}"></span>
-                    <span style="font-weight:600;font-size:15px">{{ $pole->nom }}</span>
-                    <span class="lb-muted" style="font-size:12px">· {{ $pole->categories->count() }} catégorie(s)</span>
-                    <button type="button" wire:click="supprimerPole({{ $pole->id }})"
-                            wire:confirm="Supprimer le pôle « {{ $pole->nom }} » et ses catégories ? Les contacts et opportunités seront simplement détachés."
-                            class="lb-btn lb-btn-danger" style="margin-left:auto;padding:7px 13px;font-size:12.5px">Supprimer le pôle</button>
+                    @if ($poleEditId === $pole->id)
+                        <form wire:submit="renommerPole" class="flex items-center gap-2" style="flex:1">
+                            <input type="text" wire:model="poleEditNom" class="lb-field" style="max-width:16rem" autofocus>
+                            <button type="submit" class="lb-btn lb-btn-primary" style="padding:7px 13px;font-size:12.5px">Enregistrer</button>
+                            <button type="button" wire:click="annulerEditionPole" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px">Annuler</button>
+                            @error('poleEditNom') <span class="lb-error">{{ $message }}</span> @enderror
+                        </form>
+                    @else
+                        <span style="font-weight:600;font-size:15px">{{ $pole->nom }}</span>
+                        <span class="lb-muted" style="font-size:12px">· {{ $pole->categories->count() }} catégorie(s)</span>
+                        <button type="button" wire:click="editerPole({{ $pole->id }})"
+                                class="lb-btn lb-btn-ghost" style="margin-left:auto;padding:7px 13px;font-size:12.5px">Renommer</button>
+                        <button type="button" wire:click="supprimerPole({{ $pole->id }})"
+                                wire:confirm="Supprimer le pôle « {{ $pole->nom }} » et ses catégories ? Les contacts et opportunités seront simplement détachés."
+                                class="lb-btn lb-btn-danger" style="padding:7px 13px;font-size:12.5px">Supprimer</button>
+                    @endif
                 </div>
 
                 <div class="mt-4 flex flex-wrap gap-2">
                     @forelse ($pole->categories as $cat)
-                        <span wire:key="cat-{{ $cat->id }}" class="lb-tag" style="gap:7px">
-                            <span class="lb-dot" style="width:11px;height:11px;background:{{ $cat->couleur ?? 'var(--lav)' }}"></span>
-                            {{ $cat->nom }}
-                            <button type="button" wire:click="supprimerCategorie({{ $cat->id }})"
-                                    wire:confirm="Supprimer la catégorie « {{ $cat->nom }} » ?"
-                                    title="Supprimer" aria-label="Supprimer la catégorie"
-                                    style="border:0;background:none;cursor:pointer;color:var(--text-muted);font-size:15px;line-height:1">×</button>
-                        </span>
+                        @if ($categorieEditId === $cat->id)
+                            <form wire:key="cat-edit-{{ $cat->id }}" wire:submit="renommerCategorie" class="flex items-center gap-2">
+                                <input type="text" wire:model="categorieEditNom" class="lb-field" style="max-width:14rem" autofocus>
+                                <button type="submit" class="lb-btn lb-btn-primary" style="padding:6px 11px;font-size:12px">OK</button>
+                                <button type="button" wire:click="annulerEditionCategorie" class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px">Annuler</button>
+                                @error('categorieEditNom') <span class="lb-error">{{ $message }}</span> @enderror
+                            </form>
+                        @else
+                            <span wire:key="cat-{{ $cat->id }}" class="lb-tag" style="gap:7px">
+                                <span class="lb-dot" style="width:11px;height:11px;background:{{ $cat->couleur ?? 'var(--lav)' }}"></span>
+                                {{ $cat->nom }}
+                                <button type="button" wire:click="editerCategorie({{ $cat->id }})"
+                                        title="Renommer" aria-label="Renommer la catégorie"
+                                        style="border:0;background:none;cursor:pointer;color:var(--text-muted);font-size:12px;line-height:1">✎</button>
+                                <button type="button" wire:click="supprimerCategorie({{ $cat->id }})"
+                                        wire:confirm="Supprimer la catégorie « {{ $cat->nom }} » ?"
+                                        title="Supprimer" aria-label="Supprimer la catégorie"
+                                        style="border:0;background:none;cursor:pointer;color:var(--text-muted);font-size:15px;line-height:1">×</button>
+                            </span>
+                        @endif
                     @empty
                         <span class="lb-muted" style="font-size:12.5px">Aucune catégorie dans ce pôle pour l'instant.</span>
                     @endforelse

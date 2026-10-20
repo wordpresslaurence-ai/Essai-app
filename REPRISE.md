@@ -136,6 +136,18 @@ Tous protégés par authentification. Routes dans `routes/web.php`.
 | **Activités** | `Activites\Liste`, `Activites\Formulaire` | Tâches, appels, rendez-vous, rappels. |
 | **Leads** | (champs `source`/`temperature` sur `Contact`) | Qualification des contacts entrants. |
 | **Assistant IA** (brique 1) | `Assistant\Brief`, `Reglages\Assistant`, services `Email\*` et `IA\*` | Lecture des e-mails (IMAP), fil sur la fiche, bouton « Analyse & relances » (API Claude), brief du matin (réponses dues / à relancer / suggestions). Specs : `specs/005-assistant-ia/`. |
+| **Organisation** (brique 2) | `Organisation\Gestion` | Pôles & Catégories que Laurence crée/renomme/supprime elle-même. Champ Catégorie sur contacts et opportunités (le pôle est déduit), filtres Pôle → Catégorie sur Contacts et Pipeline, badge sur la fiche. Specs : `specs/006-poles-categories/`. |
+
+### Module Organisation / Pôles & Catégories (006) — notes
+- Deux niveaux : **Pôle** (Prana, Digital…) → **Catégorie** (Formation profs, Journée aura,
+  Recherche de salle, Sites web, PDF interactifs…). Tables `poles` et `categories`
+  (unicité du nom par pôle), `categorie_id` **nullable** sur `contacts` et `opportunites`.
+- **Extensible par l'utilisatrice** : tout se crée/renomme/supprime depuis l'écran
+  **Organisation** (route `organisation.index`), sans intervention de développement ;
+  une nouvelle catégorie devient aussitôt filtrable.
+- Suppression d'un pôle → ses catégories partent, mais les contacts/opportunités sont
+  **détachés** (jamais supprimés). Idem pour une catégorie (FK `nullOnDelete`).
+- Pré-rempli par le `DemoSeeder` (pôles Prana/Digital + catégories + quelques affectations).
 
 ### Module Assistant IA (005) — notes
 - **Fournisseur IA** : Claude (API Anthropic), appelé **côté serveur** via le client HTTP de
@@ -207,8 +219,11 @@ réinitialiser à un redéploiement. Pour des données persistantes : brancher *
 
 ### Fait
 - ✅ Modules Contacts, Pipeline, Activités, Leads + import CSV + étiquettes.
+- ✅ **Assistant IA (brique 1)** : lecture e-mails, fil sur la fiche, analyse + brief du matin (API Claude).
+- ✅ **Organisation — Pôles & Catégories (brique 2)** : gestion configurable, champ catégorie sur
+  contacts/opportunités, filtres Pôle → Catégorie, badge sur la fiche, seed de démo.
 - ✅ Design « Or & Encre » appliqué à tous les écrans, thème clair/sombre.
-- ✅ 53 tests Pest verts. CI GitHub Actions (PHP 8.4 & 8.5).
+- ✅ Tests Pest verts. CI GitHub Actions (PHP 8.4 & 8.5).
 - ✅ En ligne sur Railway (SQLite de test).
 
 ### À faire / idées
