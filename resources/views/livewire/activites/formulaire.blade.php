@@ -24,10 +24,13 @@
             </div>
             <div>
                 <label for="contact_id" class="lb-label">Contact</label>
-                <select id="contact_id" wire:model="contact_id" class="lb-field">
+                <select id="contact_id" wire:model.live="contact_id" class="lb-field">
                     <option value="">— Aucun —</option>
                     @foreach ($contacts as $c)<option value="{{ $c->id }}">{{ $c->nomComplet() }}</option>@endforeach
                 </select>
+                @if ($contact_id)
+                    <a href="{{ route('contacts.fiche', $contact_id) }}" class="lb-accent" style="display:inline-block;font-size:12.5px;font-weight:600;text-decoration:none;margin-top:6px" wire:navigate>→ Voir la fiche du contact</a>
+                @endif
             </div>
             <div>
                 <label for="opportunite_id" class="lb-label">Opportunité</label>

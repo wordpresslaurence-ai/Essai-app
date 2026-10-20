@@ -138,3 +138,11 @@ it('navigue entre les périodes du calendrier', function () {
         ->call('periodePrecedente')
         ->assertSet('dateRef', now()->toDateString());
 });
+
+it('affiche un lien vers la fiche du contact dans le formulaire activité', function () {
+    $contact = Contact::factory()->create();
+    $activite = Activite::create(['titre' => 'Test', 'type' => Activite::TYPE_TACHE, 'contact_id' => $contact->id]);
+
+    Livewire::test(App\Livewire\Activites\Formulaire::class, ['activite' => $activite])
+        ->assertSee('Voir la fiche du contact');
+});

@@ -75,3 +75,11 @@ it('conserve une opportunité quand son contact est supprimé (détachée)', fun
     expect(Opportunite::find($op->id))->not->toBeNull();
     expect($op->fresh()->contact_id)->toBeNull();
 });
+
+it('affiche un lien vers la fiche du contact dans le formulaire opportunité', function () {
+    $contact = Contact::factory()->create();
+    $op = Opportunite::create(['titre' => 'Test', 'contact_id' => $contact->id, 'etape' => Opportunite::ETAPE_NOUVEAU]);
+
+    Livewire::test(Formulaire::class, ['opportunite' => $op])
+        ->assertSee('Voir la fiche du contact');
+});
