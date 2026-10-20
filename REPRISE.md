@@ -201,6 +201,16 @@ Attention, ce qui ressemble à des étiquettes sur une fiche vient de **4 source
 - URL de test (peut changer) : une adresse en `*.up.railway.app`.
 - Guide pas-à-pas détaillé : **`DEPLOIEMENT.md`**.
 
+> ⚠️ **Pièges Railway déjà rencontrés** (à vérifier si « rien ne change » après un push) :
+> 1. **Auto-deploy qui se remet sur « disabled »** : Settings → Source → réactiver *Automatic Deploys*
+>    (et laisser *Wait for CI* sur OFF). Réactiver ne rattrape pas les commits déjà poussés.
+> 2. **« Redeploy » reconstruit l'ANCIEN commit**, pas le dernier. Pour mettre en ligne le dernier
+>    commit : faire un nouveau `git push` (déclenche l'auto-deploy sur `HEAD`) ou utiliser l'option
+>    *Deploy latest commit*. Vérifier que le commit construit correspond bien au `HEAD` de la branche.
+> 3. **SQLite = base éphémère** sur Railway : elle se réinitialise à chaque build (re-migrations +
+>    re-seed). La clé API de l'assistant est donc à recoller après un déploiement, sauf si un volume
+>    persistant est monté. Ce point disparaît en production MySQL (Hostinger).
+
 ### Variables d'environnement utiles (toutes optionnelles pour le test)
 `APP_KEY` (à fixer pour garder les sessions), `APP_DEBUG`, `DB_CONNECTION` (`sqlite`|`mysql`),
 `SEED_DEMO` (`true`/`false`), `APP_URL`.
