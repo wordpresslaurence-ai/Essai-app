@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Pole extends Model
 {
-    protected $fillable = ['nom', 'couleur', 'ordre'];
+    protected $fillable = ['nom', 'couleur', 'ordre', 'liens_offre'];
 
     /** Les catégories de ce pôle. */
     public function categories(): HasMany

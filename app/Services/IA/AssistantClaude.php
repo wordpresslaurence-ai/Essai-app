@@ -59,15 +59,18 @@ class AssistantClaude implements AssistantIA
         }
 
         $systeme = <<<'TXT'
-            Tu es l'assistant de Laurence (« Prana Vidya »). Rédige un brouillon de mail de
-            PROSPECTION en français vers un prof de yoga, pour l'inviter à découvrir sa formation
-            de profs. Appuie-toi UNIQUEMENT sur le « pitch » fourni par Laurence : n'invente aucun
-            fait, aucune date, aucun prix. Ton chaleureux, sincère et NON insistant. Personnalise
-            avec les infos du contact si pertinent. Si un lien de séance découverte figure dans le
-            pitch ou le contexte, tu peux l'inclure. Réponds UNIQUEMENT par un objet JSON avec les
-            clés "objet" (court) et "corps" (le mail, signé « Laurence »).
+            Tu es l'assistant de Laurence (« Prana Vidya »), enseignante expérimentée. Rédige un
+            brouillon de mail de PROSPECTION en français vers un prof de yoga, pour l'inviter à
+            rejoindre sa formation. Appuie-toi UNIQUEMENT sur le « pitch » et les « liens de l'offre »
+            fournis : n'invente aucun fait, aucune date, aucun prix. Écris comme une experte crédible
+            et chaleureuse, JAMAIS insistante ni trop commerciale : donne sincèrement envie de
+            s'inscrire, avec une invitation claire et motivante. Intègre naturellement les liens
+            fournis (pages de l'offre et réservation) là où c'est pertinent, sans les empiler.
+            Personnalise avec les infos du contact. Réponds UNIQUEMENT par un objet JSON avec les
+            clés "objet" (court et engageant) et "corps" (le mail, signé « Laurence »).
             TXT;
 
+        $contact->loadMissing('categorie.pole');
         $utilisateur = $this->contexteProspection($contact, $p, $angle);
 
         $texte = $this->envoyer($p, $systeme, $utilisateur, 1000);
@@ -207,7 +210,15 @@ class AssistantClaude implements AssistantIA
         if (filled($angle)) {
             $lignes[] = 'Angle souhaité par Laurence : '.$angle;
         }
-        if (filled($p->lien_seance_decouverte)) {
+
+        // Liens propres au pôle du contact (déduit de sa catégorie).
+        $pole = $categorie?->pole;
+        if ($pole && filled($pole->liens_offre)) {
+            $lignes[] = '';
+            $lignes[] = '### Liens de l\'offre pour le pôle « '.$pole->nom.' » (à insérer dans le mail)';
+            $lignes[] = (string) $pole->liens_offre;
+        } elseif (filled($p->lien_seance_decouverte)) {
+            // Repli : lien de séance découverte global si le pôle n'a pas de liens.
             $lignes[] = 'Lien séance découverte : '.$p->lien_seance_decouverte;
         }
 

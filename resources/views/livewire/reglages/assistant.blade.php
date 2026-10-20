@@ -112,6 +112,28 @@
                     Sert de base à l'assistant pour rédiger tes mails de prospection depuis la fiche d'un contact.
                 </p>
             </div>
+
+            <div style="margin-top:18px">
+                <div class="lb-label">Liens de l'offre (par pôle)</div>
+                <p class="lb-muted" style="font-size:12.5px;margin:2px 0 10px">
+                    Colle ici les liens de chaque pôle (pages de l'offre + liens Fluent Booking). Selon le
+                    <strong>pôle du contact</strong>, l'assistant ira chercher ces liens et les insérera dans le mail.
+                </p>
+                @forelse ($poles as $pole)
+                    <div wire:key="liens-{{ $pole->id }}" style="margin-top:10px">
+                        <label for="liens-{{ $pole->id }}" class="lb-label" style="font-weight:500;color:var(--text-muted)">
+                            <span class="lb-dot" style="background:{{ $pole->couleur ?: 'var(--mint)' }}"></span> {{ $pole->nom }}
+                        </label>
+                        <textarea id="liens-{{ $pole->id }}" rows="3" wire:model="liensOffre.{{ $pole->id }}" class="lb-field"
+                                  placeholder="Un lien par ligne, avec un libellé si tu veux. Ex. Formation profs : https://… · Séance découverte : https://…"></textarea>
+                    </div>
+                @empty
+                    <p class="lb-muted" style="font-size:12.5px">
+                        Aucun pôle pour l'instant. Crée-les dans
+                        <a href="{{ route('organisation.index') }}" wire:navigate style="color:var(--accent)">Organisation</a>.
+                    </p>
+                @endforelse
+            </div>
         </fieldset>
 
         <div class="flex flex-wrap items-center justify-end gap-3 mt-6">

@@ -133,3 +133,24 @@ it('refuse de rédiger une prospection sans pitch', function () {
     expect(fn () => (new App\Services\IA\AssistantClaude())->redigerProspection($contact))
         ->toThrow(RuntimeException::class);
 });
+
+it('insère les liens du pôle du contact dans la requête de prospection', function () {
+    Parametre::instance()->update([
+        'anthropic_api_key' => 'sk-ant-test',
+        'pitch_prospection' => 'Je forme des profs de yoga.',
+    ]);
+
+    $pole = App\Models\Pole::create(['nom' => 'Prana', 'liens_offre' => 'Formation : https://exemple.be/formation-prana']);
+    $cat = App\Models\Categorie::create(['pole_id' => $pole->id, 'nom' => 'Formation profs']);
+    $contact = Contact::factory()->create(['categorie_id' => $cat->id]);
+
+    Http::fake([
+        'api.anthropic.com/*' => Http::response([
+            'content' => [['type' => 'text', 'text' => json_encode(['objet' => 'O', 'corps' => 'C Laurence'])]],
+        ], 200),
+    ]);
+
+    (new AssistantClaude())->redigerProspection($contact);
+
+    Http::assertSent(fn ($request) => str_contains(json_encode($request->data()), 'exemple.be/formation-prana'));
+});

@@ -3,6 +3,7 @@
 namespace App\Livewire\Reglages;
 
 use App\Models\Parametre;
+use App\Models\Pole;
 use App\Services\Email\LecteurEmails;
 use App\Services\Email\SynchronisationEmails;
 use Illuminate\Contracts\View\View;
@@ -32,6 +33,9 @@ class Assistant extends Component
     public ?string $lien_journee_aura = null;
 
     public ?string $pitch_prospection = null;
+
+    /** Liens de l'offre par pôle : [pole_id => texte]. */
+    public array $liensOffre = [];
 
     // Secrets : champs de saisie (vides au chargement), remplacés uniquement si saisis
     public string $gmail_app_password = '';
@@ -65,6 +69,10 @@ class Assistant extends Component
             ?? 'https://homeharmony.be/nettoyage-aura-chakras';
         $this->pitch_prospection = $p->pitch_prospection;
 
+        $this->liensOffre = Pole::orderBy('ordre')->orderBy('nom')->get()
+            ->mapWithKeys(fn (Pole $pole) => [$pole->id => $pole->liens_offre])
+            ->all();
+
         $this->gmailMotDePasseDefini = filled($p->secret('gmail_app_password'));
         $this->cleApiDefinie = filled($p->secret('anthropic_api_key'));
     }
@@ -79,6 +87,8 @@ class Assistant extends Component
             'lien_seance_decouverte' => ['nullable', 'url', 'max:255'],
             'lien_journee_aura' => ['nullable', 'url', 'max:255'],
             'pitch_prospection' => ['nullable', 'string', 'max:5000'],
+            'liensOffre' => ['array'],
+            'liensOffre.*' => ['nullable', 'string', 'max:5000'],
             'gmail_app_password' => ['nullable', 'string', 'max:255'],
             'anthropic_api_key' => ['nullable', 'string', 'max:255'],
         ]);
@@ -92,6 +102,11 @@ class Assistant extends Component
         $p->lien_seance_decouverte = $donnees['lien_seance_decouverte'];
         $p->lien_journee_aura = $donnees['lien_journee_aura'];
         $p->pitch_prospection = $donnees['pitch_prospection'];
+
+        // Liens de l'offre par pôle
+        foreach ($this->liensOffre as $poleId => $texte) {
+            Pole::whereKey($poleId)->update(['liens_offre' => filled($texte) ? $texte : null]);
+        }
 
         // Secrets : on ne remplace que si un nouveau contenu a été saisi
         if (filled($this->gmail_app_password)) {
@@ -142,6 +157,8 @@ class Assistant extends Component
 
     public function render(): View
     {
-        return view('livewire.reglages.assistant');
+        return view('livewire.reglages.assistant', [
+            'poles' => Pole::orderBy('ordre')->orderBy('nom')->get(),
+        ]);
     }
 }

@@ -80,3 +80,14 @@ it('enregistre le pitch de prospection', function () {
 
     expect(Parametre::instance()->pitch_prospection)->toBe('Je suis Laurence, je forme des profs de yoga Prana Vidya.');
 });
+
+it('enregistre les liens de l’offre par pôle', function () {
+    $pole = App\Models\Pole::create(['nom' => 'Prana']);
+
+    Livewire::test(Assistant::class)
+        ->set("liensOffre.{$pole->id}", 'Formation : https://exemple.be/formation-prana')
+        ->call('enregistrer')
+        ->assertHasNoErrors();
+
+    expect($pole->fresh()->liens_offre)->toContain('https://exemple.be/formation-prana');
+});

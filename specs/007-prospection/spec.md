@@ -24,6 +24,10 @@ yoga, pour l'inviter à découvrir la **formation de profs Prana Vidya**. Le bro
 - Un **« pitch de prospection »** réutilisable, saisi dans les **Réglages** : texte libre qui
   décrit Prana Vidya, la formation de profs, à qui elle s'adresse et le ton souhaité. Il sert
   de **matière** à l'IA (qui **n'invente aucun fait**).
+- Des **liens de l'offre par pôle** (Réglages) : un bloc de liens par pôle (pages de l'offre +
+  liens Fluent Booking). L'IA repère le **pôle du contact** (via sa catégorie) et **insère les
+  liens de ce pôle** dans le mail. Ton **expert, crédible et chaleureux, non insistant**, qui
+  **donne envie de s'inscrire**.
 - Sur la **fiche contact** : un bouton **« Rédiger un mail de prospection »** qui génère un
   **objet + un corps** de mail via Claude, personnalisé à partir du contact (nom, notes,
   étiquettes, catégorie) et du pitch.
