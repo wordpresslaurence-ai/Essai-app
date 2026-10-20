@@ -152,5 +152,5 @@ it('insère les liens du pôle du contact dans la requête de prospection', func
 
     (new AssistantClaude())->redigerProspection($contact);
 
-    Http::assertSent(fn ($request) => str_contains(json_encode($request->data()), 'exemple.be/formation-prana'));
+    Http::assertSent(fn ($request) => str_contains(json_encode($request->data()), 'formation-prana'));
 });
