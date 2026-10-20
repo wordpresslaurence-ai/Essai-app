@@ -55,6 +55,7 @@ class Contact extends Model
         'numero_tva',
         'secteur',
         'source',
+        'url_profil',
         'temperature',
         'categorie_id',
         'adresse_rue',
@@ -208,6 +209,25 @@ class Contact extends Model
     public function temperatureInfo(): ?array
     {
         return $this->temperature ? (self::TEMPERATURES[$this->temperature] ?? null) : null;
+    }
+
+    /**
+     * Lien cliquable vers le compte/profil (ou null). Préfixe https:// si l'on a
+     * collé un domaine sans protocole ; renvoie null pour un simple pseudo.
+     */
+    public function urlProfilHref(): ?string
+    {
+        $valeur = trim((string) $this->url_profil);
+
+        if ($valeur === '') {
+            return null;
+        }
+
+        if (str_starts_with($valeur, 'http://') || str_starts_with($valeur, 'https://')) {
+            return $valeur;
+        }
+
+        return str_contains($valeur, '.') ? 'https://'.$valeur : null;
     }
 
     public function archiver(): void

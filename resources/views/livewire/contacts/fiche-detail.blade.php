@@ -20,6 +20,13 @@
                 @if ($src = $contact->sourceInfo())
                     <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $src[1] }}"></span>{{ $src[0] }}</span>
                 @endif
+                @if (filled($contact->url_profil))
+                    @if ($href = $contact->urlProfilHref())
+                        <a href="{{ $href }}" target="_blank" rel="noopener noreferrer" class="lb-tag" style="background:var(--surface);text-decoration:none">🔗 {{ $contact->url_profil }}</a>
+                    @else
+                        <span class="lb-tag" style="background:var(--surface)">🔗 {{ $contact->url_profil }}</span>
+                    @endif
+                @endif
                 @if ($contact->categorie)
                     <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $contact->categorie->couleur ?: 'var(--mint)' }}"></span>{{ $contact->categorie->libelleComplet() }}</span>
                 @endif

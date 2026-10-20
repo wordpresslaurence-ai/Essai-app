@@ -118,3 +118,20 @@ it('importe un CSV en ignorant les lignes invalides', function () {
     expect(Contact::where('nom', 'ACME')->where('type', Contact::TYPE_ENTREPRISE)->exists())->toBeTrue();
     expect(Contact::count())->toBe(2); // la ligne sans nom a été ignorée
 });
+
+it('enregistre et affiche le lien du compte / profil', function () {
+    Livewire::test(Formulaire::class)
+        ->set('type', Contact::TYPE_PERSONNE)
+        ->set('nom', 'Durand')
+        ->set('source', 'facebook')
+        ->set('url_profil', 'facebook.com/marie.durand')
+        ->call('enregistrer')
+        ->assertHasNoErrors();
+
+    $contact = Contact::where('nom', 'Durand')->first();
+    expect($contact->url_profil)->toBe('facebook.com/marie.durand');
+    expect($contact->urlProfilHref())->toBe('https://facebook.com/marie.durand');
+
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->assertSee('facebook.com/marie.durand');
+});

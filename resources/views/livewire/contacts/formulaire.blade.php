@@ -161,6 +161,9 @@
                             <option value="{{ $cle }}">{{ $info[0] }}</option>
                         @endforeach
                     </select>
+                    <label for="url_profil" class="lb-label" style="font-weight:500;color:var(--text-muted);margin-top:10px">Compte / lien</label>
+                    <input id="url_profil" type="text" wire:model="url_profil" placeholder="ex. facebook.com/son-compte, le site…" class="lb-field">
+                    @error('url_profil') <p class="lb-error">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label for="temperature" class="lb-label" style="font-weight:500;color:var(--text-muted)">Température</label>

@@ -65,6 +65,9 @@
                                         <div class="serif" style="font-size:18px;font-weight:600;color:var(--accent);margin-top:5px;font-variant-numeric:tabular-nums">{{ number_format($op->montant, 0, ',', ' ') }} €</div>
                                     @endif
                                 </a>
+                                @if ($op->contact)
+                                    <a href="{{ route('contacts.fiche', $op->contact) }}" wire:navigate class="lb-accent" style="display:inline-block;font-size:11.5px;font-weight:600;text-decoration:none;margin-top:4px">→ Voir la fiche</a>
+                                @endif
                                 <select class="lb-field mt-2" style="font-size:12px;padding:7px 10px"
                                         wire:change="deplacer({{ $op->id }}, $event.target.value)" aria-label="Changer d'étape">
                                     @foreach ($libelles as $cle => $lib)

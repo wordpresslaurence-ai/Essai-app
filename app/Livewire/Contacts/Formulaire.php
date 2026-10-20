@@ -42,6 +42,8 @@ class Formulaire extends Component
 
     public ?string $source = null;
 
+    public ?string $url_profil = null;
+
     public ?string $temperature = null;
 
     public ?string $categorie_id = null;
@@ -67,7 +69,7 @@ class Formulaire extends Component
             $this->fill($contact->only([
                 'type', 'nom', 'prenom', 'fonction', 'email', 'telephone',
                 'entreprise_id', 'site_web', 'numero_entreprise', 'numero_tva',
-                'secteur', 'source', 'temperature', 'adresse_rue', 'adresse_code_postal',
+                'secteur', 'source', 'url_profil', 'temperature', 'adresse_rue', 'adresse_code_postal',
                 'adresse_ville', 'adresse_pays', 'notes',
             ]));
             $this->categorie_id = $contact->categorie_id ? (string) $contact->categorie_id : null;
@@ -90,6 +92,7 @@ class Formulaire extends Component
             'numero_tva' => ['nullable', new NumeroTvaBe],
             'secteur' => ['nullable', 'string', 'max:255'],
             'source' => ['nullable', Rule::in(array_keys(Contact::SOURCES))],
+            'url_profil' => ['nullable', 'string', 'max:255'],
             'temperature' => ['nullable', Rule::in(array_keys(Contact::TEMPERATURES))],
             'categorie_id' => ['nullable', 'exists:categories,id'],
             'adresse_rue' => ['nullable', 'string', 'max:255'],

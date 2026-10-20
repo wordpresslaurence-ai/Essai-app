@@ -70,6 +70,9 @@
                     </div>
                 </div>
                 <div style="margin-left:auto" class="flex items-center gap-2">
+                    @if ($a->contact)
+                        <a href="{{ route('contacts.fiche', $a->contact) }}" class="lb-muted" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>Fiche</a>
+                    @endif
                     <a href="{{ route('activites.modifier', $a) }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>Modifier</a>
                     <button type="button" wire:click="supprimer({{ $a->id }})" wire:confirm="Supprimer cette activité ?"
                             class="lb-iconbtn" style="width:30px;height:30px;color:var(--terra)" aria-label="Supprimer">
