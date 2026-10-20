@@ -49,6 +49,10 @@
                         <svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h10M4 19h6"/></svg>
                         Pipeline
                     </a>
+                    <a href="{{ route('organisation.index') }}" class="{{ request()->routeIs('organisation.*') ? 'active' : '' }}" wire:navigate>
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                        Organisation
+                    </a>
                     <a href="{{ route('activites.index') }}" class="{{ request()->routeIs('activites.*') ? 'active' : '' }}" wire:navigate>
                         <svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
                         Activités

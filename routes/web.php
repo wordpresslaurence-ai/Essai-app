@@ -32,6 +32,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('contacts/{contact}/modifier', Formulaire::class)->name('contacts.modifier');
     Route::get('etiquettes', GestionEtiquettes::class)->name('etiquettes.index');
 
+    // Module Organisation : Pôles & Catégories (module 006)
+    Route::get('organisation', \App\Livewire\Organisation\Gestion::class)->name('organisation.index');
+
     // Assistant (module 005)
     Route::get('assistant', \App\Livewire\Assistant\Brief::class)->name('assistant.brief');
 
