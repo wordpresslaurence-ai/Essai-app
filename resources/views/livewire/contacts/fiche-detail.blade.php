@@ -268,12 +268,12 @@
                     @if ($info = $contact->temperatureInfo())
                         <span class="lb-badge lb-av-{{ $info[1] === 'muted' ? 'gold' : $info[1] }}">{{ $contact->temperature === 'chaud' ? '🔥 ' : '' }}{{ $info[0] }}</span>
                     @endif
-                    @if ($contact->categorie)
-                        <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $contact->categorie->couleur ?: 'var(--mint)' }}"></span>{{ $contact->categorie->libelleComplet() }}</span>
-                    @endif
                     @foreach ($contact->etiquettes as $et)
                         <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $et->couleur ?: 'var(--gold)' }}"></span>{{ $et->nom }}</span>
                     @endforeach
+                    @if ($contact->categorie)
+                        <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $contact->categorie->couleur ?: 'var(--mint)' }}"></span>{{ $contact->categorie->libelleComplet() }}</span>
+                    @endif
                 </div>
 
                 {{-- Actions rapides --}}
