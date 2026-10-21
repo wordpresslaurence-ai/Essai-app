@@ -167,4 +167,70 @@ Sur un **VPS Hostinger**, on installe Docker et on lance le **même `Dockerfile`
 mêmes variables qu'au point 3 (`DB_CONNECTION=mysql` + identifiants, `APP_KEY` fixe,
 `SEED_DEMO=false`, `APP_ENV=production`). Dis-moi si c'est ton cas et je détaille.
 
+---
+
+## C. Journal du déploiement réel (Hostinger Cloud Startup) — fait le 2026-10-21
+
+Le CRM tourne en production sur **`https://mon-crm.homeharmony.be`**. Voici la procédure
+**réellement** utilisée (et les pièges Hostinger rencontrés), pour pouvoir la reproduire.
+
+### Architecture retenue
+- Le code vit **hors du web** dans `~/crm-app` (cloné depuis GitHub via une **clé de déploiement**).
+- Le sous-domaine `mon-crm` (dont la racine est
+  `~/domains/homeharmony.be/public_html/mon-crm`) est un **lien symbolique** vers
+  `~/crm-app/public`. Tout le reste de l'app (vendor, .env, base, storage) reste inaccessible du web.
+
+### Pièges Hostinger (mutualisé) et contournements
+- **`proc_open` désactivé** → Composer échoue sur ses scripts. On lance Composer avec
+  **`--no-scripts`**.
+- **`exec` désactivé** → `php artisan storage:link` échoue. On crée le lien **à la main** :
+  `ln -sfn ~/crm-app/storage/app/public ~/crm-app/public/storage`.
+- **Node/npm absents** → on installe **Node via `nvm`** (`nvm install 20`), puis `npm run build`.
+- **`route:cache` évité** : l'app a une route « closure » (déconnexion) non sérialisable.
+  On fait seulement `config:cache` + `view:cache`.
+
+### Première installation (résumé des commandes SSH)
+```sh
+# 1. Clé de déploiement (une fois), ajoutée dans GitHub → Settings → Deploy keys
+ssh-keygen -t ed25519 -C "hostinger-crm-deploy" -f ~/.ssh/id_crm -N ""
+printf 'Host github.com\n  IdentityFile ~/.ssh/id_crm\n  IdentitiesOnly yes\n' >> ~/.ssh/config
+chmod 600 ~/.ssh/config
+ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+
+# 2. Code
+git clone -b claude/crm-site-constitution-utfvnb git@github.com:wordpresslaurence-ai/Essai-app.git ~/crm-app
+cd ~/crm-app
+composer install --no-dev --optimize-autoloader --no-scripts
+
+# 3. Node (via nvm) + assets
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh"
+nvm install 20
+npm install && npm run build
+
+# 4. Config : copier .env.example -> .env, renseigner APP_ENV=production, APP_URL,
+#    DB_CONNECTION=mysql + identifiants MySQL (host=localhost), puis :
+php artisan key:generate --force
+
+# 5. Lien storage + caches
+mkdir -p ~/crm-app/storage/app/public
+ln -sfn ~/crm-app/storage/app/public ~/crm-app/public/storage
+php artisan migrate --force
+php artisan config:cache && php artisan view:cache
+chmod -R 775 storage bootstrap/cache
+
+# 6. Brancher le sous-domaine sur public/ (supprimer la page par défaut de Hostinger)
+rm -f ~/domains/homeharmony.be/public_html/mon-crm/default.php
+rmdir ~/domains/homeharmony.be/public_html/mon-crm
+ln -s ~/crm-app/public ~/domains/homeharmony.be/public_html/mon-crm
+
+# 7. Créer le compte de connexion (pas de seeder en prod) : voir deploy/ ou re-demander à Claude.
+```
+
+### Mises à jour suivantes : une seule commande
+Un script prêt à l'emploi fait tout (git pull + Composer + build + migrate + caches) :
+```sh
+bash ~/crm-app/deploy/update-hostinger.sh
+```
+
 <!-- Redéploiement manuel : 2026-10-19T09:49Z -->
