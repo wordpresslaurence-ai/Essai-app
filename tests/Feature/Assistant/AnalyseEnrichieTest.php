@@ -21,7 +21,7 @@ beforeEach(function () {
 /** Lie l'assistant à un résultat enrichi déterministe. */
 function brancherAnalyse(array $extra = []): void
 {
-    test()->app->bind(AssistantIA::class, fn () => new AssistantFactice(
+    app()->bind(AssistantIA::class, fn () => new AssistantFactice(
         new ResultatAnalyse(
             resume: 'Le client attend un devis.',
             verdict: 'À relancer.',
