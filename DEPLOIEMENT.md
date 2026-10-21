@@ -92,28 +92,33 @@ Trois garde-fous intégrés à l'application :
 
 ---
 
-### Deux options selon ton offre Hostinger
+### Ton offre : Hostinger **Cloud Startup** (mutualisé/cloud)
 
-- **Hébergement mutualisé** (PHP/MySQL classique, l'offre la plus courante) → suis la
-  check-list ci-dessous (déploiement **sans Docker**).
-- **VPS Hostinger** → on peut installer Docker et lancer le même `Dockerfile` qu'en test,
-  avec une base MySQL. Dis-le-moi et je te guide pour cette variante.
+C'est de l'hébergement **mutualisé/cloud** (pas un VPS), parfait pour ce déploiement : il a
+**SSH**, **Composer**, le choix de la **version PHP**, **MySQL** et **Node.js** (pour compiler
+le CSS/JS). → On suit la check-list ci-dessous, **sans Docker**.
+
+> Au cas où, une variante **VPS Hostinger** (avec Docker) est décrite tout en bas — elle ne te
+> concerne pas pour Cloud Startup.
 
 ---
 
-### Check-list — hébergement mutualisé (à faire ensemble)
+### Check-list — Hostinger Cloud Startup (à faire ensemble)
 
-**1. Prérequis côté Hostinger**
-- [ ] Offre avec **PHP 8.4** (sélectionnable dans hPanel → *Avancé → Version PHP*).
-- [ ] Pour la **lecture des e-mails Gmail** (assistant) : activer l'**extension PHP `imap`**
-      dans hPanel (*PHP → Extensions*). C'est ce qui débloque la vraie lecture IMAP, impossible
-      sur Railway.
-- [ ] Une **base de données MySQL** créée dans hPanel (*Bases de données → MySQL*) : note bien
-      le **nom de la base**, l'**utilisateur**, le **mot de passe** et l'**hôte** (souvent `localhost`).
+**1. Prérequis côté Hostinger** (tout se règle dans hPanel)
+- [ ] **Version PHP 8.4** : hPanel → *Avancé → Version PHP* (ou *Configuration PHP*).
+- [ ] **Extension `imap`** (pour la lecture des e-mails Gmail de l'assistant) : hPanel →
+      *Configuration PHP → Extensions PHP* → cocher **`imap`** → *Enregistrer*. C'est ce qui
+      débloque la vraie lecture IMAP, impossible sur Railway. (Si `imap` n'apparaît pas, vérifie
+      d'abord que PHP 8.4 est bien sélectionné.)
+- [ ] **Base MySQL** : hPanel → *Bases de données → Gestion des bases MySQL* → créer une base.
+      Note le **nom de la base**, l'**utilisateur**, le **mot de passe** et l'**hôte** (souvent `localhost`).
+- [ ] **SSH activé** : hPanel → *Avancé → Accès SSH* → activer, et noter hôte/port/identifiant.
 
 **2. Envoyer le code**
-- [ ] Déposer le code dans le dossier du site (via le *Gestionnaire de fichiers* hPanel, ou Git
-      si l'offre le propose).
+- [ ] Déposer le code dans le dossier du site (via *Gestionnaire de fichiers* hPanel, ou **Git**
+      depuis hPanel → *Avancé → Git* en pointant le dépôt GitHub — le plus pratique pour les
+      mises à jour).
 - [ ] Faire pointer le domaine sur le sous-dossier **`public/`** (racine web = `public/`).
 
 **3. Configurer le `.env`** (fichier de réglages, **jamais** versionné)
@@ -127,9 +132,15 @@ Trois garde-fous intégrés à l'application :
 - [ ] `SEED_DEMO=false` **(important en prod)**
 - [ ] `SESSION_DRIVER=database`
 
-**4. Installer et préparer l'application** (via le terminal SSH Hostinger, ou on le fait ensemble)
-- [ ] `composer install --no-dev --optimize-autoloader`
-- [ ] `npm install && npm run build` (compile le CSS/JS — à refaire à chaque mise à jour du design)
+**4. Installer et préparer l'application** (via le terminal SSH, ou on le fait ensemble)
+- [ ] `composer2 install --no-dev --optimize-autoloader`
+      *(chez Hostinger la commande s'appelle `composer2` avec PHP 8+ ; `composer` tout court
+      peut pointer vers une vieille version.)*
+- [ ] **Compiler le CSS/JS** — deux façons :
+      - **Sur le serveur** : activer Node via hPanel (*Avancé → Node.js*) ou `nvm`, puis
+        `npm install && npm run build`.
+      - **Ou plus simple** : compiler en amont (chez moi / en CI) et **uploader le dossier
+        `public/build`** déjà prêt. À refaire à chaque changement de design.
 - [ ] `php artisan migrate --force` (crée les tables **sans toucher aux données existantes**)
 - [ ] `php artisan config:cache && php artisan route:cache && php artisan view:cache`
 - [ ] `php artisan storage:link`
@@ -142,9 +153,9 @@ Trois garde-fous intégrés à l'application :
 - [ ] **Sauvegarder la base** : hPanel → *Bases de données → phpMyAdmin → Exporter* (ou la
       sauvegarde automatique Hostinger). Garde le fichier `.sql`.
 - [ ] (Au besoin) **Exporter tes contacts newsletter** en CSV depuis l'app.
-- [ ] Mettre à jour le code, puis relancer uniquement :
-      `composer install --no-dev -o`, `npm run build`, `php artisan migrate --force`,
-      puis les trois `*:cache`.
+- [ ] Mettre à jour le code (ou `git pull`), puis relancer uniquement :
+      `composer2 install --no-dev -o`, recompiler le CSS/JS (ou ré-uploader `public/build`),
+      `php artisan migrate --force`, puis les trois `*:cache`.
 - [ ] **Ne jamais** lancer `php artisan migrate:fresh`, `migrate:refresh` ni `db:wipe` en prod.
 
 ---
