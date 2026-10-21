@@ -131,6 +131,11 @@
   .lb-av-lav { background:var(--lav-tint); color:var(--lav); }
   .lb-av-gold { background:var(--gold-tint); color:var(--accent); }
   .lb-av-terra { background:var(--terra-tint); color:var(--terra); }
+  /* Couleurs d'avatar des contacts (assorties à la charte, sans valeur sémantique) */
+  .lb-av-indigo { background:#ECEBFA; color:#5254A3; }
+  .lb-av-mauve { background:#EFEAF6; color:#8B79B0; }
+  .lb-av-slate { background:#E4EAF3; color:#4C6183; }
+  .lb-av-sand { background:#F1EEE7; color:#8A7E64; }
 
   /* Rangées de personnes */
   .lb-people { display:flex; flex-direction:column; gap:8px; }
@@ -196,3 +201,15 @@
 @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
 
 .lb-truncate{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* Avatars contacts — variantes sombres */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .lb-av-indigo { background:#2E3157; color:#AEB2EC; }
+  :root:not([data-theme="light"]) .lb-av-mauve  { background:#332E4D; color:#C6B9DE; }
+  :root:not([data-theme="light"]) .lb-av-slate  { background:#2B3345; color:#A9BAD6; }
+  :root:not([data-theme="light"]) .lb-av-sand   { background:#353022; color:#CFC2A0; }
+}
+:root[data-theme="dark"] .lb-av-indigo { background:#2E3157; color:#AEB2EC; }
+:root[data-theme="dark"] .lb-av-mauve  { background:#332E4D; color:#C6B9DE; }
+:root[data-theme="dark"] .lb-av-slate  { background:#2B3345; color:#A9BAD6; }
+:root[data-theme="dark"] .lb-av-sand   { background:#353022; color:#CFC2A0; }

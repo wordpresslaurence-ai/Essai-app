@@ -273,10 +273,10 @@ class Contact extends Model
         return mb_strtoupper(mb_substr($this->nom, 0, 2));
     }
 
-    /** Couleur d'avatar dérivée du nom : mint, lav, gold ou terra. */
+    /** Couleur d'avatar dérivée du nom (assortie à la charte) : indigo, mauve, slate ou sand. */
     public function couleurAvatar(): string
     {
-        $palette = ['mint', 'lav', 'gold', 'terra'];
+        $palette = ['indigo', 'mauve', 'slate', 'sand'];
 
         return $palette[crc32($this->nomComplet()) % count($palette)];
     }
