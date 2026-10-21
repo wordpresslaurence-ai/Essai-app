@@ -67,6 +67,7 @@ class Opportunite extends Model
     public static function couleurEtape(string $etape): string
     {
         return match ($etape) {
+            self::ETAPE_NOUVEAU => 'deco',
             self::ETAPE_QUALIFIE => 'lav',
             self::ETAPE_PROPOSITION => 'gold',
             self::ETAPE_GAGNE => 'mint',

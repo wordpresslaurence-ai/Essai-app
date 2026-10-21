@@ -44,6 +44,36 @@
         </div>
     </div>
 
+    {{-- Mes tâches du jour (remontées en priorité) --}}
+    <div class="mt-8">
+        <div class="flex items-end justify-between">
+            <div>
+                <h3 class="lb-h3">Mes tâches du jour</h3>
+                <div class="lb-muted" style="font-size:12.5px">Rappels et rendez-vous à faire aujourd'hui ou en retard</div>
+            </div>
+            <a href="{{ route('activites.index') }}" class="lb-accent" style="font-weight:600;font-size:13px;text-decoration:none" wire:navigate>Toutes →</a>
+        </div>
+
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 mt-3">
+            @forelse ($tachesDuJour as $t)
+                <div class="lb-card-sm flex items-center gap-3" wire:key="t-{{ $t->id }}">
+                    <button type="button" class="lb-check" wire:click="terminerActivite({{ $t->id }})" aria-label="Marquer terminée">
+                        <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+                    </button>
+                    <a href="{{ route('activites.modifier', $t) }}" wire:navigate style="min-width:0;flex:1;text-decoration:none;color:inherit">
+                        <div class="nm lb-truncate" style="font-weight:600">{{ $t->titre }}</div>
+                        <div class="mt lb-truncate" style="font-size:12px;color:var(--text-muted)">
+                            {{ $t->libelleType() }}@if ($t->contact) · {{ $t->contact->nomComplet() }}@endif
+                            @if ($t->enRetard()) · <span style="color:var(--terra);font-weight:600">en retard</span>@endif
+                        </div>
+                    </a>
+                </div>
+            @empty
+                <div class="lb-placeholder" style="grid-column:1/-1">🌿 Rien à faire aujourd'hui. <a href="{{ route('activites.creer') }}" class="lb-accent" style="font-weight:600" wire:navigate>Ajouter une activité ?</a></div>
+            @endforelse
+        </div>
+    </div>
+
     {{-- Nouveaux leads --}}
     @if ($leads->isNotEmpty())
         <div class="mt-8">
@@ -135,33 +165,4 @@
         </div>
     </div>
 
-    {{-- Mes tâches du jour --}}
-    <div class="mt-8">
-        <div class="flex items-end justify-between">
-            <div>
-                <h3 class="lb-h3">Mes tâches du jour</h3>
-                <div class="lb-muted" style="font-size:12.5px">Rappels et rendez-vous à faire aujourd'hui ou en retard</div>
-            </div>
-            <a href="{{ route('activites.index') }}" class="lb-accent" style="font-weight:600;font-size:13px;text-decoration:none" wire:navigate>Toutes →</a>
-        </div>
-
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 mt-3">
-            @forelse ($tachesDuJour as $t)
-                <div class="lb-card-sm flex items-center gap-3" wire:key="t-{{ $t->id }}">
-                    <button type="button" class="lb-check" wire:click="terminerActivite({{ $t->id }})" aria-label="Marquer terminée">
-                        <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-                    </button>
-                    <div style="min-width:0">
-                        <div class="nm lb-truncate" style="font-weight:600">{{ $t->titre }}</div>
-                        <div class="mt lb-truncate" style="font-size:12px;color:var(--text-muted)">
-                            {{ $t->libelleType() }}@if ($t->contact) · {{ $t->contact->nomComplet() }}@endif
-                            @if ($t->enRetard()) · <span style="color:var(--terra);font-weight:600">en retard</span>@endif
-                        </div>
-                    </div>
-                </div>
-            @empty
-                <div class="lb-placeholder" style="grid-column:1/-1">🌿 Rien à faire aujourd'hui. <a href="{{ route('activites.creer') }}" class="lb-accent" style="font-weight:600" wire:navigate>Ajouter une activité ?</a></div>
-            @endforelse
-        </div>
-    </div>
 </div>
