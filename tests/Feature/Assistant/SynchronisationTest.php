@@ -1,9 +1,9 @@
 <?php
 
 use App\Models\Activite;
+use App\Models\BoiteEmail;
 use App\Models\Contact;
 use App\Models\Email;
-use App\Models\Parametre;
 use App\Services\Email\LecteurFactice;
 use App\Services\Email\MessageEmail;
 use App\Services\Email\SynchronisationEmails;
@@ -15,7 +15,7 @@ uses(RefreshDatabase::class);
 const BOITE = 'laurencehomeharmony@gmail.com';
 
 beforeEach(function () {
-    Parametre::instance()->update(['gmail_email' => BOITE]);
+    $this->boite = BoiteEmail::factory()->create(['email' => BOITE]);
 });
 
 function recu(string $id, string $de, array $a, string $objet = 'Bonjour'): MessageEmail
@@ -37,10 +37,11 @@ it('rattache un mail entrant au bon contact et le marque entrant', function () {
     $email = Email::first();
     expect($email->contact_id)->toBe($contact->id);
     expect($email->direction)->toBe(Email::DIRECTION_ENTRANT);
+    expect($email->boite_email_id)->toBe($this->boite->id);
 });
 
 it('marque sortant un mail envoyé depuis la boîte', function () {
-    $contact = Contact::factory()->create(['email' => 'client@example.com']);
+    Contact::factory()->create(['email' => 'client@example.com']);
 
     sync([recu('m2', BOITE, ['client@example.com'])]);
 
@@ -54,7 +55,7 @@ it('ne crée pas de doublon pour le même message', function () {
     sync([$msg]);
 
     // On force le message à être re-vu (comme un chevauchement de fenêtre de synchro)
-    Parametre::instance()->update(['derniere_synchro_at' => null]);
+    $this->boite->update(['derniere_synchro_at' => null]);
     $r = sync([$msg]); // deuxième passage avec le même message_id
 
     expect(Email::count())->toBe(1);  // pas de doublon
@@ -80,8 +81,44 @@ it('ne crée pas deux fois la tâche pour la même adresse inconnue', function (
     expect($r->tachesCreees)->toBe(0);
 });
 
-it('met à jour la date de dernière synchronisation', function () {
-    expect(Parametre::instance()->derniere_synchro_at)->toBeNull();
+it('met à jour la date de dernière synchronisation de la boîte', function () {
+    expect($this->boite->derniere_synchro_at)->toBeNull();
     sync([]);
-    expect(Parametre::instance()->fresh()->derniere_synchro_at)->not->toBeNull();
+    expect($this->boite->fresh()->derniere_synchro_at)->not->toBeNull();
+});
+
+it('lit plusieurs boîtes et déduplique entre elles', function () {
+    $hostinger = BoiteEmail::factory()->hostinger()->create(['email' => 'laurence@homeharmony.be']);
+    Contact::factory()->create(['email' => 'client@example.com']);
+
+    $msgGmail = recu('g1', 'client@example.com', [BOITE]);
+    $msgHostinger = recu('h1', 'client@example.com', ['laurence@homeharmony.be']);
+    $partage = recu('partage', 'client@example.com', [BOITE]); // présent dans les 2 boîtes
+
+    $lecteur = new LecteurFactice(parBoite: [
+        BOITE => [$msgGmail, $partage],
+        'laurence@homeharmony.be' => [$msgHostinger, $partage],
+    ]);
+
+    $r = (new SynchronisationEmails($lecteur))->executer();
+
+    expect($r->boitesLues)->toBe(2);
+    expect($r->emailsImportes)->toBe(3); // g1 + h1 + partage (une seule fois)
+    expect(Email::count())->toBe(3);
+    expect(Email::where('message_id', 'partage')->count())->toBe(1);
+});
+
+it('rattache sans filtrer par pôle (« ne rien rater »)', function () {
+    // La boîte appartient à un pôle, mais le contact est dans un AUTRE pôle.
+    $poleBoite = App\Models\Pole::create(['nom' => 'Prana']);
+    $this->boite->update(['pole_id' => $poleBoite->id]);
+
+    $autrePole = App\Models\Pole::create(['nom' => 'Digital']);
+    $cat = App\Models\Categorie::create(['pole_id' => $autrePole->id, 'nom' => 'Sites']);
+    $contact = Contact::factory()->create(['email' => 'client@example.com', 'categorie_id' => $cat->id]);
+
+    $r = sync([recu('x1', 'client@example.com', [BOITE])]);
+
+    expect($r->emailsImportes)->toBe(1);
+    expect(Email::first()->contact_id)->toBe($contact->id);
 });

@@ -1,10 +1,11 @@
 <?php
 
-use App\Livewire\Reglages\Assistant;
+use App\Livewire\Reglages\BoitesEmail;
+use App\Models\BoiteEmail;
+use App\Models\User;
 use App\Services\Email\LecteurEmails;
 use App\Services\Email\LecteurFactice;
 use App\Services\Email\MessageEmail;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -24,13 +25,14 @@ function messageFactice(string $id, string $date): MessageEmail
 }
 
 it('filtre les messages par date dans le lecteur factice', function () {
+    $boite = BoiteEmail::factory()->create();
     $lecteur = new LecteurFactice([
         messageFactice('a', '2026-01-01'),
         messageFactice('b', '2026-06-01'),
     ]);
 
-    expect($lecteur->recupererDepuis(null))->toHaveCount(2);
-    expect($lecteur->recupererDepuis(Carbon::parse('2026-03-01')))->toHaveCount(1);
+    expect($lecteur->recupererDepuis($boite, null))->toHaveCount(2);
+    expect($lecteur->recupererDepuis($boite, Carbon::parse('2026-03-01')))->toHaveCount(1);
 });
 
 it('produit un extrait nettoyé du corps', function () {
@@ -40,21 +42,22 @@ it('produit un extrait nettoyé du corps', function () {
 
 it('le bouton Tester la connexion signale un succès', function () {
     $this->actingAs(User::factory()->create());
+    $boite = BoiteEmail::factory()->create(['libelle' => 'Gmail Prana']);
     $this->app->bind(LecteurEmails::class, fn () => new LecteurFactice([], connexionOk: true));
 
-    Livewire::test(Assistant::class)
-        ->call('testerConnexion')
-        ->assertHasNoErrors()
-        ->assertSet('testErreur', null)
-        ->assertSet('testMessage', 'Connexion à la boîte e-mail réussie.');
+    Livewire::test(BoitesEmail::class)
+        ->call('tester', $boite->id)
+        ->assertSet('erreur', null)
+        ->assertSet('message', 'Connexion réussie pour « Gmail Prana ».');
 });
 
 it('le bouton Tester la connexion signale un échec proprement', function () {
     $this->actingAs(User::factory()->create());
+    $boite = BoiteEmail::factory()->create();
     $this->app->bind(LecteurEmails::class, fn () => new LecteurFactice([], connexionOk: false));
 
-    Livewire::test(Assistant::class)
-        ->call('testerConnexion')
-        ->assertSet('testMessage', null)
-        ->assertSet('testErreur', 'Connexion factice échouée.');
+    Livewire::test(BoitesEmail::class)
+        ->call('tester', $boite->id)
+        ->assertSet('message', null)
+        ->assertSet('erreur', 'Connexion factice échouée.');
 });

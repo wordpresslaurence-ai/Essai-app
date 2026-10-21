@@ -49,6 +49,9 @@ Route::middleware(['auth'])->group(function () {
     // Réglages de l'assistant (module 005)
     Route::get('reglages', \App\Livewire\Reglages\Assistant::class)->name('reglages.assistant');
 
+    // Réglages : boîtes e-mail multiples (module 009)
+    Route::get('reglages/boites', \App\Livewire\Reglages\BoitesEmail::class)->name('reglages.boites');
+
     // Module Pipeline
     Route::get('pipeline', PipelineTableau::class)->name('pipeline.index');
     Route::get('pipeline/creer', PipelineFormulaire::class)->name('pipeline.creer');

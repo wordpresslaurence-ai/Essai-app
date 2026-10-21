@@ -26,6 +26,7 @@ class Email extends Model
         'message_id',
         'fil_id',
         'boite',
+        'boite_email_id',
         'traite',
     ];
 
@@ -40,6 +41,12 @@ class Email extends Model
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);
+    }
+
+    /** La boîte d'origine de l'e-mail (brique 009), si connue. */
+    public function boiteEmail(): BelongsTo
+    {
+        return $this->belongsTo(BoiteEmail::class);
     }
 
     public function estEntrant(): bool

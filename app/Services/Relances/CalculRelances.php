@@ -19,9 +19,13 @@ class CalculRelances
     /** Délai (jours) au-delà duquel un message sortant sans réponse devient « à relancer ». */
     private int $delaiJours;
 
-    public function __construct(?int $delaiJours = null)
+    /** Pôle sur lequel restreindre les contacts (null = tous les pôles). */
+    private ?int $poleId;
+
+    public function __construct(?int $delaiJours = null, ?int $poleId = null)
     {
         $this->delaiJours = $delaiJours ?? Parametre::instance()->relance_delai_jours ?? 5;
+        $this->poleId = $poleId;
     }
 
     /**
@@ -61,6 +65,10 @@ class CalculRelances
     {
         return Contact::query()
             ->has('emails')
+            ->when($this->poleId, fn ($q) => $q->whereHas(
+                'categorie',
+                fn ($c) => $c->where('pole_id', $this->poleId),
+            ))
             ->with(['emails' => fn ($q) => $q->orderByDesc('date_email')])
             ->get()
             ->map(fn (Contact $c) => ['contact' => $c, 'dernier' => $c->emails->first()])

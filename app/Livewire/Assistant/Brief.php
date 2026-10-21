@@ -4,6 +4,7 @@ namespace App\Livewire\Assistant;
 
 use App\Models\Activite;
 use App\Models\Contact;
+use App\Models\Pole;
 use App\Services\Email\SynchronisationEmails;
 use App\Services\IA\AssistantIA;
 use App\Services\Relances\CalculRelances;
@@ -19,6 +20,9 @@ use Throwable;
 #[Layout('layouts.app')]
 class Brief extends Component
 {
+    /** Pôle sur lequel filtrer les listes (null/vide = tous les pôles). */
+    public ?string $poleFiltre = null;
+
     /** @var list<string> */
     public array $suggestions = [];
 
@@ -81,7 +85,7 @@ class Brief extends Component
     public function genererSuggestions(): void
     {
         $this->reset('suggestionsErreur');
-        $calc = new CalculRelances;
+        $calc = new CalculRelances(null, $this->poleIdFiltre());
 
         $contexte = [
             'reponses_dues' => $calc->reponsesDues()
@@ -141,9 +145,15 @@ class Brief extends Component
         session()->flash('message', 'Activité créée : '.$titre);
     }
 
+    /** Identifiant de pôle à filtrer (int), ou null si « tous les pôles ». */
+    private function poleIdFiltre(): ?int
+    {
+        return filled($this->poleFiltre) ? (int) $this->poleFiltre : null;
+    }
+
     public function render(): View
     {
-        $calc = new CalculRelances;
+        $calc = new CalculRelances(null, $this->poleIdFiltre());
 
         // Contacts qui ont déjà une tâche non terminée de chaque intention.
         $dejaRepondre = Activite::whereNull('terminee_at')
@@ -158,6 +168,7 @@ class Brief extends Component
             'aRelancer' => $calc->aRelancer(),
             'dejaRepondre' => $dejaRepondre,
             'dejaRelancer' => $dejaRelancer,
+            'poles' => Pole::orderBy('ordre')->orderBy('nom')->get(),
         ]);
     }
 }

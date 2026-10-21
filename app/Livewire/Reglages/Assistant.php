@@ -5,7 +5,6 @@ namespace App\Livewire\Reglages;
 use App\Models\Categorie;
 use App\Models\Parametre;
 use App\Models\Pole;
-use App\Services\Email\LecteurEmails;
 use App\Services\Email\SynchronisationEmails;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -21,8 +20,6 @@ use Throwable;
 class Assistant extends Component
 {
     // Champs non secrets
-    public ?string $gmail_email = null;
-
     public ?string $anthropic_modele = null;
 
     public int $relance_delai_jours = 5;
@@ -42,13 +39,9 @@ class Assistant extends Component
     public array $liens = [];
 
     // Secrets : champs de saisie (vides au chargement), remplacés uniquement si saisis
-    public string $gmail_app_password = '';
-
     public string $anthropic_api_key = '';
 
     // Indique si un secret est déjà enregistré (pour l'affichage)
-    public bool $gmailMotDePasseDefini = false;
-
     public bool $cleApiDefinie = false;
 
     // Résultat du dernier test de connexion (affiché dans la vue)
@@ -60,7 +53,6 @@ class Assistant extends Component
     {
         $p = Parametre::instance();
 
-        $this->gmail_email = $p->gmail_email;
         $this->anthropic_modele = $p->anthropic_modele;
         $this->relance_delai_jours = $p->relance_delai_jours ?? 5;
 
@@ -78,14 +70,12 @@ class Assistant extends Component
             $this->liens[$cat->id] = array_values($cat->liens ?? []);
         }
 
-        $this->gmailMotDePasseDefini = filled($p->secret('gmail_app_password'));
         $this->cleApiDefinie = filled($p->secret('anthropic_api_key'));
     }
 
     public function enregistrer(): void
     {
         $donnees = $this->validate([
-            'gmail_email' => ['nullable', 'email', 'max:255'],
             'anthropic_modele' => ['nullable', 'string', 'max:100'],
             'relance_delai_jours' => ['required', 'integer', 'min:1', 'max:365'],
             'lien_appel_visio' => ['nullable', 'url', 'max:255'],
@@ -98,13 +88,11 @@ class Assistant extends Component
             'liens.*' => ['array'],
             'liens.*.*.libelle' => ['nullable', 'string', 'max:255'],
             'liens.*.*.url' => ['nullable', 'string', 'max:2000'],
-            'gmail_app_password' => ['nullable', 'string', 'max:255'],
             'anthropic_api_key' => ['nullable', 'string', 'max:255'],
         ]);
 
         $p = Parametre::instance();
 
-        $p->gmail_email = $donnees['gmail_email'];
         $p->anthropic_modele = $donnees['anthropic_modele'];
         $p->relance_delai_jours = $donnees['relance_delai_jours'];
         $p->lien_appel_visio = $donnees['lien_appel_visio'];
@@ -129,19 +117,15 @@ class Assistant extends Component
             ]);
         }
 
-        // Secrets : on ne remplace que si un nouveau contenu a été saisi
-        if (filled($this->gmail_app_password)) {
-            $p->gmail_app_password = $this->gmail_app_password;
-        }
+        // Secret : on ne remplace que si un nouveau contenu a été saisi
         if (filled($this->anthropic_api_key)) {
             $p->anthropic_api_key = $this->anthropic_api_key;
         }
 
         $p->save();
 
-        // On vide les champs secrets et on rafraîchit les indicateurs
-        $this->reset('gmail_app_password', 'anthropic_api_key');
-        $this->gmailMotDePasseDefini = filled($p->secret('gmail_app_password'));
+        // On vide le champ secret et on rafraîchit l'indicateur
+        $this->reset('anthropic_api_key');
         $this->cleApiDefinie = filled($p->secret('anthropic_api_key'));
 
         session()->flash('message', 'Réglages enregistrés.');
@@ -161,23 +145,7 @@ class Assistant extends Component
         }
     }
 
-    /**
-     * Teste la connexion à la boîte e-mail avec les réglages enregistrés.
-     * Pense à enregistrer d'abord si tu viens de saisir le mot de passe.
-     */
-    public function testerConnexion(): void
-    {
-        $this->reset('testMessage', 'testErreur');
-
-        try {
-            app(LecteurEmails::class)->tester();
-            $this->testMessage = 'Connexion à la boîte e-mail réussie.';
-        } catch (Throwable $e) {
-            $this->testErreur = $e->getMessage();
-        }
-    }
-
-    /** Lance la synchronisation des e-mails avec la boîte configurée. */
+    /** Lance la synchronisation des e-mails de toutes les boîtes actives. */
     public function synchroniser(): void
     {
         $this->reset('testMessage', 'testErreur');

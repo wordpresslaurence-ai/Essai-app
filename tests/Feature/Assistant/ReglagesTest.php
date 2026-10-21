@@ -20,44 +20,35 @@ it('affiche l’écran des réglages avec les liens pré-remplis', function () {
         ->assertSet('lien_journee_aura', 'https://homeharmony.be/nettoyage-aura-chakras');
 });
 
-it('enregistre les réglages et chiffre les secrets', function () {
+it('enregistre les réglages et chiffre la clé API', function () {
     Livewire::test(Assistant::class)
-        ->set('gmail_email', 'laurencehomeharmony@gmail.com')
-        ->set('gmail_app_password', 'mon-mot-de-passe-app')
         ->set('anthropic_api_key', 'sk-ant-xxx')
         ->set('relance_delai_jours', 7)
         ->call('enregistrer')
         ->assertHasNoErrors();
 
     $p = Parametre::instance();
-    expect($p->gmail_email)->toBe('laurencehomeharmony@gmail.com');
-    expect($p->gmail_app_password)->toBe('mon-mot-de-passe-app'); // déchiffré via le modèle
-    expect($p->anthropic_api_key)->toBe('sk-ant-xxx');
+    expect($p->anthropic_api_key)->toBe('sk-ant-xxx'); // déchiffré via le modèle
     expect($p->relance_delai_jours)->toBe(7);
 });
 
-it('ne réaffiche jamais les secrets et les conserve si on laisse vide', function () {
-    // Pré-enregistre des secrets
+it('ne réaffiche jamais la clé API et la conserve si on laisse vide', function () {
+    // Pré-enregistre le secret
     Parametre::instance()->update([
-        'gmail_app_password' => 'secret-initial',
         'anthropic_api_key' => 'cle-initiale',
     ]);
 
     Livewire::test(Assistant::class)
-        // Les champs secrets restent vides à l'affichage
-        ->assertSet('gmail_app_password', '')
+        // Le champ secret reste vide à l'affichage
         ->assertSet('anthropic_api_key', '')
-        // Les indicateurs « déjà défini » sont vrais
-        ->assertSet('gmailMotDePasseDefini', true)
+        // L'indicateur « déjà définie » est vrai
         ->assertSet('cleApiDefinie', true)
-        // On modifie autre chose sans toucher aux secrets
-        ->set('gmail_email', 'x@gmail.com')
+        // On modifie autre chose sans toucher au secret
+        ->set('pitch_prospection', 'Un contexte')
         ->call('enregistrer')
         ->assertHasNoErrors();
 
-    $p = Parametre::instance();
-    expect($p->gmail_app_password)->toBe('secret-initial'); // conservé
-    expect($p->anthropic_api_key)->toBe('cle-initiale');    // conservé
+    expect(Parametre::instance()->anthropic_api_key)->toBe('cle-initiale'); // conservé
 });
 
 it('valide le délai de relance', function () {

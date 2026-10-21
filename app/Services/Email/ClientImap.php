@@ -2,33 +2,25 @@
 
 namespace App\Services\Email;
 
-use App\Models\Parametre;
+use App\Models\BoiteEmail;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use RuntimeException;
 
 /**
- * Lecture d'une boîte Gmail via IMAP (extension PHP native « imap »), en lecture
- * seule. Les identifiants viennent des réglages (chiffrés). Le vrai échange réseau
- * n'est exercé qu'au jalon de test réel ; en test automatique on utilise LecteurFactice.
+ * Lecture d'une boîte e-mail via IMAP (extension PHP native « imap »), en lecture
+ * seule. Le serveur, le port et les dossiers viennent de la boîte (Gmail, Hostinger
+ * ou autre) ; les identifiants sont chiffrés. Le vrai échange réseau n'est exercé
+ * qu'au jalon de test réel ; en test automatique on utilise LecteurFactice.
  */
 class ClientImap implements LecteurEmails
 {
-    private const HOTE = '{imap.gmail.com:993/imap/ssl}';
-
-    /** Dossiers Gmail lus : réception + envoyés. */
-    private const DOSSIERS = ['INBOX', '[Gmail]/Sent Mail'];
-
-    public function tester(): bool
+    public function tester(BoiteEmail $boite): bool
     {
         $this->verifierExtension();
-        $p = Parametre::instance();
+        $this->verifierIdentifiants($boite);
 
-        if (! $p->estConfigure()) {
-            throw new RuntimeException("Renseigne d'abord l'adresse Gmail et le mot de passe d'application.");
-        }
-
-        $flux = @imap_open(self::HOTE.'INBOX', $p->gmail_email, $p->gmail_app_password, OP_READONLY, 1);
+        $flux = @imap_open($boite->chaineImap('INBOX'), $boite->email, (string) $boite->secret(), OP_READONLY, 1);
 
         if ($flux === false) {
             throw new RuntimeException($this->dernierMessageErreur());
@@ -39,14 +31,10 @@ class ClientImap implements LecteurEmails
         return true;
     }
 
-    public function recupererDepuis(?CarbonInterface $depuis): array
+    public function recupererDepuis(BoiteEmail $boite, ?CarbonInterface $depuis): array
     {
         $this->verifierExtension();
-        $p = Parametre::instance();
-
-        if (! $p->estConfigure()) {
-            throw new RuntimeException("Assistant non configuré (adresse Gmail ou mot de passe manquant).");
-        }
+        $this->verifierIdentifiants($boite);
 
         // Borne : la date fournie, sinon 90 jours en arrière.
         $borne = $depuis ?? Carbon::now()->subDays(90);
@@ -54,8 +42,8 @@ class ClientImap implements LecteurEmails
 
         $messages = [];
 
-        foreach (self::DOSSIERS as $dossier) {
-            $flux = @imap_open(self::HOTE.$dossier, $p->gmail_email, $p->gmail_app_password, OP_READONLY, 1);
+        foreach ($boite->dossiers() as $dossier) {
+            $flux = @imap_open($boite->chaineImap($dossier), $boite->email, (string) $boite->secret(), OP_READONLY, 1);
             if ($flux === false) {
                 continue; // un dossier absent ne doit pas tout bloquer
             }
@@ -142,6 +130,13 @@ class ClientImap implements LecteurEmails
         }
     }
 
+    private function verifierIdentifiants(BoiteEmail $boite): void
+    {
+        if (blank($boite->email) || blank($boite->secret())) {
+            throw new RuntimeException("Renseigne d'abord l'adresse et le mot de passe de la boîte « ".$boite->nomAffichage().' ».');
+        }
+    }
+
     private function dernierMessageErreur(): string
     {
         $erreurs = imap_errors() ?: [];
@@ -149,6 +144,6 @@ class ClientImap implements LecteurEmails
 
         return $dernier
             ? 'Connexion refusée : '.$dernier
-            : 'Connexion à la boîte e-mail impossible (vérifie l’adresse et le mot de passe d’application).';
+            : 'Connexion à la boîte e-mail impossible (vérifie l’adresse et le mot de passe).';
     }
 }

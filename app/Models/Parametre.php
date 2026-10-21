@@ -61,11 +61,13 @@ class Parametre extends Model
         }
     }
 
-    /** L'assistant est-il configuré (boîte + clé API) ? */
+    /**
+     * L'assistant IA est-il configuré (clé API Claude présente) ?
+     * La lecture des e-mails dépend, elle, de l'existence d'au moins une boîte
+     * active (voir App\Models\BoiteEmail), gérée séparément depuis la brique 009.
+     */
     public function estConfigure(): bool
     {
-        return filled($this->gmail_email)
-            && filled($this->secret('gmail_app_password'))
-            && filled($this->secret('anthropic_api_key'));
+        return filled($this->secret('anthropic_api_key'));
     }
 }

@@ -42,11 +42,13 @@ en dur dans le code. Laurence veut :
   le sens (entrant/sortant) et rattache aux contacts par adresse (**option 2**).
 - **Bouton « Tester »** par boîte.
 - Traçabilité : chaque e-mail importé garde la **boîte d'origine** (et donc son pôle).
+- **Filtre par pôle dans l'Assistant (Brief)** : un menu « Tous les pôles / Prana / … » qui
+  restreint les listes **« réponses dues »** et **« à relancer »** aux contacts du pôle choisi.
 
 **Exclus (plus tard)**
 - **Envoi** d'e-mails (l'assistant continue de **seulement proposer** des brouillons).
-- Filtrer/afficher les e-mails **par pôle** dans l'interface (la donnée est stockée, l'écran
-  viendra plus tard si besoin).
+- Écran « boîte de réception » listant tous les e-mails en vrac (les mails se voient par
+  contact et via l'Assistant).
 - Restreindre le rattachement aux contacts d'un seul pôle (on a choisi « ne rien rater »).
 - Détection de l'intention, température auto, multilingue, etc. (autres briques).
 

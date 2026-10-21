@@ -3,16 +3,17 @@
 namespace App\Services\Email;
 
 use App\Models\Activite;
+use App\Models\BoiteEmail;
 use App\Models\Contact;
 use App\Models\Email;
-use App\Models\Parametre;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
- * Récupère les e-mails via le lecteur, les rattache aux contacts connus (par
- * adresse), marque le sens (entrant/sortant), évite les doublons et crée une
- * tâche « créer le prospect » pour un expéditeur inconnu.
+ * Récupère les e-mails de TOUTES les boîtes actives (brique 009), les rattache
+ * aux contacts connus (par adresse, « ne rien rater » : sans filtrage par pôle),
+ * marque le sens (entrant/sortant), évite les doublons (message_id global) et
+ * crée une tâche « créer le prospect » pour un expéditeur inconnu.
  */
 class SynchronisationEmails
 {
@@ -20,22 +21,45 @@ class SynchronisationEmails
 
     public function executer(): ResultatSynchronisation
     {
-        $p = Parametre::instance();
-        $boite = $this->normaliser($p->gmail_email ?? '');
         $resultat = new ResultatSynchronisation;
 
-        $messages = $this->lecteur->recupererDepuis($p->derniere_synchro_at);
+        $boites = BoiteEmail::actives()->get();
+        if ($boites->isEmpty()) {
+            return $resultat;
+        }
 
-        // Index des contacts connus par adresse e-mail.
+        // Index des contacts connus par adresse e-mail (partagé entre les boîtes).
         $contactsParEmail = Contact::query()
             ->whereNotNull('email')
             ->get()
             ->keyBy(fn (Contact $c) => $this->normaliser($c->email));
 
+        // Évite de recréer la même tâche « créer le prospect » plusieurs fois dans ce tour.
         $adressesTacheesCeTour = [];
 
+        foreach ($boites as $boite) {
+            $this->synchroniserBoite($boite, $contactsParEmail, $adressesTacheesCeTour, $resultat);
+            $resultat->boitesLues++;
+        }
+
+        return $resultat;
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<string, Contact>  $contactsParEmail
+     * @param  list<string>  $adressesTacheesCeTour
+     */
+    private function synchroniserBoite(
+        BoiteEmail $boite,
+        $contactsParEmail,
+        array &$adressesTacheesCeTour,
+        ResultatSynchronisation $resultat,
+    ): void {
+        $adresseBoite = $this->normaliser($boite->email);
+        $messages = $this->lecteur->recupererDepuis($boite, $boite->derniere_synchro_at);
+
         foreach ($messages as $message) {
-            // Déduplication
+            // Déduplication globale (un même message présent dans deux boîtes = une fois).
             if (Email::where('message_id', $message->messageId)->exists()) {
                 $resultat->ignores++;
 
@@ -43,16 +67,17 @@ class SynchronisationEmails
             }
 
             $expediteur = $this->normaliser($message->expediteur);
-            $direction = $expediteur === $boite
+            $direction = $expediteur === $adresseBoite
                 ? Email::DIRECTION_SORTANT
                 : Email::DIRECTION_ENTRANT;
 
-            // Adresses de « l'autre partie » (hors boîte synchronisée)
+            // Adresses de « l'autre partie » (hors adresse de la boîte).
             $autres = collect([$message->expediteur, ...$message->destinataires])
                 ->map(fn ($a) => $this->normaliser($a))
-                ->filter(fn ($a) => $a !== '' && $a !== $boite)
+                ->filter(fn ($a) => $a !== '' && $a !== $adresseBoite)
                 ->unique();
 
+            // « Ne rien rater » : on rattache à toute fiche ayant cette adresse (sans filtre de pôle).
             $contact = $autres
                 ->map(fn ($a) => $contactsParEmail->get($a))
                 ->filter()
@@ -70,7 +95,8 @@ class SynchronisationEmails
                     'date_email' => $message->date,
                     'message_id' => $message->messageId,
                     'fil_id' => $message->filId,
-                    'boite' => $p->gmail_email,
+                    'boite' => $boite->email,
+                    'boite_email_id' => $boite->id,
                     'traite' => $direction === Email::DIRECTION_SORTANT,
                 ]);
                 $resultat->emailsImportes++;
@@ -78,7 +104,7 @@ class SynchronisationEmails
                 continue;
             }
 
-            // Adresse inconnue : tâche « créer le prospect » (seulement entrant)
+            // Adresse inconnue : tâche « créer le prospect » (seulement entrant).
             if ($direction === Email::DIRECTION_ENTRANT && $expediteur !== '') {
                 if (! in_array($expediteur, $adressesTacheesCeTour, true)
                     && $this->creerTacheProspect($expediteur, $message->objet)) {
@@ -90,9 +116,7 @@ class SynchronisationEmails
             $resultat->ignores++;
         }
 
-        $p->update(['derniere_synchro_at' => Carbon::now()]);
-
-        return $resultat;
+        $boite->update(['derniere_synchro_at' => Carbon::now()]);
     }
 
     /** Crée la tâche si aucune tâche ouverte ne mentionne déjà cette adresse. */

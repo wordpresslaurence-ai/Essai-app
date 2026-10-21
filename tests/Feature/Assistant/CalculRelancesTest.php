@@ -63,3 +63,23 @@ it('ignore les contacts sans e-mail', function () {
     expect($calc->reponsesDues())->toHaveCount(0);
     expect($calc->aRelancer())->toHaveCount(0);
 });
+
+it('filtre les relances par pôle quand un pôle est fourni', function () {
+    $prana = App\Models\Pole::create(['nom' => 'Prana']);
+    $digital = App\Models\Pole::create(['nom' => 'Digital']);
+    $catPrana = App\Models\Categorie::create(['pole_id' => $prana->id, 'nom' => 'Formation']);
+    $catDigital = App\Models\Categorie::create(['pole_id' => $digital->id, 'nom' => 'Sites']);
+
+    $cPrana = Contact::factory()->create(['categorie_id' => $catPrana->id]);
+    $cDigital = Contact::factory()->create(['categorie_id' => $catDigital->id]);
+    dernierEmail($cPrana, Email::DIRECTION_ENTRANT, '2026-05-10');
+    dernierEmail($cDigital, Email::DIRECTION_ENTRANT, '2026-05-10');
+
+    // Tous pôles confondus : 2 réponses dues.
+    expect((new CalculRelances(5))->reponsesDues())->toHaveCount(2);
+
+    // Filtré sur Prana : une seule, celle du bon pôle.
+    $filtre = new CalculRelances(5, $prana->id);
+    expect($filtre->reponsesDues())->toHaveCount(1);
+    expect($filtre->reponsesDues()->first()['contact']->id)->toBe($cPrana->id);
+});

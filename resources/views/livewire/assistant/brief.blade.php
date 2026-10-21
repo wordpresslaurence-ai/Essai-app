@@ -18,6 +18,19 @@
         <div class="lb-alert lb-alert-danger mt-5">{{ session('erreur') }}</div>
     @endif
 
+    {{-- Filtre par pôle (brique 009) --}}
+    @if ($poles->isNotEmpty())
+        <div class="flex items-center gap-2 mt-5">
+            <label for="poleFiltre" class="lb-muted" style="font-size:12.5px">Pôle</label>
+            <select id="poleFiltre" wire:model.live="poleFiltre" class="lb-field lb-select" style="width:auto;padding:7px 32px 7px 12px;font-size:13px">
+                <option value="">Tous les pôles</option>
+                @foreach ($poles as $pole)
+                    <option value="{{ $pole->id }}">{{ $pole->nom }}</option>
+                @endforeach
+            </select>
+        </div>
+    @endif
+
     {{-- Réponses dues (prioritaire) --}}
     <div class="flex flex-wrap items-center justify-between gap-2 mt-6">
         <h3 class="lb-h3" style="font-size:19px">Tu dois une réponse</h3>

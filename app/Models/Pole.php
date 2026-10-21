@@ -17,4 +17,10 @@ class Pole extends Model
     {
         return $this->hasMany(Categorie::class)->orderBy('ordre')->orderBy('nom');
     }
+
+    /** Les boîtes e-mail rattachées à ce pôle (brique 009). */
+    public function boitesEmail(): HasMany
+    {
+        return $this->hasMany(BoiteEmail::class);
+    }
 }

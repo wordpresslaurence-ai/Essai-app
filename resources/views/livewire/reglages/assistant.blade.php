@@ -15,38 +15,23 @@
         <div class="lb-alert lb-alert-danger mt-5">{{ $testErreur }}</div>
     @endif
 
-    <form wire:submit="enregistrer" class="mt-5" style="max-width:720px">
-
-        {{-- Boîte e-mail --}}
-        <fieldset class="lb-card" style="padding:18px">
-            <legend class="lb-label" style="margin-bottom:10px">Boîte e-mail à suivre</legend>
-
-            <div class="mb-4">
-                <label for="gmail_email" class="lb-label">Adresse Gmail</label>
-                <input id="gmail_email" type="email" wire:model="gmail_email"
-                       placeholder="laurencehomeharmony@gmail.com" class="lb-field">
-                @error('gmail_email') <p class="lb-error">{{ $message }}</p> @enderror
-            </div>
-
+    {{-- Boîtes e-mail (brique 009) : gérées sur un écran dédié --}}
+    <div class="lb-card mt-5" style="padding:18px;max-width:720px">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <label for="gmail_app_password" class="lb-label">
-                    Mot de passe d'application
-                    @if ($gmailMotDePasseDefini)
-                        <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep)">déjà défini</span>
-                    @endif
-                </label>
-                <input id="gmail_app_password" type="password" wire:model="gmail_app_password"
-                       placeholder="{{ $gmailMotDePasseDefini ? '•••••••• (laisser vide pour conserver)' : 'colle ici le mot de passe d’application Gmail' }}"
-                       class="lb-field" autocomplete="new-password">
-                @error('gmail_app_password') <p class="lb-error">{{ $message }}</p> @enderror
-                <p class="lb-muted" style="font-size:12px;margin-top:6px">
-                    À générer dans ton compte Google (double authentification requise). On te guidera.
+                <div class="lb-label" style="margin-bottom:2px">Boîtes e-mail à suivre</div>
+                <p class="lb-muted" style="font-size:12.5px;margin:0">
+                    Branche une ou plusieurs boîtes (Gmail, Hostinger…), chacune rattachée à un pôle.
                 </p>
             </div>
-        </fieldset>
+            <a href="{{ route('reglages.boites') }}" class="lb-btn lb-btn-ghost" wire:navigate>Gérer les boîtes e-mail →</a>
+        </div>
+    </div>
+
+    <form wire:submit="enregistrer" class="mt-5" style="max-width:720px">
 
         {{-- Assistant IA --}}
-        <fieldset class="lb-card mt-5" style="padding:18px">
+        <fieldset class="lb-card" style="padding:18px">
             <legend class="lb-label" style="margin-bottom:10px">Assistant IA (Claude)</legend>
 
             <div class="mb-4">
@@ -151,15 +136,10 @@
                 <span wire:loading.remove wire:target="synchroniser">Synchroniser mes mails</span>
                 <span wire:loading wire:target="synchroniser">Synchronisation…</span>
             </button>
-            <button type="button" wire:click="testerConnexion" class="lb-btn lb-btn-ghost"
-                    wire:loading.attr="disabled" wire:target="testerConnexion">
-                <span wire:loading.remove wire:target="testerConnexion">Tester la connexion</span>
-                <span wire:loading wire:target="testerConnexion">Test en cours…</span>
-            </button>
             <button type="submit" class="lb-btn lb-btn-primary">Enregistrer</button>
         </div>
         <p class="lb-muted" style="font-size:12px;text-align:right;margin-top:6px">
-            Enregistre d'abord si tu viens de saisir le mot de passe, puis teste la connexion.
+            « Synchroniser » lit toutes les boîtes actives (voir « Gérer les boîtes e-mail »).
         </p>
     </form>
 </div>
