@@ -63,12 +63,14 @@ class Contact extends Model
         'adresse_ville',
         'adresse_pays',
         'archived_at',
+        'newsletter_exporte_le',
     ];
 
     protected function casts(): array
     {
         return [
             'archived_at' => 'datetime',
+            'newsletter_exporte_le' => 'datetime',
         ];
     }
 

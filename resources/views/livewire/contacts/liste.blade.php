@@ -6,6 +6,7 @@
             <h1 class="lb-h1">Mon carnet</h1>
         </div>
         <div class="flex gap-2">
+            <a href="{{ route('contacts.newsletter') }}" class="lb-btn lb-btn-ghost" wire:navigate>Export newsletter</a>
             <a href="{{ route('contacts.import') }}" class="lb-btn lb-btn-ghost" wire:navigate>Importer un CSV</a>
             <a href="{{ route('contacts.creer') }}" class="lb-btn lb-btn-primary" wire:navigate>+ Nouveau contact</a>
         </div>

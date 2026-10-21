@@ -3,6 +3,7 @@
 use App\Livewire\Actions\Logout;
 use App\Livewire\Activites\Formulaire as ActiviteFormulaire;
 use App\Livewire\Activites\Liste as ActivitesListe;
+use App\Livewire\Contacts\ExportNewsletter;
 use App\Livewire\Contacts\FicheDetail;
 use App\Livewire\Contacts\Formulaire;
 use App\Livewire\Contacts\GestionEtiquettes;
@@ -28,6 +29,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('contacts', Liste::class)->name('contacts.index');
     Route::get('contacts/creer', Formulaire::class)->name('contacts.creer');
     Route::get('contacts/import', ImportCsv::class)->name('contacts.import');
+    Route::get('contacts/newsletter', ExportNewsletter::class)->name('contacts.newsletter');
     Route::get('contacts/{contact}', FicheDetail::class)->name('contacts.fiche');
     Route::get('contacts/{contact}/modifier', Formulaire::class)->name('contacts.modifier');
     Route::get('etiquettes', GestionEtiquettes::class)->name('etiquettes.index');

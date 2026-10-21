@@ -131,7 +131,7 @@ Tous protégés par authentification. Routes dans `routes/web.php`.
 | Module | Composants Livewire | Rôle |
 |---|---|---|
 | **Tableau de bord** | `TableauBord` | Accueil : chiffres clés, pipeline, activités du jour. Route `/` y redirige. |
-| **Contacts** | `Contacts\Liste`, `Contacts\Formulaire`, `Contacts\FicheDetail`, `Contacts\GestionEtiquettes`, `Contacts\ImportCsv` | Liste + recherche, création/édition, fiche détaillée, gestion des étiquettes, import CSV. |
+| **Contacts** | `Contacts\Liste`, `Contacts\Formulaire`, `Contacts\FicheDetail`, `Contacts\GestionEtiquettes`, `Contacts\ImportCsv`, `Contacts\ExportNewsletter` | Liste + recherche, création/édition, fiche détaillée, gestion des étiquettes, import CSV, **export newsletter** (CSV réimportable dans FluentCRM, filtre par étiquette + suivi des déjà-exportés via `newsletter_exporte_le`). |
 | **Pipeline** | `Pipeline\Tableau`, `Pipeline\Formulaire` | Opportunités vue kanban par étape. |
 | **Activités** | `Activites\Liste`, `Activites\Formulaire` | Tâches, appels, rendez-vous, rappels. |
 | **Leads** | (champs `source`/`temperature` sur `Contact`) | Qualification des contacts entrants. |
