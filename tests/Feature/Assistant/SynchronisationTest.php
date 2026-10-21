@@ -54,8 +54,9 @@ it('ne crée pas de doublon pour le même message', function () {
 
     sync([$msg]);
 
-    // On force le message à être re-vu (comme un chevauchement de fenêtre de synchro)
-    $this->boite->update(['derniere_synchro_at' => null]);
+    // On force le message à être re-vu (comme un chevauchement de fenêtre de synchro).
+    // Écriture directe en base (le modèle en mémoire est périmé après le 1er passage).
+    BoiteEmail::whereKey($this->boite->id)->update(['derniere_synchro_at' => null]);
     $r = sync([$msg]); // deuxième passage avec le même message_id
 
     expect(Email::count())->toBe(1);  // pas de doublon
