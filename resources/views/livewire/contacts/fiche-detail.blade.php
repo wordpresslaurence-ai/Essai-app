@@ -4,6 +4,9 @@
     @if (session('message'))
         <div class="lb-alert lb-alert-success mt-4">{{ session('message') }}</div>
     @endif
+    @if (session('erreur'))
+        <div class="lb-alert lb-alert-danger mt-4">{{ session('erreur') }}</div>
+    @endif
 
     @php
         $oppEnCours = $contact->opportunites->whereNotIn('etape', [\App\Models\Opportunite::ETAPE_GAGNE, \App\Models\Opportunite::ETAPE_PERDU]);
@@ -174,6 +177,68 @@
                         <div class="lb-kv"><div class="k">Résumé</div><div class="v">{{ $derniereAnalyse->resume }}</div></div>
                         @if ($derniereAnalyse->verdict)
                             <div class="lb-kv" style="margin-top:8px"><div class="k">À relancer ?</div><div class="v">{{ $derniereAnalyse->verdict }}@if ($derniereAnalyse->delai_conseille) <span class="lb-muted">· {{ $derniereAnalyse->delai_conseille }}</span>@endif</div></div>
+                        @endif
+
+                        @if ($derniereAnalyse->libelleIntention())
+                            <div class="lb-kv" style="margin-top:8px"><div class="k">Intention</div><div class="v"><span class="lb-tag" style="background:var(--lav-tint);color:var(--lav)">{{ $derniereAnalyse->libelleIntention() }}</span></div></div>
+                        @endif
+
+                        @php $ic = $derniereAnalyse->infos_cles ?? []; @endphp
+                        @if (filled($ic['budget'] ?? null) || filled($ic['delai'] ?? null) || filled($ic['decisions'] ?? null) || ! empty($ic['dates_rdv'] ?? []))
+                            <div class="lb-kv" style="margin-top:8px"><div class="k">Infos clés</div><div class="v">
+                                @if (filled($ic['budget'] ?? null))<div>💰 Budget : {{ $ic['budget'] }}</div>@endif
+                                @if (filled($ic['delai'] ?? null))<div>⏱️ Délai : {{ $ic['delai'] }}</div>@endif
+                                @if (! empty($ic['dates_rdv'] ?? []))<div>📅 Dates : {{ is_array($ic['dates_rdv']) ? implode(', ', $ic['dates_rdv']) : $ic['dates_rdv'] }}</div>@endif
+                                @if (filled($ic['decisions'] ?? null))<div>✅ Décisions : {{ $ic['decisions'] }}</div>@endif
+                            </div></div>
+                        @endif
+
+                        @if ($derniereAnalyse->temperature_conseillee)
+                            @php $tc = $derniereAnalyse->temperature_conseillee; $tcLabel = \App\Models\Contact::TEMPERATURES[$tc][0] ?? $tc; @endphp
+                            <div class="lb-kv" style="margin-top:8px"><div class="k">Température conseillée</div>
+                                <div class="v" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                                    <span>{{ $tcLabel }}</span>
+                                    @if ($contact->temperature !== $tc)
+                                        <button type="button" wire:click="appliquerTemperature" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">Appliquer</button>
+                                    @else
+                                        <span class="lb-muted" style="font-size:12px">✓ déjà appliquée</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+
+                        @if ($derniereAnalyse->etape_conseillee)
+                            @php $ec = $derniereAnalyse->etape_conseillee; $ecLabel = \App\Models\Opportunite::libellesEtapes()[$ec] ?? $ec; @endphp
+                            <div class="lb-kv" style="margin-top:8px"><div class="k">Étape conseillée</div>
+                                <div class="v" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                                    <span>{{ $ecLabel }}</span>
+                                    <button type="button" wire:click="avancerPipeline" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">Faire avancer</button>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if (! empty($derniereAnalyse->promesses))
+                            <div style="margin-top:12px">
+                                <div class="lb-label">Promesses à tenir</div>
+                                @foreach ($derniereAnalyse->promesses as $i => $pr)
+                                    <div class="flex items-center gap-2" style="margin-top:6px;justify-content:space-between" wire:key="prom-{{ $i }}">
+                                        <span style="min-width:0;flex:1">{{ $pr['texte'] ?? '' }}@if (filled($pr['echeance'] ?? null)) <span class="lb-muted" style="font-size:12px">· {{ $pr['echeance'] }}</span>@endif</span>
+                                        <button type="button" wire:click="creerRappel({{ $i }})" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px;flex:none">+ Rappel</button>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        @php $rdv = $derniereAnalyse->rdv ?? []; @endphp
+                        @if (filled($rdv['date'] ?? null) || ($rdv['demande'] ?? false))
+                            <div class="lb-kv" style="margin-top:12px"><div class="k">Rendez-vous</div>
+                                <div class="v" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                                    <span>@if (filled($rdv['date'] ?? null)){{ $rdv['date'] }}@else Demande de rendez-vous @endif@if (filled($rdv['details'] ?? null)) <span class="lb-muted">· {{ $rdv['details'] }}</span>@endif</span>
+                                    @if (filled($rdv['date'] ?? null))
+                                        <button type="button" wire:click="creerRdv" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">Créer le rendez-vous</button>
+                                    @endif
+                                </div>
+                            </div>
                         @endif
 
                         @if ($derniereAnalyse->brouillon)

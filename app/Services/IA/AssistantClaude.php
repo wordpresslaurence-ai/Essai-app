@@ -28,17 +28,33 @@ class AssistantClaude implements AssistantIA
         $systeme = <<<'TXT'
             Tu es l'assistant de suivi commercial de Laurence (coach bien-être « Prana Vidya »
             et créatrice de sites web). Tu analyses un fil d'e-mails avec un contact et tu aides
-            Laurence à savoir quoi faire. Réponds UNIQUEMENT par un objet JSON avec les clés :
-            "resume" (3 lignes max), "verdict" (faut-il relancer et pourquoi, 1-2 phrases),
-            "delai" (quand relancer, ex. "sous 2 jours"), "brouillon" (un message en français,
-            chaleureux et professionnel, prêt à envoyer). Si un lien de réservation est utile,
-            insère-le dans le brouillon. N'invente aucun fait.
+            Laurence à savoir quoi faire. N'invente AUCUN fait absent du fil.
+            Réponds UNIQUEMENT par un objet JSON avec les clés :
+            - "resume" : 3 lignes max, où en est la relation.
+            - "verdict" : faut-il relancer et pourquoi (1-2 phrases).
+            - "delai" : quand relancer (ex. "sous 2 jours"), ou null.
+            - "brouillon" : un message en français, chaleureux et professionnel, prêt à envoyer
+              (insère un lien de réservation s'il est utile).
+            - "intention" : l'intention principale du dernier message du contact, UNE valeur parmi
+              "nouveau_prospect", "question", "demande_devis", "prise_rdv", "reclamation",
+              "remerciement", "paiement", "relance", "autre".
+            - "temperature_conseillee" : chaleur du lead, UNE valeur parmi "chaud", "eleve",
+              "moyen", "a_qualifier", ou null si on ne peut pas juger.
+            - "etape_conseillee" : étape de pipeline suggérée d'après le contenu, UNE valeur parmi
+              "nouveau", "qualifie", "proposition", "gagne", "perdu", ou null.
+            - "infos_cles" : objet {"budget": texte|null, "delai": texte|null,
+              "dates_rdv": [liste de dates/créneaux mentionnés], "decisions": texte|null}.
+            - "promesses" : liste d'objets {"texte": ce que Laurence ou le contact s'est engagé à
+              faire, "echeance": "AAAA-MM-JJ" si une date est déductible, sinon null}. [] si aucune.
+            - "rdv" : objet {"demande": true/false s'il y a une demande/prise de RDV,
+              "date": "AAAA-MM-JJ" si une date est fixée/proposée sinon null, "details": texte|null}.
+            Laisse une valeur vide/nulle plutôt que d'inventer.
             TXT;
 
         $utilisateur = $this->contexteContact($contact, $p)."\n\n"
             .$this->transcription($contact);
 
-        $texte = $this->envoyer($p, $systeme, $utilisateur, 1200);
+        $texte = $this->envoyer($p, $systeme, $utilisateur, 1800);
         $json = $this->decoderJson($texte);
 
         return new ResultatAnalyse(
@@ -47,7 +63,55 @@ class AssistantClaude implements AssistantIA
             delaiConseille: isset($json['delai']) ? (string) $json['delai'] : null,
             brouillon: (string) ($json['brouillon'] ?? ''),
             modele: $this->modele($p),
+            intention: $this->normaliserIntention($json['intention'] ?? null),
+            temperatureConseillee: $this->valeurParmi($json['temperature_conseillee'] ?? null, ['chaud', 'eleve', 'moyen', 'a_qualifier']),
+            etapeConseillee: $this->valeurParmi($json['etape_conseillee'] ?? null, ['nouveau', 'qualifie', 'proposition', 'gagne', 'perdu']),
+            infosCles: is_array($json['infos_cles'] ?? null) ? $json['infos_cles'] : [],
+            promesses: $this->normaliserPromesses($json['promesses'] ?? null),
+            rdv: is_array($json['rdv'] ?? null) ? $json['rdv'] : [],
         );
+    }
+
+    /** Garde la valeur si elle fait partie de la liste autorisée, sinon null. */
+    private function valeurParmi(mixed $valeur, array $autorisees): ?string
+    {
+        $valeur = is_string($valeur) ? strtolower(trim($valeur)) : null;
+
+        return ($valeur !== null && in_array($valeur, $autorisees, true)) ? $valeur : null;
+    }
+
+    private function normaliserIntention(mixed $valeur): ?string
+    {
+        $valeur = is_string($valeur) ? strtolower(trim($valeur)) : null;
+
+        return $valeur !== null && array_key_exists($valeur, \App\Models\Analyse::INTENTIONS)
+            ? $valeur
+            : ($valeur !== null && $valeur !== '' ? 'autre' : null);
+    }
+
+    /**
+     * Normalise les promesses en liste de {texte, echeance}.
+     *
+     * @return list<array{texte: string, echeance: ?string}>
+     */
+    private function normaliserPromesses(mixed $valeur): array
+    {
+        if (! is_array($valeur)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($valeur as $item) {
+            if (is_array($item) && filled($item['texte'] ?? null)) {
+                $echeance = $item['echeance'] ?? null;
+                $out[] = [
+                    'texte' => (string) $item['texte'],
+                    'echeance' => is_string($echeance) && trim($echeance) !== '' ? trim($echeance) : null,
+                ];
+            }
+        }
+
+        return $out;
     }
 
     public function redigerProspection(Contact $contact, ?string $angle = null): ResultatProspection

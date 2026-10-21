@@ -26,6 +26,12 @@ class AssistantFactice implements AssistantIA
             delaiConseille: 'sous 2 jours',
             brouillon: 'Bonjour, je reviens vers vous… (brouillon factice)',
             modele: 'factice',
+            intention: 'question',
+            temperatureConseillee: 'moyen',
+            etapeConseillee: 'qualifie',
+            infosCles: ['budget' => null, 'delai' => null, 'dates_rdv' => [], 'decisions' => null],
+            promesses: [],
+            rdv: ['demande' => false, 'date' => null, 'details' => null],
         );
     }
 

@@ -5,6 +5,7 @@ namespace App\Livewire\Contacts;
 use App\Models\Activite;
 use App\Models\Analyse;
 use App\Models\Contact;
+use App\Models\Opportunite;
 use App\Services\IA\AssistantIA;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -47,11 +48,136 @@ class FicheDetail extends Component
                 'delai_conseille' => $r->delaiConseille,
                 'brouillon' => $r->brouillon,
                 'modele' => $r->modele,
+                'intention' => $r->intention,
+                'temperature_conseillee' => $r->temperatureConseillee,
+                'etape_conseillee' => $r->etapeConseillee,
+                'infos_cles' => $r->infosCles ?: null,
+                'promesses' => $r->promesses ?: null,
+                'rdv' => $r->rdv ?: null,
                 'faite_le' => now(),
             ]);
         } catch (Throwable $e) {
             $this->analyseErreur = $e->getMessage();
         }
+    }
+
+    /** Dernière analyse enregistrée pour ce contact (ou null). */
+    private function derniere(): ?Analyse
+    {
+        return $this->contact->analyses()->latest('faite_le')->first();
+    }
+
+    /** Applique au contact la température conseillée par la dernière analyse. */
+    public function appliquerTemperature(): void
+    {
+        $t = $this->derniere()?->temperature_conseillee;
+
+        if ($t && array_key_exists($t, Contact::TEMPERATURES)) {
+            $this->contact->update(['temperature' => $t]);
+            $this->contact->refresh();
+            session()->flash('message', 'Température mise à jour : '.(Contact::TEMPERATURES[$t][0] ?? $t).'.');
+        } else {
+            session()->flash('erreur', 'Aucune température conseillée exploitable.');
+        }
+    }
+
+    /** Fait avancer l'opportunité ouverte la plus récente vers l'étape conseillée. */
+    public function avancerPipeline(): void
+    {
+        $etape = $this->derniere()?->etape_conseillee;
+
+        if (! $etape || ! array_key_exists($etape, Opportunite::libellesEtapes())) {
+            session()->flash('erreur', 'Aucune étape conseillée exploitable.');
+
+            return;
+        }
+
+        $opp = $this->contact->opportunites()
+            ->whereNotIn('etape', [Opportunite::ETAPE_GAGNE, Opportunite::ETAPE_PERDU])
+            ->latest()
+            ->first();
+
+        if (! $opp) {
+            session()->flash('erreur', 'Aucune opportunité ouverte pour ce contact (crée-la d’abord dans le Pipeline).');
+
+            return;
+        }
+
+        $opp->changerEtape($etape);
+        session()->flash('message', 'Opportunité déplacée vers « '.Opportunite::libellesEtapes()[$etape].' ».');
+    }
+
+    /** Crée une tâche de rappel depuis une promesse détectée (sans doublon). */
+    public function creerRappel(int $index): void
+    {
+        $promesses = $this->derniere()?->promesses ?? [];
+        $promesse = $promesses[$index] ?? null;
+
+        if (! is_array($promesse) || blank($promesse['texte'] ?? null)) {
+            session()->flash('erreur', 'Promesse introuvable.');
+
+            return;
+        }
+
+        $titre = 'Rappel : '.\Illuminate\Support\Str::limit((string) $promesse['texte'], 120);
+
+        $existe = Activite::where('contact_id', $this->contact->id)
+            ->whereNull('terminee_at')
+            ->where('titre', $titre)
+            ->exists();
+
+        if ($existe) {
+            session()->flash('message', 'Ce rappel existe déjà.');
+
+            return;
+        }
+
+        Activite::create([
+            'titre' => $titre,
+            'type' => Activite::TYPE_TACHE,
+            'contact_id' => $this->contact->id,
+            'echeance' => filled($promesse['echeance'] ?? null) ? $promesse['echeance'] : null,
+            'notes' => (string) $promesse['texte'],
+        ]);
+
+        session()->flash('message', 'Rappel créé.');
+    }
+
+    /** Crée une activité « rendez-vous » depuis le RDV détecté (sans doublon). */
+    public function creerRdv(): void
+    {
+        $rdv = $this->derniere()?->rdv ?? [];
+        $date = $rdv['date'] ?? null;
+
+        if (blank($date)) {
+            session()->flash('erreur', 'Aucune date de rendez-vous détectée.');
+
+            return;
+        }
+
+        $titre = 'Rendez-vous avec '.$this->contact->nomComplet();
+
+        $existe = Activite::where('contact_id', $this->contact->id)
+            ->whereNull('terminee_at')
+            ->where('type', Activite::TYPE_RDV)
+            ->where('titre', $titre)
+            ->exists();
+
+        if ($existe) {
+            session()->flash('message', 'Un rendez-vous est déjà prévu pour ce contact.');
+
+            return;
+        }
+
+        Activite::create([
+            'titre' => $titre,
+            'type' => Activite::TYPE_RDV,
+            'contact_id' => $this->contact->id,
+            'echeance' => $date,
+            'notes' => filled($rdv['details'] ?? null) ? (string) $rdv['details'] : null,
+        ]);
+
+        session()->flash('message', 'Rendez-vous créé.');
     }
 
     /**

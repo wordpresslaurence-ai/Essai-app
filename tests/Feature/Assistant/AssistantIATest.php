@@ -62,6 +62,33 @@ it('le client Claude construit la requête et parse la réponse (API simulée)',
         && str_contains($request->url(), 'api.anthropic.com'));
 });
 
+it('le client Claude parse les champs enrichis et normalise les valeurs invalides', function () {
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test']);
+
+    Http::fake([
+        'api.anthropic.com/*' => Http::response([
+            'content' => [['type' => 'text', 'text' => json_encode([
+                'resume' => 'r', 'verdict' => 'v', 'delai' => null, 'brouillon' => 'b',
+                'intention' => 'demande_devis',
+                'temperature_conseillee' => 'chaud',
+                'etape_conseillee' => 'pas_une_etape', // invalide -> null
+                'infos_cles' => ['budget' => '2000 €', 'dates_rdv' => ['2026-08-01']],
+                'promesses' => [['texte' => 'Rappeler jeudi', 'echeance' => '2026-07-03'], ['texte' => '']],
+                'rdv' => ['demande' => true, 'date' => '2026-08-01', 'details' => 'visio'],
+            ])]],
+        ], 200),
+    ]);
+
+    $r = (new AssistantClaude)->analyser(Contact::factory()->create());
+
+    expect($r->intention)->toBe('demande_devis');
+    expect($r->temperatureConseillee)->toBe('chaud');
+    expect($r->etapeConseillee)->toBeNull();            // valeur hors liste -> normalisée à null
+    expect($r->infosCles['budget'])->toBe('2000 €');
+    expect($r->promesses)->toHaveCount(1);              // promesse au texte vide ignorée
+    expect($r->rdv['date'])->toBe('2026-08-01');
+});
+
 it('le client Claude signale une clé manquante', function () {
     $contact = Contact::factory()->create();
 
