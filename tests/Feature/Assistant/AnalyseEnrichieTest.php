@@ -86,9 +86,8 @@ it('signale l’absence d’opportunité ouverte', function () {
 
     Livewire::test(FicheDetail::class, ['contact' => $contact])
         ->call('analyser')
-        ->call('avancerPipeline');
-
-    expect(session('erreur'))->toContain('Aucune opportunité ouverte');
+        ->call('avancerPipeline')
+        ->assertSee('Aucune opportunité ouverte');
 });
 
 it('crée une tâche de rappel depuis une promesse, avec échéance', function () {
