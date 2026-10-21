@@ -122,6 +122,36 @@ it('ne clôture pas une tâche « Répondre » si le contact doit toujours une r
     expect($tache->fresh()->terminee_at)->toBeNull();
 });
 
+it('affiche les opportunités qui stagnent et crée une relance', function () {
+    $contact = Contact::factory()->create(['nom' => 'Durand', 'prenom' => 'Paul']);
+    $opp = App\Models\Opportunite::create([
+        'titre' => 'Refonte site', 'contact_id' => $contact->id, 'etape' => App\Models\Opportunite::ETAPE_QUALIFIE,
+    ]);
+    $opp->update(['etape_changee_le' => Carbon::now()->subDays(30)]);
+
+    $c = Livewire::test(Brief::class)
+        ->assertSee('Opportunités qui stagnent')
+        ->assertSee('Refonte site');
+
+    $c->call('creerTacheOpportunite', $opp->id);
+
+    expect(App\Models\Activite::where('opportunite_id', $opp->id)
+        ->where('titre', 'like', 'Relancer l’opportunité%')->count())->toBe(1);
+
+    // Pas de doublon.
+    $c->call('creerTacheOpportunite', $opp->id);
+    expect(App\Models\Activite::where('opportunite_id', $opp->id)->count())->toBe(1);
+});
+
+it('affiche les leads chauds à réveiller', function () {
+    $c = Contact::factory()->create(['nom' => 'Noël', 'prenom' => 'Lucie', 'temperature' => 'chaud']);
+    Contact::where('id', $c->id)->update(['created_at' => Carbon::now()->subDays(40)]);
+
+    Livewire::test(Brief::class)
+        ->assertSee('À réveiller')
+        ->assertSee('Lucie Noël');
+});
+
 it('applique l\'échéance choisie à la tâche créée', function () {
     $marie = Contact::factory()->create(['nom' => 'Dubois', 'prenom' => 'Marie']);
     emailBrief($marie, Email::DIRECTION_ENTRANT, Carbon::now()->subDay()->toDateString());

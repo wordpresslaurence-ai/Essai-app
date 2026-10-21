@@ -27,12 +27,16 @@ class Opportunite extends Model
 
     public const ETAPE_PERDU = 'perdu';
 
+    /** Jours sans changement d'étape au-delà desquels une opportunité « stagne ». */
+    public const JOURS_STAGNATION = 21;
+
     protected $fillable = [
         'titre',
         'contact_id',
         'categorie_id',
         'montant',
         'etape',
+        'etape_changee_le',
         'notes',
         'date_cloture',
     ];
@@ -42,7 +46,18 @@ class Opportunite extends Model
         return [
             'montant' => 'decimal:2',
             'date_cloture' => 'date',
+            'etape_changee_le' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // À la création, on initialise la date de dernier changement d'étape.
+        static::creating(function (self $opp) {
+            if ($opp->etape_changee_le === null) {
+                $opp->etape_changee_le = now();
+            }
+        });
     }
 
     /** Libellés lisibles des étapes. */
@@ -124,6 +139,28 @@ class Opportunite extends Model
         $query->where('etape', $etape);
     }
 
+    /**
+     * Opportunités « qui stagnent » : ouvertes et sans changement d'étape depuis
+     * N jours (défaut : JOURS_STAGNATION). On se rabat sur updated_at si besoin.
+     *
+     * @param  Builder<Opportunite>  $query
+     */
+    public function scopeStagnantes(Builder $query, ?int $jours = null): void
+    {
+        $limite = now()->subDays($jours ?? self::JOURS_STAGNATION)->toDateTimeString();
+
+        $query->whereNotIn('etape', [self::ETAPE_GAGNE, self::ETAPE_PERDU])
+            ->whereRaw('coalesce(etape_changee_le, updated_at) < ?', [$limite]);
+    }
+
+    /** Nombre de jours depuis le dernier changement d'étape. */
+    public function joursDepuisChangement(): int
+    {
+        $ref = $this->etape_changee_le ?? $this->updated_at;
+
+        return $ref ? (int) $ref->diffInDays(now()) : 0;
+    }
+
     // --- Aides ---------------------------------------------------------------
 
     public function estGagnee(): bool
@@ -141,10 +178,10 @@ class Opportunite extends Model
         return $this->estGagnee() || $this->estPerdue();
     }
 
-    /** Change l'étape et gère la date de clôture (Gagné/Perdu). */
+    /** Change l'étape, enregistre la date de changement et gère la clôture (Gagné/Perdu). */
     public function changerEtape(string $etape): void
     {
-        $donnees = ['etape' => $etape];
+        $donnees = ['etape' => $etape, 'etape_changee_le' => now()];
         $donnees['date_cloture'] = in_array($etape, [self::ETAPE_GAGNE, self::ETAPE_PERDU], true)
             ? now()->toDateString()
             : null;

@@ -180,6 +180,46 @@ class FicheDetail extends Component
         session()->flash('message', 'Rendez-vous créé.');
     }
 
+    /** Crée une tâche « proposer un rendez-vous » (Laurence propose le créneau). */
+    public function creerTacheProposerRdv(): void
+    {
+        $rdv = $this->derniere()?->rdv ?? [];
+
+        if (empty($rdv['demande'] ?? false) && blank($rdv['date'] ?? null)) {
+            session()->flash('erreur', 'Aucune demande de rendez-vous détectée.');
+
+            return;
+        }
+
+        $titre = 'Proposer un rendez-vous à '.$this->contact->nomComplet();
+
+        $existe = Activite::where('contact_id', $this->contact->id)
+            ->whereNull('terminee_at')
+            ->where('titre', $titre)
+            ->exists();
+
+        if ($existe) {
+            session()->flash('message', 'Une tâche « proposer un RDV » existe déjà.');
+
+            return;
+        }
+
+        $notes = array_filter([
+            filled($rdv['date'] ?? null) ? 'Date évoquée : '.$rdv['date'] : null,
+            filled($rdv['details'] ?? null) ? (string) $rdv['details'] : null,
+        ]);
+
+        Activite::create([
+            'titre' => $titre,
+            'type' => Activite::TYPE_TACHE,
+            'contact_id' => $this->contact->id,
+            'echeance' => now()->toDateString(),
+            'notes' => $notes !== [] ? implode("\n", $notes) : null,
+        ]);
+
+        session()->flash('message', 'Tâche créée : proposer un rendez-vous.');
+    }
+
     /**
      * Rédige un brouillon de mail de prospection via l'assistant et garde une
      * trace sous forme de tâche « à envoyer » (dédupliquée par contact).

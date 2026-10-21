@@ -234,6 +234,7 @@
                             <div class="lb-kv" style="margin-top:12px"><div class="k">Rendez-vous</div>
                                 <div class="v" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
                                     <span>@if (filled($rdv['date'] ?? null)){{ $rdv['date'] }}@else Demande de rendez-vous @endif@if (filled($rdv['details'] ?? null)) <span class="lb-muted">· {{ $rdv['details'] }}</span>@endif</span>
+                                    <button type="button" wire:click="creerTacheProposerRdv" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">Tâche : proposer un RDV</button>
                                     @if (filled($rdv['date'] ?? null))
                                         <button type="button" wire:click="creerRdv" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">Créer le rendez-vous</button>
                                     @endif

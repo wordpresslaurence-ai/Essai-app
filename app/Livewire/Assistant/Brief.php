@@ -4,9 +4,11 @@ namespace App\Livewire\Assistant;
 
 use App\Models\Activite;
 use App\Models\Contact;
+use App\Models\Opportunite;
 use App\Models\Pole;
 use App\Services\Email\SynchronisationEmails;
 use App\Services\IA\AssistantIA;
+use App\Services\Relances\CalculIndecis;
 use App\Services\Relances\CalculRelances;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -145,6 +147,38 @@ class Brief extends Component
         session()->flash('message', 'Activité créée : '.$titre);
     }
 
+    /** Crée une tâche de relance pour une opportunité qui stagne (sans doublon). */
+    public function creerTacheOpportunite(int $opportuniteId): void
+    {
+        $opp = Opportunite::find($opportuniteId);
+        if (! $opp) {
+            return;
+        }
+
+        $titre = 'Relancer l’opportunité : '.$opp->titre;
+
+        $existe = Activite::where('opportunite_id', $opp->id)
+            ->whereNull('terminee_at')
+            ->where('titre', $titre)
+            ->exists();
+
+        if ($existe) {
+            session()->flash('message', 'Une relance existe déjà pour cette opportunité.');
+
+            return;
+        }
+
+        Activite::create([
+            'titre' => $titre,
+            'type' => Activite::TYPE_TACHE,
+            'contact_id' => $opp->contact_id,
+            'opportunite_id' => $opp->id,
+            'echeance' => now()->toDateString(),
+        ]);
+
+        session()->flash('message', 'Relance créée : '.$titre);
+    }
+
     /** Identifiant de pôle à filtrer (int), ou null si « tous les pôles ». */
     private function poleIdFiltre(): ?int
     {
@@ -153,7 +187,9 @@ class Brief extends Component
 
     public function render(): View
     {
-        $calc = new CalculRelances(null, $this->poleIdFiltre());
+        $pole = $this->poleIdFiltre();
+        $calc = new CalculRelances(null, $pole);
+        $indecis = new CalculIndecis;
 
         // Contacts qui ont déjà une tâche non terminée de chaque intention.
         $dejaRepondre = Activite::whereNull('terminee_at')
@@ -163,12 +199,28 @@ class Brief extends Component
             ->where('titre', 'like', 'Relancer %')
             ->pluck('contact_id')->filter()->all();
 
+        // Opportunités déjà relancées (tâche ouverte liée).
+        $dejaOpp = Activite::whereNull('terminee_at')
+            ->whereNotNull('opportunite_id')
+            ->where('titre', 'like', 'Relancer l’opportunité%')
+            ->pluck('opportunite_id')->filter()->all();
+
+        $stagnantes = Opportunite::stagnantes()
+            ->with('contact')
+            ->when($pole, fn ($q) => $q->whereHas('categorie', fn ($c) => $c->where('pole_id', $pole)))
+            ->orderBy('etape_changee_le')
+            ->get();
+
         return view('livewire.assistant.brief', [
             'reponsesDues' => $calc->reponsesDues(),
             'aRelancer' => $calc->aRelancer(),
             'dejaRepondre' => $dejaRepondre,
             'dejaRelancer' => $dejaRelancer,
             'poles' => Pole::orderBy('ordre')->orderBy('nom')->get(),
+            'stagnantes' => $stagnantes,
+            'dejaOpp' => $dejaOpp,
+            'indecisChauds' => $indecis->leadsChaudsSansSuite($pole),
+            'indecisSessions' => $indecis->interessesSessionPassee($pole),
         ]);
     }
 }

@@ -114,6 +114,22 @@ it('ne crée pas deux fois le même rappel', function () {
     expect(Activite::where('contact_id', $contact->id)->where('type', Activite::TYPE_TACHE)->count())->toBe(1);
 });
 
+it('crée une tâche « proposer un RDV » depuis une demande de rendez-vous', function () {
+    brancherAnalyse(['rdv' => ['demande' => true, 'date' => null, 'details' => 'il veut un appel']]);
+    $contact = Contact::factory()->create(['nom' => 'Petit', 'prenom' => 'Léa']);
+
+    $c = Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->call('analyser')
+        ->call('creerTacheProposerRdv');
+
+    $tache = Activite::where('contact_id', $contact->id)->where('type', Activite::TYPE_TACHE)->firstOrFail();
+    expect($tache->titre)->toBe('Proposer un rendez-vous à Léa Petit');
+
+    // Pas de doublon.
+    $c->call('creerTacheProposerRdv');
+    expect(Activite::where('contact_id', $contact->id)->where('type', Activite::TYPE_TACHE)->count())->toBe(1);
+});
+
 it('crée un rendez-vous depuis la date détectée', function () {
     brancherAnalyse(['rdv' => ['demande' => true, 'date' => '2026-07-10', 'details' => 'visio']]);
     $contact = Contact::factory()->create();

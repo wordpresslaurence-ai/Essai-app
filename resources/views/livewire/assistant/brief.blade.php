@@ -97,6 +97,84 @@
         @endforelse
     </div>
 
+    {{-- Opportunités qui stagnent (règle : étape inchangée depuis 21 j) --}}
+    <div class="flex flex-wrap items-center justify-between gap-2 mt-6">
+        <h3 class="lb-h3" style="font-size:19px">Opportunités qui stagnent</h3>
+        <span class="lb-tag" style="background:var(--gold-tint);color:var(--accent)">{{ $stagnantes->count() }}</span>
+    </div>
+    <div class="lb-people mt-3">
+        @forelse ($stagnantes as $opp)
+            <div class="lb-prow" wire:key="stag-{{ $opp->id }}">
+                <span class="lb-dot" style="width:12px;height:12px;background:var(--{{ \App\Models\Opportunite::couleurEtape($opp->etape) }})"></span>
+                <div style="min-width:0;flex:1">
+                    <div class="nm lb-truncate">{{ $opp->titre }}</div>
+                    <div class="mt lb-truncate">
+                        {{ $opp->libelleEtape() }}@if ($opp->contact) · {{ $opp->contact->nomComplet() }}@endif
+                        · <span style="color:var(--terra)">{{ $opp->joursDepuisChangement() }} j sans bouger</span>
+                    </div>
+                </div>
+                <div style="margin-left:auto;flex:none">
+                    @if (in_array($opp->id, $dejaOpp))
+                        <span class="lb-muted" style="font-size:12px;white-space:nowrap" title="Une relance existe déjà">✓ Relance</span>
+                    @else
+                        <button type="button" wire:click="creerTacheOpportunite({{ $opp->id }})"
+                                class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">+ Relance</button>
+                    @endif
+                </div>
+            </div>
+        @empty
+            <div class="lb-placeholder">Aucune opportunité à l'arrêt. 👌</div>
+        @endforelse
+    </div>
+
+    {{-- Indécis à réveiller (règles : leads chauds sans suite + session passée) --}}
+    <div class="flex flex-wrap items-center justify-between gap-2 mt-6">
+        <h3 class="lb-h3" style="font-size:19px">À réveiller</h3>
+        <span class="lb-tag" style="background:var(--lav-tint);color:var(--lav)">{{ $indecisChauds->count() + $indecisSessions->count() }}</span>
+    </div>
+    <div class="lb-people mt-3">
+        @forelse ($indecisChauds as $c)
+            <div class="lb-prow" wire:key="ic-{{ $c->id }}">
+                <span class="lb-tag" style="background:var(--terra-tint);color:var(--terra)">Lead chaud</span>
+                <a href="{{ route('contacts.fiche', $c) }}" wire:navigate style="min-width:0;flex:1;text-decoration:none;color:inherit">
+                    <div class="nm lb-truncate">{{ $c->nomComplet() }}</div>
+                    <div class="mt lb-truncate">Intéressé·e mais sans suite depuis un moment</div>
+                </a>
+                <div style="margin-left:auto;flex:none">
+                    @if (in_array($c->id, $dejaRelancer))
+                        <span class="lb-muted" style="font-size:12px;white-space:nowrap">✓ Activité</span>
+                    @else
+                        <button type="button" wire:click="creerActivite({{ $c->id }}, 'relancer')"
+                                class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">+ Relance</button>
+                    @endif
+                </div>
+            </div>
+        @empty
+        @endforelse
+
+        @foreach ($indecisSessions as $c)
+            <div class="lb-prow" wire:key="is-{{ $c->id }}">
+                <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep)">Session passée</span>
+                <a href="{{ route('contacts.fiche', $c) }}" wire:navigate style="min-width:0;flex:1;text-decoration:none;color:inherit">
+                    <div class="nm lb-truncate">{{ $c->nomComplet() }}</div>
+                    <div class="mt lb-truncate">Intéressé·e à une session passée, sans place à venir</div>
+                </a>
+                <div style="margin-left:auto;flex:none">
+                    @if (in_array($c->id, $dejaRelancer))
+                        <span class="lb-muted" style="font-size:12px;white-space:nowrap">✓ Activité</span>
+                    @else
+                        <button type="button" wire:click="creerActivite({{ $c->id }}, 'relancer')"
+                                class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">+ Relance</button>
+                    @endif
+                </div>
+            </div>
+        @endforeach
+
+        @if ($indecisChauds->isEmpty() && $indecisSessions->isEmpty())
+            <div class="lb-placeholder">Personne à réveiller pour l'instant. 🌿</div>
+        @endif
+    </div>
+
     {{-- Suggestions du jour (IA, à la demande) --}}
     <div class="flex items-center justify-between mt-6">
         <h3 class="lb-h3" style="font-size:19px">Suggestions du jour</h3>
