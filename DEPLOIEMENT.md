@@ -63,17 +63,97 @@ C'est tout ! 🎉 Ouvre l'URL : tu arrives sur la page de connexion.
 
 ---
 
-## B. Production sur Hostinger
+## B. Production sur Hostinger — check-list de déploiement
 
-Deux options selon ton offre Hostinger :
+Cette partie est la **check-list à suivre le jour où on passe en production**. Elle est pensée
+pour que tes **vraies données soient en sécurité** (textes d'offre, contacts, opportunités…) :
+une fois en ligne sur Hostinger, une mise à jour du code **n'efface jamais** la base.
 
-- **VPS Hostinger** : installe Docker et lance ce même `Dockerfile` (identique à Railway),
-  avec une base **MySQL** (`DB_CONNECTION=mysql` + identifiants). Je te guiderai.
-- **Hébergement mutualisé Hostinger** (PHP/MySQL classique) : on déploie **sans Docker** —
-  on envoie le code, on fait pointer le domaine sur le dossier `public/`, on crée une base
-  MySQL et on renseigne le `.env`. Étapes détaillées à faire ensemble le moment venu.
+### 🔒 L'essentiel à retenir sur tes données
 
-Dans les deux cas, pense à mettre `APP_ENV=production`, `APP_DEBUG=false`, une `APP_KEY` fixe,
-et à faire tourner `php artisan migrate --force` (le `Dockerfile` le fait automatiquement).
+Sur Hostinger, **le code et les données sont séparés** :
+
+- Le **code** (les fichiers de l'app) est remplacé quand on met à jour.
+- Les **données** (tes contacts, offres, liens, etc.) vivent dans une base **MySQL persistante**,
+  qui n'est **pas** touchée par une mise à jour du code.
+
+Trois garde-fous intégrés à l'application :
+
+1. **Migrations additives** — les mises à jour de structure *ajoutent* des colonnes/tables,
+   elles ne suppriment pas de données. On lance toujours `php artisan migrate --force`,
+   **jamais** `migrate:fresh` ni `db:wipe` (qui, eux, videraient tout).
+2. **Jeu de démo désactivé en prod** — on met `SEED_DEMO=false` pour ne pas injecter les
+   contacts d'exemple sur tes vraies données. (Et même activé, le seeder utilise `firstOrCreate` :
+   il ne réécrit pas l'existant.)
+3. **Sauvegarde avant chaque grosse mise à jour** — voir le point 6 ci-dessous.
+
+> ⚠️ Différence avec Railway (test gratuit) : là-bas la base est en **SQLite dans le conteneur**
+> et peut se réinitialiser à chaque redéploiement. Sur Hostinger avec **MySQL**, ce n'est pas le cas.
+
+---
+
+### Deux options selon ton offre Hostinger
+
+- **Hébergement mutualisé** (PHP/MySQL classique, l'offre la plus courante) → suis la
+  check-list ci-dessous (déploiement **sans Docker**).
+- **VPS Hostinger** → on peut installer Docker et lancer le même `Dockerfile` qu'en test,
+  avec une base MySQL. Dis-le-moi et je te guide pour cette variante.
+
+---
+
+### Check-list — hébergement mutualisé (à faire ensemble)
+
+**1. Prérequis côté Hostinger**
+- [ ] Offre avec **PHP 8.4** (sélectionnable dans hPanel → *Avancé → Version PHP*).
+- [ ] Pour la **lecture des e-mails Gmail** (assistant) : activer l'**extension PHP `imap`**
+      dans hPanel (*PHP → Extensions*). C'est ce qui débloque la vraie lecture IMAP, impossible
+      sur Railway.
+- [ ] Une **base de données MySQL** créée dans hPanel (*Bases de données → MySQL*) : note bien
+      le **nom de la base**, l'**utilisateur**, le **mot de passe** et l'**hôte** (souvent `localhost`).
+
+**2. Envoyer le code**
+- [ ] Déposer le code dans le dossier du site (via le *Gestionnaire de fichiers* hPanel, ou Git
+      si l'offre le propose).
+- [ ] Faire pointer le domaine sur le sous-dossier **`public/`** (racine web = `public/`).
+
+**3. Configurer le `.env`** (fichier de réglages, **jamais** versionné)
+- [ ] `APP_ENV=production`
+- [ ] `APP_DEBUG=false`
+- [ ] `APP_KEY=` une **clé fixe** (demande-moi « génère-moi une APP_KEY »). Ne pas la changer
+      ensuite, sinon les sessions et données chiffrées deviennent illisibles.
+- [ ] `APP_URL=https://ton-domaine.be`
+- [ ] `DB_CONNECTION=mysql`
+- [ ] `DB_HOST=`, `DB_PORT=3306`, `DB_DATABASE=`, `DB_USERNAME=`, `DB_PASSWORD=` (ceux du point 1)
+- [ ] `SEED_DEMO=false` **(important en prod)**
+- [ ] `SESSION_DRIVER=database`
+
+**4. Installer et préparer l'application** (via le terminal SSH Hostinger, ou on le fait ensemble)
+- [ ] `composer install --no-dev --optimize-autoloader`
+- [ ] `npm install && npm run build` (compile le CSS/JS — à refaire à chaque mise à jour du design)
+- [ ] `php artisan migrate --force` (crée les tables **sans toucher aux données existantes**)
+- [ ] `php artisan config:cache && php artisan route:cache && php artisan view:cache`
+- [ ] `php artisan storage:link`
+
+**5. Réglages à faire une fois en ligne (dans l'app, écran Réglages)**
+- [ ] Renseigner l'**adresse Gmail** et le **mot de passe d'application** (pour la synchro e-mails).
+- [ ] Vérifier les **offres et liens par catégorie** (prospection) et le **pitch**.
+
+**6. 🛟 Avant chaque future mise à jour (routine de sécurité)**
+- [ ] **Sauvegarder la base** : hPanel → *Bases de données → phpMyAdmin → Exporter* (ou la
+      sauvegarde automatique Hostinger). Garde le fichier `.sql`.
+- [ ] (Au besoin) **Exporter tes contacts newsletter** en CSV depuis l'app.
+- [ ] Mettre à jour le code, puis relancer uniquement :
+      `composer install --no-dev -o`, `npm run build`, `php artisan migrate --force`,
+      puis les trois `*:cache`.
+- [ ] **Ne jamais** lancer `php artisan migrate:fresh`, `migrate:refresh` ni `db:wipe` en prod.
+
+---
+
+### Variante VPS (Docker)
+
+Sur un **VPS Hostinger**, on installe Docker et on lance le **même `Dockerfile`** qu'en test
+(il enchaîne install, build des assets, `migrate --force` et caches tout seul). On fournit les
+mêmes variables qu'au point 3 (`DB_CONNECTION=mysql` + identifiants, `APP_KEY` fixe,
+`SEED_DEMO=false`, `APP_ENV=production`). Dis-moi si c'est ton cas et je détaille.
 
 <!-- Redéploiement manuel : 2026-10-19T09:49Z -->
