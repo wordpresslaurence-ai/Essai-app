@@ -71,7 +71,7 @@ it('crée une tâche « créer le prospect » pour un expéditeur inconnu', func
     expect($r->tachesCreees)->toBe(1);
     $tache = Activite::where('type', Activite::TYPE_TACHE)->first();
     expect($tache->contact_id)->toBeNull();
-    expect($tache->notes)->toContain('inconnu@example.com');
+    expect($tache->titre)->toContain('inconnu@example.com');
 });
 
 it('ne crée pas deux fois la tâche pour la même adresse inconnue', function () {

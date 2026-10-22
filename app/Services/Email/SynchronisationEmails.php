@@ -119,13 +119,15 @@ class SynchronisationEmails
         $boite->update(['derniere_synchro_at' => Carbon::now()]);
     }
 
-    /** Crée la tâche si aucune tâche ouverte ne mentionne déjà cette adresse. */
+    /** Crée la tâche si aucune tâche ouverte ne vise déjà cette adresse. */
     private function creerTacheProspect(string $adresse, ?string $objet): bool
     {
+        $titre = 'Créer le prospect : '.$adresse;
+
         $existe = Activite::query()
             ->where('type', Activite::TYPE_TACHE)
             ->whereNull('terminee_at')
-            ->where('notes', 'like', '%'.$adresse.'%')
+            ->where('titre', $titre)
             ->exists();
 
         if ($existe) {
@@ -133,9 +135,9 @@ class SynchronisationEmails
         }
 
         Activite::create([
-            'titre' => 'Créer le prospect',
+            'titre' => $titre,
             'type' => Activite::TYPE_TACHE,
-            'notes' => 'Créer le prospect : '.$adresse.($objet ? ' — '.Str::limit($objet, 120) : ''),
+            'notes' => $objet ? 'Objet du mail : '.Str::limit($objet, 120) : null,
         ]);
 
         return true;
