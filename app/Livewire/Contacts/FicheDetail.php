@@ -239,6 +239,100 @@ class FicheDetail extends Component
         session()->flash('message', 'Tâche créée : proposer un rendez-vous.');
     }
 
+    /**
+     * Échéance proposée pour la relance, déduite du délai conseillé par
+     * l'analyse (« sous 24 h », « demain »…). Null s'il n'y a pas de verdict.
+     */
+    public function echeanceRelanceProposee(): ?\Illuminate\Support\Carbon
+    {
+        $a = $this->derniere();
+
+        return ($a && filled($a->verdict)) ? $this->dateDepuisDelai($a->delai_conseille) : null;
+    }
+
+    /**
+     * Crée une tâche « Relancer … » à partir de l'analyse : le verdict sert de
+     * description et le délai conseillé d'échéance. Dédupliquée par titre.
+     */
+    public function creerTacheRelance(): void
+    {
+        $a = $this->derniere();
+
+        if (! $a || blank($a->verdict)) {
+            session()->flash('erreur', 'Aucune analyse à transformer en tâche.');
+
+            return;
+        }
+
+        $titre = 'Relancer '.$this->contact->nomComplet();
+
+        $existe = Activite::where('contact_id', $this->contact->id)
+            ->whereNull('terminee_at')
+            ->where('titre', $titre)
+            ->exists();
+
+        if ($existe) {
+            session()->flash('message', 'Une tâche de relance existe déjà pour ce contact.');
+
+            return;
+        }
+
+        $notes = (string) $a->verdict;
+        if (filled($a->delai_conseille)) {
+            $notes .= "\n\nDélai conseillé : ".$a->delai_conseille;
+        }
+
+        Activite::create([
+            'titre' => $titre,
+            'type' => Activite::TYPE_TACHE,
+            'contact_id' => $this->contact->id,
+            'echeance' => $this->dateDepuisDelai($a->delai_conseille)->toDateString(),
+            'notes' => $notes,
+        ]);
+
+        session()->flash('message', 'Tâche de relance créée.');
+    }
+
+    /**
+     * Traduit un délai conseillé en français en date d'échéance. Un délai présent
+     * mais non reconnu, ou absent, donne « aujourd'hui » (une relance s'agit vite).
+     */
+    private function dateDepuisDelai(?string $delai): \Illuminate\Support\Carbon
+    {
+        $base = now()->startOfDay();
+        $t = \Illuminate\Support\Str::ascii(\Illuminate\Support\Str::lower((string) $delai));
+
+        if ($t === '' || str_contains($t, 'aujourd') || str_contains($t, 'ce jour')
+            || str_contains($t, 'immediat') || str_contains($t, 'urgent')) {
+            return $base;
+        }
+
+        if (str_contains($t, 'demain')) {
+            return $base->addDay();
+        }
+
+        // « sous 24 h » : <= 24 h = aujourd'hui, sinon arrondi en jours.
+        if (preg_match('/(\d+)\s*(h|heure)/', $t, $m) === 1) {
+            $h = (int) $m[1];
+
+            return $h <= 24 ? $base : $base->addDays((int) ceil($h / 24));
+        }
+
+        if (preg_match('/(\d+)\s*semaine/', $t, $m) === 1) {
+            return $base->addWeeks(max(1, (int) $m[1]));
+        }
+
+        if (str_contains($t, 'semaine')) {
+            return $base->addWeek();
+        }
+
+        if (preg_match('/(\d+)\s*(jour|j\b)/', $t, $m) === 1) {
+            return $base->addDays(max(1, (int) $m[1]));
+        }
+
+        return $base;
+    }
+
     /** Supprime un e-mail de la fiche (uniquement parmi ceux de ce contact). */
     public function supprimerEmail(int $emailId): void
     {

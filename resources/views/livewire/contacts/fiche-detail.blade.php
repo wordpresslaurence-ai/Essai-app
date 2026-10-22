@@ -184,7 +184,15 @@
                     <div class="lb-inset mt-3" style="padding:16px" x-data="{ copie: false }">
                         <div class="lb-kv"><div class="k">Résumé</div><div class="v">{{ $derniereAnalyse->resume }}</div></div>
                         @if ($derniereAnalyse->verdict)
-                            <div class="lb-kv" style="margin-top:8px"><div class="k">À relancer ?</div><div class="v">{{ $derniereAnalyse->verdict }}@if ($derniereAnalyse->delai_conseille) <span class="lb-muted">· {{ $derniereAnalyse->delai_conseille }}</span>@endif</div></div>
+                            <div class="lb-kv" style="margin-top:8px"><div class="k">À relancer ?</div><div class="v">
+                                {{ $derniereAnalyse->verdict }}@if ($derniereAnalyse->delai_conseille) <span class="lb-muted">· {{ $derniereAnalyse->delai_conseille }}</span>@endif
+                                @php $echeanceRelance = $this->echeanceRelanceProposee(); @endphp
+                                <div style="margin-top:8px">
+                                    <button type="button" wire:click="creerTacheRelance" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">
+                                        + Créer la tâche de relance@if ($echeanceRelance) <span class="lb-muted">· pour le {{ $echeanceRelance->translatedFormat('d/m/Y') }}</span>@endif
+                                    </button>
+                                </div>
+                            </div></div>
                         @endif
 
                         @if ($derniereAnalyse->libelleIntention())
