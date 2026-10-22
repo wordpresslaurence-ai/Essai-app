@@ -193,20 +193,6 @@
                             </div></div>
                         @endif
 
-                        @if ($derniereAnalyse->temperature_conseillee)
-                            @php $tc = $derniereAnalyse->temperature_conseillee; $tcLabel = \App\Models\Contact::TEMPERATURES[$tc][0] ?? $tc; @endphp
-                            <div class="lb-kv" style="margin-top:8px"><div class="k">Température conseillée</div>
-                                <div class="v" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                                    <span>{{ $tcLabel }}</span>
-                                    @if ($contact->temperature !== $tc)
-                                        <button type="button" wire:click="appliquerTemperature" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">Appliquer</button>
-                                    @else
-                                        <span class="lb-muted" style="font-size:12px">✓ déjà appliquée</span>
-                                    @endif
-                                </div>
-                            </div>
-                        @endif
-
                         @if ($derniereAnalyse->etape_conseillee)
                             @php $ec = $derniereAnalyse->etape_conseillee; $ecLabel = \App\Models\Opportunite::libellesEtapes()[$ec] ?? $ec; @endphp
                             <div class="lb-kv" style="margin-top:8px"><div class="k">Étape conseillée</div>
@@ -216,6 +202,20 @@
                                         <button type="button" wire:click="avancerPipeline" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">Faire avancer</button>
                                     @else
                                         <button type="button" wire:click="creerOpportunite" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">Créer l'opportunité</button>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+
+                        @if ($derniereAnalyse->temperature_conseillee)
+                            @php $tc = $derniereAnalyse->temperature_conseillee; $tcLabel = \App\Models\Contact::TEMPERATURES[$tc][0] ?? $tc; @endphp
+                            <div class="lb-kv" style="margin-top:8px"><div class="k">Température conseillée</div>
+                                <div class="v" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                                    <span>{{ $tcLabel }}</span>
+                                    @if ($contact->temperature !== $tc)
+                                        <button type="button" wire:click="appliquerTemperature" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">Appliquer</button>
+                                    @else
+                                        <span class="lb-muted" style="font-size:12px">✓ déjà appliquée</span>
                                     @endif
                                 </div>
                             </div>
@@ -256,7 +256,7 @@
                                         <span x-show="copie" x-cloak>Copié ✓</span>
                                     </button>
                                 </div>
-                                <textarea x-ref="brouillon" readonly rows="6" class="lb-field" style="margin-top:6px">{{ $derniereAnalyse->brouillon }}</textarea>
+                                <textarea x-ref="brouillon" readonly rows="16" class="lb-field" style="margin-top:6px;min-height:240px;max-height:60vh;overflow-y:auto;resize:vertical;line-height:1.5">{{ $derniereAnalyse->brouillon }}</textarea>
                             </div>
                         @endif
 

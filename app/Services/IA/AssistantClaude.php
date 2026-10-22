@@ -37,7 +37,9 @@ class AssistantClaude implements AssistantIA
             - "brouillon" : un message en français, chaleureux et professionnel, prêt à envoyer.
               Si le contact demande des infos (dates, tarifs, programme…), reprends-les depuis
               l'« Offre de référence » et insère ses liens utiles. Si une info manque dans l'offre,
-              écris « [à compléter] » (n'invente jamais un prix ou une date).
+              écris « [à compléter] » (n'invente jamais un prix ou une date). Reste CONCIS : ne
+              reprends que ce qui répond à la demande (pas tout le détail de l'offre) et termine
+              toujours tes phrases (ne t'arrête jamais au milieu d'une phrase).
             - "intention" : l'intention principale du dernier message du contact, UNE valeur parmi
               "nouveau_prospect", "question", "demande_devis", "prise_rdv", "reclamation",
               "remerciement", "paiement", "relance", "autre".
@@ -58,11 +60,21 @@ class AssistantClaude implements AssistantIA
             .$this->contexteOffre($contact)
             .$this->transcription($contact);
 
-        $texte = $this->envoyer($p, $systeme, $utilisateur, 1800);
+        // Marge confortable : l'offre de référence peut rendre le brouillon long ;
+        // sans ça, la réponse JSON est coupée et le texte brut (avec \n) s'affiche.
+        $texte = $this->envoyer($p, $systeme, $utilisateur, 3000);
         $json = $this->decoderJson($texte);
 
+        // Repli propre : si le JSON n'a pas pu être lu (réponse coupée), on n'affiche
+        // pas le texte brut (plein de \n et d'accolades) dans le résumé.
+        $resume = isset($json['resume'])
+            ? (string) $json['resume']
+            : (str_starts_with(ltrim($texte), '{')
+                ? "L'analyse n'a pas pu être lue (réponse trop longue). Clique à nouveau sur « Analyser »."
+                : $texte);
+
         return new ResultatAnalyse(
-            resume: (string) ($json['resume'] ?? $texte),
+            resume: $resume,
             verdict: (string) ($json['verdict'] ?? ''),
             delaiConseille: isset($json['delai']) ? (string) $json['delai'] : null,
             brouillon: (string) ($json['brouillon'] ?? ''),
