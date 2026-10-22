@@ -75,14 +75,14 @@ class ClientImap implements LecteurEmails
             return null;
         }
 
-        $corps = (string) @imap_fetchbody($flux, $uid, '1', FT_UID | FT_PEEK);
+        $corps = $this->extraireCorps($flux, $uid);
 
         return new MessageEmail(
             messageId: $messageId,
             expediteur: $de,
             destinataires: $this->toutesAdresses($entete->to ?? []),
             objet: isset($entete->subject) ? $this->decoder($entete->subject) : null,
-            texte: $corps !== '' ? $corps : null,
+            texte: $corps,
             date: isset($entete->date) ? Carbon::parse($entete->date) : Carbon::now(),
             filId: isset($entete->references) ? trim((string) $entete->references) : $messageId,
         );
@@ -116,11 +116,141 @@ class ClientImap implements LecteurEmails
         return $out;
     }
 
+    /**
+     * Décode un en-tête MIME (objet) en texte UTF-8. Chaque morceau est converti
+     * depuis sa charset déclarée (ISO-8859-1, Windows-1252…) : sans cela, un « é »
+     * arrive en octet brut et MySQL (utf8mb4) refuse l'insertion.
+     */
     private function decoder(string $valeur): string
     {
-        $parts = imap_mime_header_decode($valeur);
+        $texte = '';
 
-        return implode('', array_map(fn ($p) => $p->text, $parts));
+        foreach (imap_mime_header_decode($valeur) as $p) {
+            $texte .= $this->versUtf8($p->text, $p->charset ?? 'default');
+        }
+
+        return $this->versUtf8($texte); // filet de sécurité
+    }
+
+    /**
+     * Extrait le corps texte d'un message en UTF-8 propre : on repère la partie
+     * text/plain, on défait l'encodage de transfert (base64 / quoted-printable)
+     * puis on convertit depuis la charset du message. Tout est gardé défensif :
+     * en cas de doute on renvoie la première section, jamais d'exception.
+     */
+    private function extraireCorps(\IMAP\Connection|false $flux, int $uid): ?string
+    {
+        $structure = @imap_fetchstructure($flux, $uid, FT_UID);
+
+        if ($structure === false) {
+            $brut = (string) @imap_fetchbody($flux, $uid, '1', FT_UID | FT_PEEK);
+            $corps = trim($this->versUtf8($brut));
+
+            return $corps !== '' ? $corps : null;
+        }
+
+        [$section, $encoding, $charset] = $this->sectionTexte($structure);
+
+        $brut = (string) @imap_fetchbody($flux, $uid, $section, FT_UID | FT_PEEK);
+
+        $decode = match ($encoding) {
+            3 => (string) base64_decode($brut, false),   // BASE64
+            4 => quoted_printable_decode($brut),          // QUOTED-PRINTABLE
+            default => $brut,
+        };
+
+        $corps = trim($this->versUtf8($decode, $charset));
+
+        return $corps !== '' ? $corps : null;
+    }
+
+    /**
+     * Localise la section text/plain (sinon la 1ʳᵉ) et renvoie
+     * [numéro de section, encodage de transfert, charset].
+     *
+     * @return array{0: string, 1: int, 2: string}
+     */
+    private function sectionTexte(object $structure): array
+    {
+        // Message simple (non multipart) : une seule section « 1 ».
+        if (empty($structure->parts)) {
+            return ['1', (int) ($structure->encoding ?? 0), $this->charsetDe($structure)];
+        }
+
+        $repli = null;
+
+        foreach ($structure->parts as $i => $part) {
+            $num = (string) ($i + 1);
+
+            // Partie imbriquée (multipart/alternative) : on descend d'un niveau.
+            if (! empty($part->parts)) {
+                foreach ($part->parts as $j => $sous) {
+                    if ($this->estTextePlain($sous)) {
+                        return [$num.'.'.($j + 1), (int) ($sous->encoding ?? 0), $this->charsetDe($sous)];
+                    }
+                }
+
+                continue;
+            }
+
+            if ($this->estTextePlain($part)) {
+                return [$num, (int) ($part->encoding ?? 0), $this->charsetDe($part)];
+            }
+
+            $repli ??= [$num, (int) ($part->encoding ?? 0), $this->charsetDe($part)];
+        }
+
+        return $repli ?? ['1', (int) ($structure->encoding ?? 0), $this->charsetDe($structure)];
+    }
+
+    /** Vrai si la partie est du text/plain (type 0 = text, sous-type PLAIN). */
+    private function estTextePlain(object $part): bool
+    {
+        return (int) ($part->type ?? 0) === 0
+            && strtoupper((string) ($part->subtype ?? '')) === 'PLAIN';
+    }
+
+    /** Charset déclarée d'une partie MIME (défaut : UTF-8). */
+    private function charsetDe(object $part): string
+    {
+        foreach (($part->parameters ?? []) as $p) {
+            if (strtoupper((string) ($p->attribute ?? '')) === 'CHARSET') {
+                return (string) $p->value;
+            }
+        }
+
+        return 'UTF-8';
+    }
+
+    /**
+     * Convertit une chaîne en UTF-8 valide. Si la charset est connue on l'utilise ;
+     * sinon, pour des octets non-UTF-8 (souvent latin-1 / Windows-1252), on replie
+     * sur Windows-1252 — surensemble de l'ISO-8859-1 couvrant les mails courants.
+     */
+    private function versUtf8(string $valeur, string $charset = 'default'): string
+    {
+        if ($valeur === '') {
+            return '';
+        }
+
+        $charset = strtoupper($charset);
+
+        if ($charset !== 'DEFAULT' && $charset !== 'UTF-8' && $charset !== 'US-ASCII' && function_exists('mb_convert_encoding')) {
+            $converti = @mb_convert_encoding($valeur, 'UTF-8', $charset);
+            if (is_string($converti) && $converti !== '') {
+                return $converti;
+            }
+        }
+
+        if (function_exists('mb_check_encoding') && mb_check_encoding($valeur, 'UTF-8')) {
+            return $valeur;
+        }
+
+        $converti = function_exists('mb_convert_encoding')
+            ? @mb_convert_encoding($valeur, 'UTF-8', 'Windows-1252')
+            : null;
+
+        return is_string($converti) && $converti !== '' ? $converti : $valeur;
     }
 
     private function verifierExtension(): void
