@@ -137,10 +137,32 @@ class BoiteEmail extends Model
         return '{'.$this->hoteImap().':'.$this->portImap().'/imap/ssl/novalidate-cert}'.$dossier;
     }
 
-    /** Dossiers lus : réception + envoyés. @return list<string> */
+    /**
+     * Dossiers lus : réception + « Envoyés ».
+     *
+     * Le nom du dossier « Envoyés » dépend de la langue du compte (Gmail en
+     * français = « [Gmail]/Messages envoyés », en anglais = « [Gmail]/Sent Mail »).
+     * Sans ce dossier, les réponses écrites depuis le webmail ne sont jamais
+     * importées et l'appli croit à tort qu'une réponse est encore due. On tente
+     * donc plusieurs noms connus ; ClientImap ignore silencieusement ceux qui
+     * n'existent pas sur le serveur. Un dossier saisi à la main (mode « Autre »)
+     * a toujours la priorité.
+     *
+     * @return list<string>
+     */
     public function dossiers(): array
     {
-        return ['INBOX', $this->dossierEnvoyes()];
+        if (filled($this->dossier_envoyes)) {
+            return ['INBOX', $this->dossier_envoyes];
+        }
+
+        $candidats = match ($this->fournisseur) {
+            self::FOURNISSEUR_GMAIL => ['[Gmail]/Sent Mail', '[Gmail]/Messages envoyés'],
+            self::FOURNISSEUR_HOSTINGER => ['INBOX.Sent', 'Sent'],
+            default => ['INBOX.Sent', 'Sent', 'Sent Items'],
+        };
+
+        return array_merge(['INBOX'], $candidats);
     }
 
     /** Nom d'affichage : le libellé, sinon l'adresse. */

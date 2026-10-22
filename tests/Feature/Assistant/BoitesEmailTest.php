@@ -25,6 +25,26 @@ it('applique les presets IMAP selon le fournisseur', function () {
     expect($hostinger->chaineImap('INBOX'))->toBe('{imap.hostinger.com:993/imap/ssl/novalidate-cert}INBOX');
 });
 
+it('lit le dossier « Envoyés » de Gmail en anglais et en français', function () {
+    $gmail = BoiteEmail::factory()->create(['fournisseur' => 'gmail']);
+
+    // On veut détecter les réponses, que le compte Gmail soit en anglais
+    // (« [Gmail]/Sent Mail ») ou en français (« [Gmail]/Messages envoyés »).
+    expect($gmail->dossiers())->toContain('INBOX')
+        ->toContain('[Gmail]/Sent Mail')
+        ->toContain('[Gmail]/Messages envoyés');
+});
+
+it('privilégie le dossier « Envoyés » saisi à la main', function () {
+    $boite = BoiteEmail::factory()->create([
+        'fournisseur' => 'autre',
+        'imap_host' => 'imap.exemple.com',
+        'dossier_envoyes' => 'Dossier-Perso',
+    ]);
+
+    expect($boite->dossiers())->toBe(['INBOX', 'Dossier-Perso']);
+});
+
 it('utilise le serveur saisi en mode « autre »', function () {
     $boite = BoiteEmail::factory()->create([
         'fournisseur' => 'autre',
