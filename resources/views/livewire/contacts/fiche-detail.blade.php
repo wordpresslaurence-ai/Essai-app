@@ -189,7 +189,8 @@
                                 @php $echeanceRelance = $this->echeanceRelanceProposee(); @endphp
                                 <div style="margin-top:8px">
                                     <button type="button" wire:click="creerTacheRelance" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">
-                                        + Créer la tâche de relance@if ($echeanceRelance) <span class="lb-muted">· pour le {{ $echeanceRelance->translatedFormat('d/m/Y') }}</span>@endif
+                                        + Créer la tâche de relance
+                                        @if ($echeanceRelance)<span class="lb-muted">· pour le {{ $echeanceRelance->translatedFormat('d/m/Y') }}</span>@endif
                                     </button>
                                 </div>
                             </div></div>
