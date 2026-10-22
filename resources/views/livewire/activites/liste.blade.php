@@ -42,7 +42,8 @@
     <div class="flex flex-wrap items-center gap-2 mt-5">
         @foreach (['a_faire' => 'À faire', 'terminees' => 'Terminées', 'toutes' => 'Toutes'] as $cle => $lib)
             <button type="button" wire:click="$set('filtre', '{{ $cle }}')"
-                    class="lb-pill" style="cursor:pointer;border:0;{{ $filtre === $cle ? 'color:var(--accent)' : '' }}">
+                    aria-pressed="{{ $filtre === $cle ? 'true' : 'false' }}"
+                    class="lb-pill" style="cursor:pointer;border:0;{{ $filtre === $cle ? 'background:var(--accent);color:var(--btn-text,#fff);font-weight:700' : '' }}">
                 {{ $lib }}
             </button>
         @endforeach
