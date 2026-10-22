@@ -133,7 +133,12 @@
                 <div class="flex items-center justify-between">
                     <h3 class="lb-h3" style="font-size:19px">E-mails</h3>
                     @if ($contact->emails->isNotEmpty())
-                        <span class="lb-muted" style="font-size:12px">{{ $contact->emails->count() }} message(s)</span>
+                        <div class="flex items-center gap-3">
+                            <span class="lb-muted" style="font-size:12px">{{ $contact->emails->count() }} message(s)</span>
+                            <button type="button" wire:click="viderEmails"
+                                    wire:confirm="Vider tout l'historique e-mails de ce contact ? (Un e-mail encore présent dans ta boîte pourra revenir à la prochaine synchro.)"
+                                    class="lb-btn lb-btn-ghost" style="padding:5px 11px;font-size:12px">Vider l'historique</button>
+                        </div>
                     @endif
                 </div>
                 <div class="lb-people mt-3">
@@ -149,6 +154,9 @@
                                 <div class="mt lb-truncate">{{ $mail->extrait }}</div>
                             </div>
                             <span class="lb-muted" style="margin-left:auto;font-size:12px;white-space:nowrap">{{ $mail->date_email?->translatedFormat('d/m/Y') }}</span>
+                            <button type="button" wire:click="supprimerEmail({{ $mail->id }})"
+                                    wire:confirm="Supprimer cet e-mail de la fiche ?"
+                                    class="lb-iconbtn" style="width:30px;height:30px;color:var(--terra);flex:none;margin-left:8px" title="Supprimer" aria-label="Supprimer cet e-mail">×</button>
                         </div>
                     @empty
                         <div class="lb-placeholder">Aucun e-mail synchronisé.</div>

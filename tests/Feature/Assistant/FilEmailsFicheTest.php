@@ -48,3 +48,40 @@ it('affiche un message quand le contact n’a aucun e-mail', function () {
     Livewire::test(FicheDetail::class, ['contact' => $contact])
         ->assertSee('Aucun e-mail synchronisé');
 });
+
+it('supprime un e-mail de la fiche', function () {
+    $contact = Contact::factory()->create();
+    emailPour($contact, Email::DIRECTION_ENTRANT, 'À garder', '2026-05-01');
+    emailPour($contact, Email::DIRECTION_ENTRANT, 'À supprimer', '2026-05-02');
+    $aSupprimer = Email::where('objet', 'À supprimer')->firstOrFail();
+
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->call('supprimerEmail', $aSupprimer->id);
+
+    expect(Email::count())->toBe(1);
+    expect(Email::first()->objet)->toBe('À garder');
+});
+
+it('ne supprime pas les e-mails d’un autre contact', function () {
+    $contact = Contact::factory()->create();
+    $autre = Contact::factory()->create();
+    emailPour($contact, Email::DIRECTION_ENTRANT, 'Mien', '2026-05-01');
+    emailPour($autre, Email::DIRECTION_ENTRANT, 'Pas touche', '2026-05-01');
+    $emailAutre = Email::where('objet', 'Pas touche')->firstOrFail();
+
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->call('supprimerEmail', $emailAutre->id); // id d'un autre contact
+
+    expect(Email::whereKey($emailAutre->id)->exists())->toBeTrue(); // intact
+});
+
+it('vide tout l’historique e-mails du contact', function () {
+    $contact = Contact::factory()->create();
+    emailPour($contact, Email::DIRECTION_ENTRANT, 'Un', '2026-05-01');
+    emailPour($contact, Email::DIRECTION_SORTANT, 'Deux', '2026-05-02');
+
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->call('viderEmails');
+
+    expect(Email::where('contact_id', $contact->id)->count())->toBe(0);
+});

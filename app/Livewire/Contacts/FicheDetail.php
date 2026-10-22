@@ -239,6 +239,22 @@ class FicheDetail extends Component
         session()->flash('message', 'Tâche créée : proposer un rendez-vous.');
     }
 
+    /** Supprime un e-mail de la fiche (uniquement parmi ceux de ce contact). */
+    public function supprimerEmail(int $emailId): void
+    {
+        $this->contact->emails()->whereKey($emailId)->delete();
+        $this->contact->refresh();
+        session()->flash('message', 'E-mail supprimé de la fiche.');
+    }
+
+    /** Vide tout l'historique e-mails de ce contact. */
+    public function viderEmails(): void
+    {
+        $n = $this->contact->emails()->delete();
+        $this->contact->refresh();
+        session()->flash('message', $n.' e-mail(s) supprimé(s) de la fiche.');
+    }
+
     /**
      * Rédige un brouillon de mail de prospection via l'assistant et garde une
      * trace sous forme de tâche « à envoyer » (dédupliquée par contact).
