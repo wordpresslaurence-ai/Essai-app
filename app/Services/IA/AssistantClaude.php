@@ -28,13 +28,16 @@ class AssistantClaude implements AssistantIA
         $systeme = <<<'TXT'
             Tu es l'assistant de suivi commercial de Laurence (coach bien-être « Prana Vidya »
             et créatrice de sites web). Tu analyses un fil d'e-mails avec un contact et tu aides
-            Laurence à savoir quoi faire. N'invente AUCUN fait absent du fil.
+            Laurence à savoir quoi faire. N'invente AUCUN fait : appuie-toi sur le fil d'e-mails
+            ET sur l'« Offre de référence » ci-dessous quand elle est fournie.
             Réponds UNIQUEMENT par un objet JSON avec les clés :
             - "resume" : 3 lignes max, où en est la relation.
             - "verdict" : faut-il relancer et pourquoi (1-2 phrases).
             - "delai" : quand relancer (ex. "sous 2 jours"), ou null.
-            - "brouillon" : un message en français, chaleureux et professionnel, prêt à envoyer
-              (insère un lien de réservation s'il est utile).
+            - "brouillon" : un message en français, chaleureux et professionnel, prêt à envoyer.
+              Si le contact demande des infos (dates, tarifs, programme…), reprends-les depuis
+              l'« Offre de référence » et insère ses liens utiles. Si une info manque dans l'offre,
+              écris « [à compléter] » (n'invente jamais un prix ou une date).
             - "intention" : l'intention principale du dernier message du contact, UNE valeur parmi
               "nouveau_prospect", "question", "demande_devis", "prise_rdv", "reclamation",
               "remerciement", "paiement", "relance", "autre".
@@ -52,6 +55,7 @@ class AssistantClaude implements AssistantIA
             TXT;
 
         $utilisateur = $this->contexteContact($contact, $p)."\n\n"
+            .$this->contexteOffre($contact)
             .$this->transcription($contact);
 
         $texte = $this->envoyer($p, $systeme, $utilisateur, 1800);
@@ -257,6 +261,39 @@ class AssistantClaude implements AssistantIA
             .'journée aura = '.($p->lien_journee_aura ?: '—');
 
         return implode("\n", $lignes);
+    }
+
+    /**
+     * « Offre de référence » : l'offre et les liens de la catégorie du contact,
+     * pour que le brouillon de réponse puisse répondre avec de vraies infos
+     * (dates, tarifs, programme, liens). Chaîne vide si rien n'est renseigné.
+     */
+    private function contexteOffre(Contact $contact): string
+    {
+        $contact->loadMissing('categorie');
+        $cat = $contact->categorie;
+
+        if (! $cat || (blank($cat->offre) && empty($cat->liens))) {
+            return '';
+        }
+
+        $lignes = ['### Offre de référence — catégorie « '.$cat->libelleComplet().' » (utilise ces faits, n\'invente rien)'];
+
+        if (filled($cat->offre)) {
+            $lignes[] = (string) $cat->offre;
+        }
+
+        $liens = collect($cat->liens ?? [])->filter(fn ($l) => filled($l['url'] ?? null));
+        if ($liens->isNotEmpty()) {
+            $lignes[] = 'Liens utiles (à insérer si pertinent) :';
+            foreach ($liens as $lien) {
+                $libelle = trim((string) ($lien['libelle'] ?? ''));
+                $url = trim((string) $lien['url']);
+                $lignes[] = '- '.($libelle !== '' ? $libelle.' : ' : '').$url;
+            }
+        }
+
+        return implode("\n", $lignes)."\n\n";
     }
 
     private function contexteProspection(Contact $contact, Parametre $p, ?string $angle): string

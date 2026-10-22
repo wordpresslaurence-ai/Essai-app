@@ -107,6 +107,25 @@ class FicheDetail extends Component
         session()->flash('message', 'Opportunité déplacée vers « '.Opportunite::libellesEtapes()[$etape].' ».');
     }
 
+    /** Crée une opportunité pour ce contact à l'étape conseillée par l'analyse. */
+    public function creerOpportunite(): void
+    {
+        $etape = $this->derniere()?->etape_conseillee;
+
+        if (! $etape || ! array_key_exists($etape, Opportunite::libellesEtapes())) {
+            $etape = Opportunite::ETAPE_NOUVEAU;
+        }
+
+        $opp = Opportunite::create([
+            'titre' => 'Opportunité — '.$this->contact->nomComplet(),
+            'contact_id' => $this->contact->id,
+            'categorie_id' => $this->contact->categorie_id,
+            'etape' => $etape,
+        ]);
+
+        session()->flash('message', 'Opportunité créée (« '.Opportunite::libellesEtapes()[$opp->etape].' »). Ajuste le titre et le montant dans le Pipeline.');
+    }
+
     /** Crée une tâche de rappel depuis une promesse détectée (sans doublon). */
     public function creerRappel(int $index): void
     {

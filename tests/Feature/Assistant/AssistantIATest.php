@@ -89,6 +89,34 @@ it('le client Claude parse les champs enrichis et normalise les valeurs invalide
     expect($r->rdv['date'])->toBe('2026-08-01');
 });
 
+it('inclut l’offre de la catégorie du contact dans la requête d’analyse', function () {
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test']);
+
+    $pole = App\Models\Pole::create(['nom' => 'Prana']);
+    $cat = App\Models\Categorie::create([
+        'pole_id' => $pole->id, 'nom' => 'Formation profs',
+        'offre' => 'Dates : mars 2027. Tarif : 1500 euros.',
+        'liens' => [['libelle' => 'Programme', 'url' => 'https://exemple.be/formation-prana']],
+    ]);
+    $contact = Contact::factory()->create(['categorie_id' => $cat->id]);
+
+    Http::fake([
+        'api.anthropic.com/*' => Http::response([
+            'content' => [['type' => 'text', 'text' => json_encode(['resume' => 'r', 'verdict' => 'v', 'brouillon' => 'b'])]],
+        ], 200),
+    ]);
+
+    (new AssistantClaude)->analyser($contact);
+
+    Http::assertSent(function ($request) {
+        $data = json_encode($request->data());
+
+        return str_contains($data, 'Offre de r') // « Offre de référence »
+            && str_contains($data, '1500')
+            && str_contains($data, 'formation-prana');
+    });
+});
+
 it('le client Claude signale une clé manquante', function () {
     $contact = Contact::factory()->create();
 

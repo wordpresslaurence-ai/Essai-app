@@ -90,6 +90,19 @@ it('signale l’absence d’opportunité ouverte', function () {
         ->assertSee('Aucune opportunité ouverte');
 });
 
+it('crée une opportunité à l’étape conseillée quand le contact n’en a pas', function () {
+    brancherAnalyse(['etape' => 'qualifie']);
+    $contact = Contact::factory()->create(['nom' => 'Roy', 'prenom' => 'Anne']);
+
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->call('analyser')
+        ->call('creerOpportunite');
+
+    $opp = Opportunite::where('contact_id', $contact->id)->firstOrFail();
+    expect($opp->etape)->toBe(Opportunite::ETAPE_QUALIFIE);
+    expect($opp->titre)->toContain('Anne Roy');
+});
+
 it('crée une tâche de rappel depuis une promesse, avec échéance', function () {
     brancherAnalyse(['promesses' => [['texte' => 'Envoyer le devis', 'echeance' => '2026-07-01']]]);
     $contact = Contact::factory()->create();

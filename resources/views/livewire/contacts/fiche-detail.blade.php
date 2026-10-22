@@ -212,7 +212,11 @@
                             <div class="lb-kv" style="margin-top:8px"><div class="k">Étape conseillée</div>
                                 <div class="v" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
                                     <span>{{ $ecLabel }}</span>
-                                    <button type="button" wire:click="avancerPipeline" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">Faire avancer</button>
+                                    @if ($oppEnCours->isNotEmpty())
+                                        <button type="button" wire:click="avancerPipeline" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">Faire avancer</button>
+                                    @else
+                                        <button type="button" wire:click="creerOpportunite" class="lb-btn lb-btn-ghost" style="padding:4px 10px;font-size:12px">Créer l'opportunité</button>
+                                    @endif
                                 </div>
                             </div>
                         @endif
