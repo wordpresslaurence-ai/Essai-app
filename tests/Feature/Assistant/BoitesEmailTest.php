@@ -35,6 +35,21 @@ it('lit le dossier « Envoyés » de Gmail en anglais et en français', function
         ->toContain('[Gmail]/Messages envoyés');
 });
 
+it('encode en UTF-7 modifié le dossier accentué « Messages envoyés »', function () {
+    $gmail = BoiteEmail::factory()->create(['fournisseur' => 'gmail']);
+
+    // « é » doit devenir « &AOk- » (modified UTF-7, RFC 3501), sinon le serveur
+    // IMAP ne trouve pas le dossier et les réponses ne sont jamais lues.
+    $chaine = $gmail->chaineImap('[Gmail]/Messages envoyés');
+
+    expect($chaine)->toContain('[Gmail]/Messages envoy&AOk-s')
+        ->not->toContain('envoyés');
+
+    // Un nom ASCII reste intact.
+    expect($gmail->chaineImap('[Gmail]/Sent Mail'))
+        ->toBe('{imap.gmail.com:993/imap/ssl/novalidate-cert}[Gmail]/Sent Mail');
+});
+
 it('privilégie le dossier « Envoyés » saisi à la main', function () {
     $boite = BoiteEmail::factory()->create([
         'fournisseur' => 'autre',

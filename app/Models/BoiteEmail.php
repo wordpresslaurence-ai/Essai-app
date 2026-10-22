@@ -134,7 +134,31 @@ class BoiteEmail extends Model
      */
     public function chaineImap(string $dossier): string
     {
-        return '{'.$this->hoteImap().':'.$this->portImap().'/imap/ssl/novalidate-cert}'.$dossier;
+        return '{'.$this->hoteImap().':'.$this->portImap().'/imap/ssl/novalidate-cert}'.self::encoderDossier($dossier);
+    }
+
+    /**
+     * Encode un nom de dossier IMAP en « modified UTF-7 » (RFC 3501) quand il
+     * contient des caractères accentués, ex. le dossier Gmail français
+     * « Messages envoyés ». Sans cet encodage, imap_open ne trouve pas le
+     * dossier et l'ignore : les réponses envoyées ne seraient jamais lues.
+     * Les noms purement ASCII (INBOX, [Gmail]/Sent Mail, INBOX.Sent) sont
+     * renvoyés tels quels.
+     */
+    public static function encoderDossier(string $dossier): string
+    {
+        if (preg_match('/[^\x20-\x7e]/', $dossier) !== 1) {
+            return $dossier; // ASCII pur : rien à encoder
+        }
+
+        if (function_exists('mb_convert_encoding')) {
+            $encode = @mb_convert_encoding($dossier, 'UTF7-IMAP', 'UTF-8');
+            if (is_string($encode) && $encode !== '') {
+                return $encode;
+            }
+        }
+
+        return $dossier; // repli : au pire le dossier est ignoré, sans erreur
     }
 
     /**
