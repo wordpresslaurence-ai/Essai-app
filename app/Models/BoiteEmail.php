@@ -122,10 +122,19 @@ class BoiteEmail extends Model
         return self::presets()[$this->fournisseur]['envoyes'] ?? 'INBOX.Sent';
     }
 
-    /** Chaîne de connexion IMAP pour un dossier donné, ex. {imap.gmail.com:993/imap/ssl}INBOX. */
+    /**
+     * Chaîne de connexion IMAP pour un dossier donné,
+     * ex. {imap.gmail.com:993/imap/ssl/novalidate-cert}INBOX.
+     *
+     * `novalidate-cert` : l'extension IMAP de PHP (c-client) sur hébergement
+     * mutualisé n'envoie pas le SNI lors du handshake TLS ; Gmail répond alors
+     * avec un certificat « invalide » (« No SNI provided ») et la connexion est
+     * refusée. On garde le chiffrement (ssl) mais on n'exige pas la validation
+     * du certificat, seul moyen fiable de lire Gmail/Hostinger via imap_open ici.
+     */
     public function chaineImap(string $dossier): string
     {
-        return '{'.$this->hoteImap().':'.$this->portImap().'/imap/ssl}'.$dossier;
+        return '{'.$this->hoteImap().':'.$this->portImap().'/imap/ssl/novalidate-cert}'.$dossier;
     }
 
     /** Dossiers lus : réception + envoyés. @return list<string> */

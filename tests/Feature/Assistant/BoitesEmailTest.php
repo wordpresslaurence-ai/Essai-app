@@ -22,7 +22,7 @@ it('applique les presets IMAP selon le fournisseur', function () {
     $hostinger = BoiteEmail::factory()->hostinger()->create();
     expect($hostinger->hoteImap())->toBe('imap.hostinger.com');
     expect($hostinger->dossierEnvoyes())->toBe('INBOX.Sent');
-    expect($hostinger->chaineImap('INBOX'))->toBe('{imap.hostinger.com:993/imap/ssl}INBOX');
+    expect($hostinger->chaineImap('INBOX'))->toBe('{imap.hostinger.com:993/imap/ssl/novalidate-cert}INBOX');
 });
 
 it('utilise le serveur saisi en mode « autre »', function () {
