@@ -281,6 +281,9 @@ class FicheDetail extends Component
         if (filled($a->delai_conseille)) {
             $notes .= "\n\nDélai conseillé : ".$a->delai_conseille;
         }
+        if (filled($a->brouillon)) {
+            $notes .= "\n\n--- Brouillon de mail proposé ---\n".$a->brouillon;
+        }
 
         Activite::create([
             'titre' => $titre,

@@ -38,6 +38,8 @@ it('crée une tâche de relance avec le verdict en note et l’échéance du jou
     expect($tache->titre)->toBe('Relancer '.$contact->nomComplet());
     expect($tache->type)->toBe(Activite::TYPE_TACHE);
     expect($tache->notes)->toContain('il demande explicitement le programme');
+    expect($tache->notes)->toContain('Brouillon de mail proposé')
+        ->toContain('voici le programme'); // le brouillon est repris dans la tâche
     expect($tache->echeance?->toDateString())->toBe(now()->toDateString());
 });
 
