@@ -41,3 +41,23 @@ it('laisse intact un texte déjà en UTF-8', function () {
 it('renvoie une chaîne vide pour une entrée vide', function () {
     expect(versUtf8Prive(''))->toBe('');
 });
+
+it('classe une erreur d’identifiants refusés', function () {
+    $msg = ClientImap::interpreterErreur('[AUTHENTICATIONFAILED] Invalid credentials (Failure)');
+
+    expect($msg)->toContain('Identifiants refusés')
+        ->toContain('Gmail vs Hostinger');
+});
+
+it('classe une erreur de serveur injoignable', function () {
+    $msg = ClientImap::interpreterErreur('Can not connect to IMAP server: connection timed out');
+
+    expect($msg)->toContain('Serveur injoignable');
+});
+
+it('renvoie un message générique pour une erreur inconnue', function () {
+    $msg = ClientImap::interpreterErreur('Erreur inattendue xyz');
+
+    expect($msg)->toContain('Connexion refusée')
+        ->toContain('xyz');
+});

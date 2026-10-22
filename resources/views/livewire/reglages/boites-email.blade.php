@@ -70,6 +70,13 @@
                             Le mot de passe de connexion IMAP de cette boîte.
                         @endif
                     </p>
+                    @if ($motDePasseDefini)
+                        <p class="lb-muted" style="font-size:12px;margin-top:4px">
+                            Laisse ce champ <strong>vide</strong> pour conserver le mot de passe actuel.
+                            Si tu l'as changé chez ton fournisseur, <strong>retape-le ici</strong> :
+                            le regarder ne suffit pas, il faut le saisir à nouveau.
+                        </p>
+                    @endif
                 </div>
             </div>
 

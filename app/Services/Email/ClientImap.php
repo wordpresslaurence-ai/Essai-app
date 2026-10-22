@@ -270,10 +270,50 @@ class ClientImap implements LecteurEmails
     private function dernierMessageErreur(): string
     {
         $erreurs = imap_errors() ?: [];
-        $dernier = end($erreurs);
 
-        return $dernier
-            ? 'Connexion refusée : '.$dernier
-            : 'Connexion à la boîte e-mail impossible (vérifie l’adresse et le mot de passe).';
+        return self::interpreterErreur((string) (end($erreurs) ?: ''));
+    }
+
+    /**
+     * Traduit une erreur IMAP brute en message clair : identifiants refusés
+     * (mauvais fournisseur / mot de passe non retapé) vs serveur injoignable
+     * (hôte, port, réseau, certificat). Statique et pure pour être testable
+     * sans l'extension IMAP.
+     */
+    public static function interpreterErreur(string $dernier): string
+    {
+        if ($dernier === '') {
+            return 'Connexion impossible : vérifie le fournisseur, l’adresse et le mot de passe.';
+        }
+
+        $bas = strtolower($dernier);
+
+        // Le mot de passe (ou l'adresse) est refusé par le serveur : souvent un
+        // mot de passe non retapé, ou le mauvais fournisseur (donc le mauvais
+        // serveur) pour cette adresse.
+        if (str_contains($bas, 'authenticationfailed')
+            || str_contains($bas, 'invalid credentials')
+            || str_contains($bas, 'authentication failed')
+            || str_contains($bas, 'login failure')
+            || str_contains($bas, 'authentication')) {
+            return 'Identifiants refusés par le serveur. Vérifie que le fournisseur est le bon '
+                .'(Gmail vs Hostinger), puis retape le mot de passe de la boîte. Détail : '.$dernier;
+        }
+
+        // On n'a pas pu joindre le serveur (hôte/port/réseau/certificat).
+        if (str_contains($bas, 'can not connect')
+            || str_contains($bas, 'cannot connect')
+            || str_contains($bas, 'connection refused')
+            || str_contains($bas, 'timed out')
+            || str_contains($bas, 'host not found')
+            || str_contains($bas, 'no route')
+            || str_contains($bas, 'name or service not known')
+            || str_contains($bas, 'certificate')
+            || str_contains($bas, 'ssl')) {
+            return 'Serveur injoignable : vérifie le fournisseur et, en mode « Autre », '
+                .'le serveur IMAP et le port. Détail : '.$dernier;
+        }
+
+        return 'Connexion refusée : '.$dernier;
     }
 }
