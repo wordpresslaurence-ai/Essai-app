@@ -34,12 +34,14 @@ class AssistantClaude implements AssistantIA
             - "resume" : 3 lignes max, où en est la relation.
             - "verdict" : faut-il relancer et pourquoi (1-2 phrases).
             - "delai" : quand relancer (ex. "sous 2 jours"), ou null.
-            - "brouillon" : un message en français, chaleureux et professionnel, prêt à envoyer.
-              Si le contact demande des infos (dates, tarifs, programme…), reprends-les depuis
-              l'« Offre de référence » et insère ses liens utiles. Si une info manque dans l'offre,
-              écris « [à compléter] » (n'invente jamais un prix ou une date). Reste CONCIS : ne
-              reprends que ce qui répond à la demande (pas tout le détail de l'offre) et termine
-              toujours tes phrases (ne t'arrête jamais au milieu d'une phrase).
+            - "brouillon" : un message en français, chaleureux et professionnel, prêt à envoyer,
+              et COURT : vise 150 mots, 220 au maximum. Réponds précisément à la demande SANS
+              recopier tout le détail de l'offre : si on te demande le programme, donne un aperçu
+              de 3-4 lignes (les grandes étapes, pas le détail des techniques) et renvoie vers le
+              lien « programme » s'il existe. Reprends les faits (dates, tarifs) depuis l'« Offre
+              de référence » ; si une info manque, écris « [à compléter] » (n'invente jamais un
+              prix ou une date). Termine TOUJOURS tes phrases (ne t'arrête jamais au milieu d'une
+              phrase) et garde le message assez court pour tenir en entier.
             - "intention" : l'intention principale du dernier message du contact, UNE valeur parmi
               "nouveau_prospect", "question", "demande_devis", "prise_rdv", "reclamation",
               "remerciement", "paiement", "relance", "autre".
@@ -60,18 +62,16 @@ class AssistantClaude implements AssistantIA
             .$this->contexteOffre($contact)
             .$this->transcription($contact);
 
-        // Marge confortable : l'offre de référence peut rendre le brouillon long ;
-        // sans ça, la réponse JSON est coupée et le texte brut (avec \n) s'affiche.
-        $texte = $this->envoyer($p, $systeme, $utilisateur, 3000);
+        // Grande marge : l'offre de référence peut allonger le brouillon. En cas de
+        // coupure, decoderJson tente de réparer le JSON (voir plus bas).
+        $texte = $this->envoyer($p, $systeme, $utilisateur, 4096);
         $json = $this->decoderJson($texte);
 
-        // Repli propre : si le JSON n'a pas pu être lu (réponse coupée), on n'affiche
-        // pas le texte brut (plein de \n et d'accolades) dans le résumé.
-        $resume = isset($json['resume'])
+        // Repli propre : on n'affiche JAMAIS le texte brut (plein de \n et
+        // d'accolades) ; un message clair invite à relancer si besoin.
+        $resume = filled($json['resume'] ?? null)
             ? (string) $json['resume']
-            : (str_starts_with(ltrim($texte), '{')
-                ? "L'analyse n'a pas pu être lue (réponse trop longue). Clique à nouveau sur « Analyser »."
-                : $texte);
+            : "L'analyse n'a pas pu être lue entièrement (réponse trop longue). Clique à nouveau sur « Analyser ».";
 
         return new ResultatAnalyse(
             resume: $resume,
@@ -160,12 +160,14 @@ class AssistantClaude implements AssistantIA
 
         $utilisateur = $this->contexteProspection($contact, $p, $angle);
 
-        $texte = $this->envoyer($p, $systeme, $utilisateur, 2000);
+        $texte = $this->envoyer($p, $systeme, $utilisateur, 3000);
         $json = $this->decoderJson($texte);
 
         return new ResultatProspection(
             objet: (string) ($json['objet'] ?? 'Découvrir la formation Prana Vidya'),
-            corps: (string) ($json['corps'] ?? $texte),
+            corps: filled($json['corps'] ?? null)
+                ? (string) $json['corps']
+                : 'Le brouillon n’a pas pu être généré entièrement. Clique à nouveau sur « Rédiger ».',
             modele: $this->modele($p),
         );
     }
@@ -246,14 +248,83 @@ class AssistantClaude implements AssistantIA
     /** @return array<mixed> */
     private function decoderJson(string $texte): array
     {
-        // Isole le premier bloc JSON s'il est entouré de texte.
-        if (preg_match('/[\{\[].*[\}\]]/s', $texte, $m)) {
-            $texte = $m[0];
+        $texte = trim($texte);
+
+        // Retire une éventuelle clôture markdown ```json … ```
+        if (str_starts_with($texte, '```')) {
+            $texte = (string) preg_replace('/^```[a-zA-Z]*\s*/', '', $texte);
+            $texte = (string) preg_replace('/\s*```$/', '', $texte);
+            $texte = trim($texte);
         }
 
-        $donnees = json_decode($texte, true);
+        // Isole le bloc JSON s'il est entouré de texte, puis tente de le lire.
+        $candidat = preg_match('/[\{\[].*[\}\]]/s', $texte, $m) === 1 ? $m[0] : $texte;
+        $donnees = json_decode($candidat, true);
+        if (is_array($donnees)) {
+            return $donnees;
+        }
+
+        // Réponse probablement coupée : on referme le JSON pour récupérer au
+        // moins les premiers champs (résumé, verdict, début du brouillon).
+        $donnees = json_decode($this->reparerJsonTronque($texte), true);
 
         return is_array($donnees) ? $donnees : [];
+    }
+
+    /**
+     * Répare un objet JSON coupé en pleine réponse : ferme la chaîne en cours
+     * puis les tableaux/objets restés ouverts. Permet d'afficher un brouillon
+     * (même légèrement tronqué) plutôt qu'un amas de texte brut.
+     */
+    private function reparerJsonTronque(string $texte): string
+    {
+        $debut = strpos($texte, '{');
+        if ($debut === false) {
+            return $texte;
+        }
+
+        $s = substr($texte, $debut);
+        $pile = [];          // fermetures attendues : '}' ou ']'
+        $dansChaine = false;
+        $echap = false;
+
+        for ($i = 0, $n = strlen($s); $i < $n; $i++) {
+            $c = $s[$i];
+
+            if ($dansChaine) {
+                if ($echap) {
+                    $echap = false;
+                } elseif ($c === '\\') {
+                    $echap = true;
+                } elseif ($c === '"') {
+                    $dansChaine = false;
+                }
+
+                continue;
+            }
+
+            match ($c) {
+                '"' => $dansChaine = true,
+                '{' => $pile[] = '}',
+                '[' => $pile[] = ']',
+                '}', ']' => array_pop($pile),
+                default => null,
+            };
+        }
+
+        $repare = rtrim($s);
+
+        if ($dansChaine) {
+            $repare .= '"'; // referme la chaîne coupée
+        } else {
+            $repare = (string) preg_replace('/,\s*$/', '', $repare); // virgule traînante
+        }
+
+        while (($fermeture = array_pop($pile)) !== null) {
+            $repare .= $fermeture;
+        }
+
+        return $repare;
     }
 
     private function contexteContact(Contact $contact, Parametre $p): string

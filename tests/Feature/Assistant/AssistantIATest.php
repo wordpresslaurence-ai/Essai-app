@@ -117,6 +117,37 @@ it('inclut l’offre de la catégorie du contact dans la requête d’analyse', 
     });
 });
 
+it('récupère une analyse lisible même si la réponse JSON est coupée', function () {
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test']);
+
+    // Réponse réaliste : entourée d'une clôture ```json et COUPÉE en plein
+    // brouillon (comme quand le modèle dépasse la limite de tokens). Les sauts
+    // de ligne sont des « \n » littéraux, comme dans du vrai JSON.
+    $tronque = "```json\n".'{ "resume": "Le contact demande le programme.", '
+        .'"verdict": "Oui, répondre vite.", "delai": "sous 24 h", '
+        .'"brouillon": "Bonjour,\n\nVoici le programme en bref :\n- Stage 3 (lieu [à compléter]) : pratique pranique complète sur soi';
+
+    Http::fake([
+        'api.anthropic.com/*' => Http::response([
+            'content' => [['type' => 'text', 'text' => $tronque]],
+        ], 200),
+    ]);
+
+    $r = (new AssistantClaude)->analyser(Contact::factory()->create());
+
+    // Les champs complets sont bien lus…
+    expect($r->resume)->toBe('Le contact demande le programme.');
+    expect($r->verdict)->toContain('répondre vite');
+    expect($r->delaiConseille)->toBe('sous 24 h');
+
+    // …et le brouillon est récupéré avec de VRAIS retours à la ligne,
+    // sans « \n » littéral ni accolades JSON brutes.
+    expect($r->brouillon)->toContain('Bonjour,')
+        ->toContain("\n")               // vrai saut de ligne
+        ->not->toContain('\n')          // pas de « \n » littéral
+        ->not->toContain('"resume"');   // pas de JSON brut déversé
+});
+
 it('le client Claude signale une clé manquante', function () {
     $contact = Contact::factory()->create();
 
