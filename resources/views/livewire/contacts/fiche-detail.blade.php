@@ -326,7 +326,7 @@
             </div>
 
             {{-- Prospection (assistant IA) --}}
-            <div class="lb-card" style="padding:20px" x-data="{ copie: false }">
+            <div class="lb-card" style="padding:20px" x-data="{ copie: false, copieHtml: false }">
                 <h3 class="lb-h3" style="font-size:19px">Prospection</h3>
                 <label for="angleProspection" class="lb-label" style="font-weight:500;color:var(--text-muted);margin-top:10px">Angle (facultatif)</label>
                 <div class="flex flex-wrap items-end gap-3" style="margin-top:4px">
@@ -348,18 +348,25 @@
                         <label class="lb-label" style="font-weight:500;color:var(--text-muted)">Objet</label>
                         <input type="text" wire:model="prospectionObjet" x-ref="objet" class="lb-field" style="margin-top:4px">
 
-                        <div class="lb-label" style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+                        <div class="lb-label" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px">
                             <span>Mail proposé</span>
-                            <button type="button" class="lb-accent" style="font-size:12px;font-weight:600;background:none;border:0;cursor:pointer"
-                                    x-on:click="navigator.clipboard.writeText('Objet : ' + $refs.objet.value + '\n\n' + $refs.corps.value); copie = true; setTimeout(() => copie = false, 2000)">
-                                <span x-show="!copie">Copier</span>
-                                <span x-show="copie" x-cloak>Copié ✓</span>
-                            </button>
+                            <span style="display:inline-flex;gap:14px">
+                                <button type="button" class="lb-accent" style="font-size:12px;font-weight:600;background:none;border:0;cursor:pointer"
+                                        x-on:click="navigator.clipboard.writeText('Objet : ' + $refs.objet.value + '\n\n' + $refs.corps.value); copie = true; setTimeout(() => copie = false, 2000)">
+                                    <span x-show="!copie">Copier</span>
+                                    <span x-show="copie" x-cloak>Copié ✓</span>
+                                </button>
+                                <button type="button" class="lb-accent" style="font-size:12px;font-weight:600;background:none;border:0;cursor:pointer"
+                                        x-on:click="copierAvecLiens('Objet : ' + $refs.objet.value + '\n\n' + $refs.corps.value); copieHtml = true; setTimeout(() => copieHtml = false, 2000)">
+                                    <span x-show="!copieHtml">🔗 Copier avec liens cliquables</span>
+                                    <span x-show="copieHtml" x-cloak>Copié ✓</span>
+                                </button>
+                            </span>
                         </div>
                         <textarea wire:model="prospectionCorps" x-ref="corps" rows="9" class="lb-field" style="margin-top:6px"></textarea>
 
                         <p class="lb-muted" style="font-size:11.5px;margin-top:10px">
-                            Relis, ajuste, puis copie — tu l'envoies depuis ta boîte mail. Une tâche « à envoyer » a été ajoutée à ce contact pour garder la trace.
+                            Relis, ajuste, puis copie — tu l'envoies depuis ta boîte mail. « Liens cliquables » colle le mail mis en forme (libellés cliquables, URL longue masquée). Une tâche « à envoyer » a été ajoutée à ce contact pour garder la trace.
                         </p>
                     </div>
                 @else
