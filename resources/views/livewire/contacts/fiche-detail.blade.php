@@ -212,7 +212,7 @@
                 @endif
 
                 @if ($derniereAnalyse)
-                    <div class="lb-inset mt-3" style="padding:16px" x-data="{ copie: false }">
+                    <div class="lb-inset mt-3" style="padding:16px" x-data="{ copie: false, copieHtml: false }">
                         <div class="lb-kv"><div class="k">Résumé</div><div class="v">{{ $derniereAnalyse->resume }}</div></div>
                         @if ($derniereAnalyse->verdict)
                             <div class="lb-kv" style="margin-top:8px"><div class="k">À relancer ?</div><div class="v">
@@ -296,15 +296,23 @@
 
                         @if ($derniereAnalyse->brouillon)
                             <div style="margin-top:12px">
-                                <div class="lb-label" style="display:flex;align-items:center;justify-content:space-between">
+                                <div class="lb-label" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
                                     <span>Brouillon proposé</span>
-                                    <button type="button" class="lb-accent" style="font-size:12px;font-weight:600;background:none;border:0;cursor:pointer"
-                                            x-on:click="navigator.clipboard.writeText($refs.brouillon.value); copie = true; setTimeout(() => copie = false, 2000)">
-                                        <span x-show="!copie">Copier</span>
-                                        <span x-show="copie" x-cloak>Copié ✓</span>
-                                    </button>
+                                    <span style="display:inline-flex;gap:14px">
+                                        <button type="button" class="lb-accent" style="font-size:12px;font-weight:600;background:none;border:0;cursor:pointer"
+                                                x-on:click="navigator.clipboard.writeText($refs.brouillon.value); copie = true; setTimeout(() => copie = false, 2000)">
+                                            <span x-show="!copie">Copier</span>
+                                            <span x-show="copie" x-cloak>Copié ✓</span>
+                                        </button>
+                                        <button type="button" class="lb-accent" style="font-size:12px;font-weight:600;background:none;border:0;cursor:pointer"
+                                                x-on:click="copierAvecLiens($refs.brouillon.value); copieHtml = true; setTimeout(() => copieHtml = false, 2000)">
+                                            <span x-show="!copieHtml">🔗 Copier avec liens cliquables</span>
+                                            <span x-show="copieHtml" x-cloak>Copié ✓</span>
+                                        </button>
+                                    </span>
                                 </div>
                                 <textarea x-ref="brouillon" readonly rows="16" class="lb-field" style="margin-top:6px;min-height:240px;max-height:60vh;overflow-y:auto;resize:vertical;line-height:1.5">{{ $derniereAnalyse->brouillon }}</textarea>
+                                <p class="lb-muted" style="font-size:11.5px;margin-top:4px">« Liens cliquables » copie le mail mis en forme : colle-le dans ta boîte mail et les libellés deviennent des liens (l'adresse longue est masquée).</p>
                             </div>
                         @endif
 
@@ -516,4 +524,34 @@
             </div>
         </div>
     </div>
+
+    <script>
+        window.copierAvecLiens = window.copierAvecLiens || async function (texte) {
+            const esc = function (s) {
+                return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            };
+            const lignes = texte.split('\n').map(function (ligne) {
+                const m = ligne.match(/(https?:\/\/\S+)/);
+                if (!m) { return esc(ligne); }
+                const url = m[1];
+                const avant = ligne.slice(0, m.index);
+                const apres = ligne.slice(m.index + url.length);
+                const puceMatch = avant.match(/^[\s\-–•*]+/);
+                const puce = puceMatch ? puceMatch[0] : '';
+                const label = avant.replace(/^[\s\-–•*]+/, '').replace(/[\s:–-]+$/, '').trim();
+                const href = url.replace(/"/g, '%22');
+                const lien = '<a href="' + href + '">' + esc(label || url) + '</a>';
+                return esc(puce) + lien + esc(apres);
+            });
+            const html = lignes.join('<br>');
+            try {
+                await navigator.clipboard.write([new ClipboardItem({
+                    'text/html': new Blob([html], { type: 'text/html' }),
+                    'text/plain': new Blob([texte], { type: 'text/plain' })
+                })]);
+            } catch (e) {
+                await navigator.clipboard.writeText(texte);
+            }
+        };
+    </script>
 </div>
