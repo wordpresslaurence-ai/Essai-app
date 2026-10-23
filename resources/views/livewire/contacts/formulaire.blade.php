@@ -175,6 +175,57 @@
                     </select>
                 </div>
             </div>
+            <div class="grid gap-5 sm:grid-cols-2 mt-4">
+                <div>
+                    <label for="origine" class="lb-label" style="font-weight:500;color:var(--text-muted)">Origine du contact</label>
+                    <select id="origine" wire:model="origine" class="lb-field">
+                        <option value="">—</option>
+                        @foreach (\App\Models\Contact::ORIGINES as $cle => $libelle)
+                            <option value="{{ $cle }}">{{ $libelle }}</option>
+                        @endforeach
+                    </select>
+                    @error('origine') <p class="lb-error">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="origine_precision" class="lb-label" style="font-weight:500;color:var(--text-muted)">Précisions sur l'origine</label>
+                    <input id="origine_precision" type="text" wire:model="origine_precision" placeholder="ex. nom de l'annuaire, de l'événement, de la personne qui recommande…" class="lb-field">
+                    @error('origine_precision') <p class="lb-error">{{ $message }}</p> @enderror
+                </div>
+            </div>
+        </fieldset>
+
+        {{-- Profil yoga & prospection --}}
+        <fieldset class="mt-6">
+            <legend class="lb-label" style="margin-bottom:10px">Profil yoga & prospection (facultatif)</legend>
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label for="discipline" class="lb-label" style="font-weight:500;color:var(--text-muted)">Discipline enseignée</label>
+                    <input id="discipline" type="text" wire:model="discipline" placeholder="ex. hatha, yoga nidra…" class="lb-field">
+                    @error('discipline') <p class="lb-error">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="experience_yoga" class="lb-label" style="font-weight:500;color:var(--text-muted)">Expérience du yoga</label>
+                    <select id="experience_yoga" wire:model="experience_yoga" class="lb-field">
+                        <option value="">—</option>
+                        @foreach (\App\Models\Contact::EXPERIENCES_YOGA as $cle => $libelle)
+                            <option value="{{ $cle }}">{{ $libelle }}</option>
+                        @endforeach
+                    </select>
+                    @error('experience_yoga') <p class="lb-error">{{ $message }}</p> @enderror
+                </div>
+            </div>
+            <div class="mt-4">
+                <label for="fait_observe" class="lb-label" style="font-weight:500;color:var(--text-muted)">Fait observé</label>
+                <textarea id="fait_observe" rows="2" wire:model="fait_observe" placeholder="ex. Enseigne le hatha et le yoga nidra ; propose des ateliers." class="lb-field"></textarea>
+                <p class="lb-muted" style="font-size:12px;margin-top:4px">Repris par l'assistant IA pour personnaliser le mail de prospection.</p>
+                @error('fait_observe') <p class="lb-error">{{ $message }}</p> @enderror
+            </div>
+            <div class="mt-4">
+                <label for="angle_contact" class="lb-label" style="font-weight:500;color:var(--text-muted)">Angle de premier contact</label>
+                <textarea id="angle_contact" rows="2" wire:model="angle_contact" placeholder="ex. Explorer le prana en complément de son enseignement du nidra." class="lb-field"></textarea>
+                <p class="lb-muted" style="font-size:12px;margin-top:4px">Sert d'angle par défaut quand l'assistant rédige un mail de prospection.</p>
+                @error('angle_contact') <p class="lb-error">{{ $message }}</p> @enderror
+            </div>
         </fieldset>
 
         {{-- Étiquettes --}}

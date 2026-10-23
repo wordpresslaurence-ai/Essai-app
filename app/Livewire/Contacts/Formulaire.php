@@ -40,7 +40,19 @@ class Formulaire extends Component
 
     public ?string $secteur = null;
 
+    public ?string $discipline = null;
+
+    public ?string $fait_observe = null;
+
+    public ?string $angle_contact = null;
+
+    public ?string $experience_yoga = null;
+
     public ?string $source = null;
+
+    public ?string $origine = null;
+
+    public ?string $origine_precision = null;
 
     public ?string $url_profil = null;
 
@@ -69,8 +81,9 @@ class Formulaire extends Component
             $this->fill($contact->only([
                 'type', 'nom', 'prenom', 'fonction', 'email', 'telephone',
                 'entreprise_id', 'site_web', 'numero_entreprise', 'numero_tva',
-                'secteur', 'source', 'url_profil', 'temperature', 'adresse_rue', 'adresse_code_postal',
-                'adresse_ville', 'adresse_pays', 'notes',
+                'secteur', 'discipline', 'fait_observe', 'angle_contact', 'experience_yoga',
+                'source', 'origine', 'origine_precision', 'url_profil', 'temperature',
+                'adresse_rue', 'adresse_code_postal', 'adresse_ville', 'adresse_pays', 'notes',
             ]));
             $this->categorie_id = $contact->categorie_id ? (string) $contact->categorie_id : null;
             $this->etiquettesSelection = $contact->etiquettes->pluck('id')->all();
@@ -91,7 +104,13 @@ class Formulaire extends Component
             'numero_entreprise' => ['nullable', new NumeroEntrepriseBe],
             'numero_tva' => ['nullable', new NumeroTvaBe],
             'secteur' => ['nullable', 'string', 'max:255'],
+            'discipline' => ['nullable', 'string', 'max:255'],
+            'fait_observe' => ['nullable', 'string', 'max:2000'],
+            'angle_contact' => ['nullable', 'string', 'max:2000'],
+            'experience_yoga' => ['nullable', Rule::in(array_keys(Contact::EXPERIENCES_YOGA))],
             'source' => ['nullable', Rule::in(array_keys(Contact::SOURCES))],
+            'origine' => ['nullable', Rule::in(array_keys(Contact::ORIGINES))],
+            'origine_precision' => ['nullable', 'string', 'max:255'],
             'url_profil' => ['nullable', 'string', 'max:255'],
             'temperature' => ['nullable', Rule::in(array_keys(Contact::TEMPERATURES))],
             'categorie_id' => ['nullable', 'exists:categories,id'],

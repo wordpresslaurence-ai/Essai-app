@@ -361,7 +361,9 @@ class FicheDetail extends Component
         $this->reset('prospectionErreur', 'prospectionObjet', 'prospectionCorps');
 
         try {
-            $r = app(AssistantIA::class)->redigerProspection($this->contact, $this->angleProspection ?: null);
+            // Angle saisi à la volée, sinon l'« angle de premier contact » de la fiche.
+            $angle = $this->angleProspection ?: $this->contact->angle_contact;
+            $r = app(AssistantIA::class)->redigerProspection($this->contact, $angle ?: null);
 
             $this->prospectionObjet = $r->objet;
             $this->prospectionCorps = $r->corps;

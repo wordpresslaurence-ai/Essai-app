@@ -416,6 +416,15 @@ class AssistantClaude implements AssistantIA
         $lignes[] = '';
         $lignes[] = '### Contact à prospecter';
         $lignes[] = 'Nom : '.$contact->nomComplet();
+        if (filled($contact->discipline)) {
+            $lignes[] = 'Discipline enseignée : '.$contact->discipline;
+        }
+        if (filled($contact->libelleExperienceYoga())) {
+            $lignes[] = 'Expérience du yoga : '.$contact->libelleExperienceYoga();
+        }
+        if (filled($contact->fait_observe)) {
+            $lignes[] = 'Fait observé (à exploiter pour personnaliser) : '.$contact->fait_observe;
+        }
         if (filled($contact->notes)) {
             $lignes[] = 'Notes : '.$contact->notes;
         }

@@ -449,6 +449,32 @@
                         </div>
                     @endif
 
+                    @if ($contact->libelleOrigine())
+                        <div>
+                            <div class="k">Origine du contact</div>
+                            <div class="val">{{ $contact->libelleOrigine() }}@if (filled($contact->origine_precision)) <span class="lb-muted">— {{ $contact->origine_precision }}</span>@endif</div>
+                        </div>
+                    @endif
+
+                    @if (filled($contact->discipline))
+                        <div><div class="k">Discipline enseignée</div><div class="val">{{ $contact->discipline }}</div></div>
+                    @endif
+                    @if ($contact->libelleExperienceYoga())
+                        <div><div class="k">Expérience du yoga</div><div class="val">{{ $contact->libelleExperienceYoga() }}</div></div>
+                    @endif
+                    @if (filled($contact->fait_observe))
+                        <div>
+                            <div class="k">Fait observé</div>
+                            <div class="val" style="white-space:pre-line;display:block;margin-top:6px">{{ $contact->fait_observe }}</div>
+                        </div>
+                    @endif
+                    @if (filled($contact->angle_contact))
+                        <div>
+                            <div class="k">Angle de premier contact</div>
+                            <div class="val" style="white-space:pre-line;display:block;margin-top:6px">{{ $contact->angle_contact }}</div>
+                        </div>
+                    @endif
+
                     <div>
                         <div class="k">Adresse</div>
                         <div class="val">

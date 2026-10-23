@@ -41,6 +41,37 @@ class Contact extends Model
         'a_qualifier' => ['À qualifier', 'muted'],
     ];
 
+    /** Expérience du yoga du contact (choix unique). */
+    public const EXPERIENCES_YOGA = [
+        'debutants' => 'Débutants',
+        'reguliers' => 'Pratiquants réguliers',
+        'avances' => 'Pratiquants avancés',
+        'professeurs' => 'Professeurs de yoga',
+        'futurs_professeurs' => 'Futurs professeurs de yoga',
+    ];
+
+    /** Origine du contact (choix unique), liste détaillée. */
+    public const ORIGINES = [
+        'recherche_web' => 'Recherche web',
+        'google_maps' => 'Google Maps',
+        'annuaire' => 'Annuaire professionnel ou fédération',
+        'instagram' => 'Instagram',
+        'facebook' => 'Facebook',
+        'linkedin' => 'LinkedIn',
+        'autre_reseau' => 'Autre réseau social',
+        'site_formulaire' => 'Site internet ou formulaire',
+        'newsletter' => 'Inscription newsletter',
+        'seance_decouverte' => 'Séance découverte',
+        'atelier_stage' => 'Atelier ou stage',
+        'salon_evenement' => 'Salon ou événement',
+        'recommandation' => 'Recommandation',
+        'partenaire' => 'Partenaire',
+        'spontane' => 'Prise de contact spontanée',
+        'relation' => 'Relation personnelle ou professionnelle',
+        'autre' => 'Autre',
+        'inconnue' => 'Origine inconnue',
+    ];
+
     protected $fillable = [
         'type',
         'nom',
@@ -54,7 +85,13 @@ class Contact extends Model
         'numero_entreprise',
         'numero_tva',
         'secteur',
+        'discipline',
+        'fait_observe',
+        'angle_contact',
+        'experience_yoga',
         'source',
+        'origine',
+        'origine_precision',
         'url_profil',
         'temperature',
         'categorie_id',
@@ -256,6 +293,22 @@ class Contact extends Model
         }
 
         return $this->nom;
+    }
+
+    /** Libellé lisible de l'expérience du yoga (ou null). */
+    public function libelleExperienceYoga(): ?string
+    {
+        return filled($this->experience_yoga)
+            ? (self::EXPERIENCES_YOGA[$this->experience_yoga] ?? $this->experience_yoga)
+            : null;
+    }
+
+    /** Libellé lisible de l'origine du contact (ou null). */
+    public function libelleOrigine(): ?string
+    {
+        return filled($this->origine)
+            ? (self::ORIGINES[$this->origine] ?? $this->origine)
+            : null;
     }
 
     /** Initiales pour l'avatar (2 lettres). */
