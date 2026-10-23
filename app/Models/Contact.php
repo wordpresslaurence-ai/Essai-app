@@ -39,6 +39,36 @@ class Contact extends Model
         'futurs_professeurs' => 'Futurs professeurs de yoga',
     ];
 
+    /**
+     * Disciplines enseignées, groupées par catégorie (menu à deux niveaux).
+     * La catégorie elle-même est sélectionnable (niveau 1), suivie de ses
+     * options (niveau 2). Valeurs stockées telles quelles (libellés).
+     *
+     * @var array<string, list<string>>
+     */
+    public const DISCIPLINES = [
+        'Yoga traditionnel et lignées' => [
+            'Hatha yoga', 'Raja yoga', 'Yoga intégral', 'Yoga Satyananda / Bihar',
+            'Yoga Sivananda', 'Yoga Iyengar', 'Viniyoga', 'Kundalini yoga',
+        ],
+        'Approches posturales' => [
+            'Vinyasa yoga', 'Ashtanga vinyasa', 'Yin yoga', 'Yoga restauratif', 'Power yoga',
+        ],
+        'Pratiques du souffle et de l’attention' => [
+            'Pranayama', 'Méditation', 'Yoga nidra', 'Prana nidra', 'Prana Vidya',
+            'Mantras et chant', 'Mudras',
+        ],
+        'Approches adaptées' => [
+            'Yogathérapie', 'Yoga prénatal', 'Yoga postnatal', 'Yoga sur chaise', 'Yoga adapté',
+        ],
+        'Pratiques complémentaires' => [
+            'Breathwork', 'Relaxation', 'Sophrologie', 'Qi gong', 'Pratiques sonores et gong',
+        ],
+        'Autre' => [
+            'Autre — à préciser',
+        ],
+    ];
+
     /** Origine du contact (choix unique), liste détaillée. */
     public const ORIGINES = [
         'recherche_web' => 'Recherche web',
@@ -275,6 +305,25 @@ class Contact extends Model
         }
 
         return $this->nom;
+    }
+
+    /**
+     * Toutes les valeurs de discipline reconnues (catégories + options),
+     * pour savoir si une valeur saisie auparavant est « hors liste ».
+     *
+     * @return list<string>
+     */
+    public static function disciplinesConnues(): array
+    {
+        $valeurs = [];
+        foreach (self::DISCIPLINES as $categorie => $options) {
+            $valeurs[] = $categorie;
+            foreach ($options as $option) {
+                $valeurs[] = $option;
+            }
+        }
+
+        return $valeurs;
     }
 
     /** Libellé lisible de l'expérience du yoga (ou null). */

@@ -193,7 +193,21 @@
             <div class="grid gap-5 sm:grid-cols-2">
                 <div>
                     <label for="discipline" class="lb-label" style="font-weight:500;color:var(--text-muted)">Discipline enseignée</label>
-                    <input id="discipline" type="text" wire:model="discipline" placeholder="ex. hatha, yoga nidra…" class="lb-field">
+                    <select id="discipline" wire:model="discipline" class="lb-field">
+                        <option value="">—</option>
+                        {{-- Valeur saisie auparavant et hors liste : on la conserve. --}}
+                        @if (filled($discipline) && ! in_array($discipline, \App\Models\Contact::disciplinesConnues(), true))
+                            <option value="{{ $discipline }}" selected>{{ $discipline }}</option>
+                        @endif
+                        @foreach (\App\Models\Contact::DISCIPLINES as $categorie => $options)
+                            <optgroup label="{{ $categorie }}">
+                                <option value="{{ $categorie }}">{{ $categorie }} (toute la catégorie)</option>
+                                @foreach ($options as $option)
+                                    <option value="{{ $option }}">{{ $option }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
                     @error('discipline') <p class="lb-error">{{ $message }}</p> @enderror
                 </div>
                 <div>
