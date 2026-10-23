@@ -154,14 +154,7 @@
             <legend class="lb-label" style="margin-bottom:10px">Lead (facultatif)</legend>
             <div class="grid gap-5 sm:grid-cols-2">
                 <div>
-                    <label for="source" class="lb-label" style="font-weight:500;color:var(--text-muted)">Source</label>
-                    <select id="source" wire:model="source" class="lb-field">
-                        <option value="">—</option>
-                        @foreach (\App\Models\Contact::SOURCES as $cle => $info)
-                            <option value="{{ $cle }}">{{ $info[0] }}</option>
-                        @endforeach
-                    </select>
-                    <label for="url_profil" class="lb-label" style="font-weight:500;color:var(--text-muted);margin-top:10px">Compte / lien</label>
+                    <label for="url_profil" class="lb-label" style="font-weight:500;color:var(--text-muted)">Compte / lien</label>
                     <input id="url_profil" type="text" wire:model="url_profil" placeholder="ex. facebook.com/son-compte, le site…" class="lb-field">
                     @error('url_profil') <p class="lb-error">{{ $message }}</p> @enderror
                 </div>

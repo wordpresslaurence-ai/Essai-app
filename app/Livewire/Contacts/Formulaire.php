@@ -48,8 +48,6 @@ class Formulaire extends Component
 
     public ?string $experience_yoga = null;
 
-    public ?string $source = null;
-
     public ?string $origine = null;
 
     public ?string $origine_precision = null;
@@ -82,7 +80,7 @@ class Formulaire extends Component
                 'type', 'nom', 'prenom', 'fonction', 'email', 'telephone',
                 'entreprise_id', 'site_web', 'numero_entreprise', 'numero_tva',
                 'secteur', 'discipline', 'fait_observe', 'angle_contact', 'experience_yoga',
-                'source', 'origine', 'origine_precision', 'url_profil', 'temperature',
+                'origine', 'origine_precision', 'url_profil', 'temperature',
                 'adresse_rue', 'adresse_code_postal', 'adresse_ville', 'adresse_pays', 'notes',
             ]));
             $this->categorie_id = $contact->categorie_id ? (string) $contact->categorie_id : null;
@@ -108,7 +106,6 @@ class Formulaire extends Component
             'fait_observe' => ['nullable', 'string', 'max:2000'],
             'angle_contact' => ['nullable', 'string', 'max:2000'],
             'experience_yoga' => ['nullable', Rule::in(array_keys(Contact::EXPERIENCES_YOGA))],
-            'source' => ['nullable', Rule::in(array_keys(Contact::SOURCES))],
             'origine' => ['nullable', Rule::in(array_keys(Contact::ORIGINES))],
             'origine_precision' => ['nullable', 'string', 'max:255'],
             'url_profil' => ['nullable', 'string', 'max:255'],

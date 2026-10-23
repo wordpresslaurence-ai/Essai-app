@@ -123,7 +123,7 @@ it('enregistre et affiche le lien du compte / profil', function () {
     Livewire::test(Formulaire::class)
         ->set('type', Contact::TYPE_PERSONNE)
         ->set('nom', 'Durand')
-        ->set('source', 'facebook')
+        ->set('origine', 'facebook')
         ->set('url_profil', 'facebook.com/marie.durand')
         ->call('enregistrer')
         ->assertHasNoErrors();

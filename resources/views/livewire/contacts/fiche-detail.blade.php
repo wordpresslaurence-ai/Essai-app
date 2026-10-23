@@ -430,12 +430,6 @@
                         <div><div class="k">N° de TVA</div><div class="val">{{ $contact->numero_tva ?: '—' }}</div></div>
                     @endif
 
-                    @if ($src = $contact->sourceInfo())
-                        <div>
-                            <div class="k">Source</div>
-                            <div class="val"><span class="lb-dot" style="background:{{ $src[1] }}"></span>{{ $src[0] }}</div>
-                        </div>
-                    @endif
                     @if (filled($contact->url_profil))
                         <div>
                             <div class="k">Compte / lien</div>

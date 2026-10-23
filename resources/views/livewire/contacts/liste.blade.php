@@ -50,6 +50,13 @@
             @endforeach
         </select>
 
+        <select wire:model.live="origine" class="lb-select" aria-label="Origine">
+            <option value="">Toutes origines</option>
+            @foreach (\App\Models\Contact::ORIGINES as $cle => $libelle)
+                <option value="{{ $cle }}">{{ $libelle }}</option>
+            @endforeach
+        </select>
+
         @if ($poles->isNotEmpty())
             <select wire:model.live="pole" class="lb-select" aria-label="Pôle">
                 <option value="">Tous les pôles</option>
@@ -98,8 +105,8 @@
                         @if ($info = $contact->temperatureInfo())
                             <span class="lb-badge lb-av-{{ $info[1] === 'muted' ? 'gold' : $info[1] }}">{{ $contact->temperature === 'chaud' ? '🔥 ' : '' }}{{ $info[0] }}</span>
                         @endif
-                        @if ($src = $contact->sourceInfo())
-                            <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $src[1] }}"></span>{{ $src[0] }}</span>
+                        @if ($contact->libelleOrigine())
+                            <span class="lb-tag" style="background:var(--surface)">📍 {{ $contact->libelleOrigine() }}</span>
                         @endif
                         @foreach ($contact->etiquettes as $et)
                             <span class="lb-tag" style="background:var(--surface)">

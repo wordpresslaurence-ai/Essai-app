@@ -95,8 +95,8 @@
                                 @if ($info = $lead->temperatureInfo())
                                     <span class="lb-badge lb-av-{{ $info[1] === 'muted' ? 'gold' : $info[1] }}">{{ $lead->temperature === 'chaud' ? '🔥 ' : '' }}{{ $info[0] }}</span>
                                 @endif
-                                @if ($src = $lead->sourceInfo())
-                                    <span class="lb-tag" style="background:var(--surface)"><span class="lb-dot" style="background:{{ $src[1] }}"></span>{{ $src[0] }}</span>
+                                @if ($lead->libelleOrigine())
+                                    <span class="lb-tag" style="background:var(--surface)">📍 {{ $lead->libelleOrigine() }}</span>
                                 @endif
                             </div>
                         </div>

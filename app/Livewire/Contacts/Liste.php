@@ -36,6 +36,10 @@ class Liste extends Component
     #[Url]
     public string $temperature = '';
 
+    /** Filtre par origine du contact. */
+    #[Url]
+    public string $origine = '';
+
     /** Filtre par pôle (id). */
     #[Url]
     public string $pole = '';
@@ -55,7 +59,7 @@ class Liste extends Component
     /** Réinitialise la pagination dès qu'un filtre change. */
     public function updating($name): void
     {
-        if (in_array($name, ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'pole', 'categorie'], true)) {
+        if (in_array($name, ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie'], true)) {
             $this->resetPage();
         }
     }
@@ -79,7 +83,7 @@ class Liste extends Component
 
     public function reinitialiserFiltres(): void
     {
-        $this->reset(['recherche', 'type', 'etiquette', 'statut', 'temperature', 'pole', 'categorie']);
+        $this->reset(['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie']);
         $this->resetPage();
     }
 
@@ -106,6 +110,7 @@ class Liste extends Component
                 $this->temperature !== '' && $this->temperature !== 'leads',
                 fn ($q) => $q->where('temperature', $this->temperature)
             )
+            ->when($this->origine !== '', fn ($q) => $q->where('origine', $this->origine))
             ->when($this->categorie !== '', fn ($q) => $q->where('categorie_id', $this->categorie))
             ->when(
                 $this->categorie === '' && $this->pole !== '',

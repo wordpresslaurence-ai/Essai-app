@@ -22,17 +22,6 @@ class Contact extends Model
 
     public const TYPE_ENTREPRISE = 'entreprise';
 
-    /** Sources d'acquisition d'un lead : libellé + couleur de pastille. */
-    public const SOURCES = [
-        'linkedin' => ['LinkedIn', '#0A66C2'],
-        'instagram' => ['Instagram', '#C13584'],
-        'facebook' => ['Facebook', '#1877F2'],
-        'email' => ['E-mail', 'var(--gold)'],
-        'site_web' => ['Site web', 'var(--mint)'],
-        'telephone' => ['Téléphone', 'var(--lav)'],
-        'autre' => ['Autre', 'var(--text-muted)'],
-    ];
-
     /** Températures d'un lead : libellé + classe d'avatar (couleur). */
     public const TEMPERATURES = [
         'chaud' => ['Client chaud', 'terra'],
@@ -89,7 +78,6 @@ class Contact extends Model
         'fait_observe',
         'angle_contact',
         'experience_yoga',
-        'source',
         'origine',
         'origine_precision',
         'url_profil',
@@ -242,12 +230,6 @@ class Contact extends Model
     public function estLead(): bool
     {
         return $this->temperature !== null;
-    }
-
-    /** Libellé et couleur de la source (ou null). */
-    public function sourceInfo(): ?array
-    {
-        return $this->source ? (self::SOURCES[$this->source] ?? null) : null;
     }
 
     /** Libellé et couleur de la température (ou null). */
