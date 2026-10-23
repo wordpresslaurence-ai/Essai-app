@@ -78,31 +78,38 @@
                     || filled($contact->fait_observe) || filled($contact->angle_contact);
             @endphp
             @if ($aProfilYoga)
-                <div class="lb-card" style="padding:20px">
-                    <h3 class="lb-h3" style="font-size:19px">Profil yoga &amp; prospection</h3>
-                    <div class="lb-people mt-3">
+                <div class="lb-card" style="padding:20px" x-data="{ ouvert: false }">
+                    <button type="button" x-on:click="ouvert = !ouvert"
+                            style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;background:none;border:0;cursor:pointer;padding:0;text-align:left">
+                        <h3 class="lb-h3" style="font-size:19px;margin:0">Profil yoga &amp; prospection</h3>
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                             style="flex:none;transition:transform .2s" x-bind:style="ouvert ? 'transform:rotate(180deg)' : ''">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="lb-people mt-3" x-show="ouvert" x-cloak x-transition>
                         @if (filled($contact->discipline))
                             <div class="lb-prow" style="display:block;padding:12px 14px">
-                                <div class="k">Discipline enseignée</div>
-                                <div class="val" style="display:block;margin-top:4px">{{ $contact->discipline }}</div>
+                                <div class="nm">Discipline enseignée</div>
+                                <div style="margin-top:4px;color:var(--text);font-size:14px;line-height:1.5">{{ $contact->discipline }}</div>
                             </div>
                         @endif
                         @if ($contact->libelleExperienceYoga())
                             <div class="lb-prow" style="display:block;padding:12px 14px">
-                                <div class="k">Expérience du yoga</div>
-                                <div class="val" style="display:block;margin-top:4px">{{ $contact->libelleExperienceYoga() }}</div>
+                                <div class="nm">Expérience du yoga</div>
+                                <div style="margin-top:4px;color:var(--text);font-size:14px;line-height:1.5">{{ $contact->libelleExperienceYoga() }}</div>
                             </div>
                         @endif
                         @if (filled($contact->fait_observe))
                             <div class="lb-prow" style="display:block;padding:12px 14px">
-                                <div class="k">Fait observé</div>
-                                <div class="val" style="white-space:pre-line;display:block;margin-top:4px">{{ $contact->fait_observe }}</div>
+                                <div class="nm">Fait observé</div>
+                                <div style="margin-top:4px;color:var(--text);font-size:14px;line-height:1.5;white-space:pre-line">{{ $contact->fait_observe }}</div>
                             </div>
                         @endif
                         @if (filled($contact->angle_contact))
                             <div class="lb-prow" style="display:block;padding:12px 14px">
-                                <div class="k">Angle de premier contact</div>
-                                <div class="val" style="white-space:pre-line;display:block;margin-top:4px">{{ $contact->angle_contact }}</div>
+                                <div class="nm">Angle de premier contact</div>
+                                <div style="margin-top:4px;color:var(--text);font-size:14px;line-height:1.5;white-space:pre-line">{{ $contact->angle_contact }}</div>
                             </div>
                         @endif
                     </div>
