@@ -80,23 +80,29 @@
             @if ($aProfilYoga)
                 <div class="lb-card" style="padding:20px">
                     <h3 class="lb-h3" style="font-size:19px">Profil yoga &amp; prospection</h3>
-                    <div class="lb-kv" style="grid-template-columns:1fr;gap:14px;margin-top:12px">
+                    <div class="lb-people mt-3">
                         @if (filled($contact->discipline))
-                            <div><div class="k">Discipline enseignée</div><div class="val">{{ $contact->discipline }}</div></div>
+                            <div class="lb-prow" style="display:block;padding:12px 14px">
+                                <div class="k">Discipline enseignée</div>
+                                <div class="val" style="display:block;margin-top:4px">{{ $contact->discipline }}</div>
+                            </div>
                         @endif
                         @if ($contact->libelleExperienceYoga())
-                            <div><div class="k">Expérience du yoga</div><div class="val">{{ $contact->libelleExperienceYoga() }}</div></div>
+                            <div class="lb-prow" style="display:block;padding:12px 14px">
+                                <div class="k">Expérience du yoga</div>
+                                <div class="val" style="display:block;margin-top:4px">{{ $contact->libelleExperienceYoga() }}</div>
+                            </div>
                         @endif
                         @if (filled($contact->fait_observe))
-                            <div>
+                            <div class="lb-prow" style="display:block;padding:12px 14px">
                                 <div class="k">Fait observé</div>
-                                <div class="val" style="white-space:pre-line;display:block;margin-top:6px">{{ $contact->fait_observe }}</div>
+                                <div class="val" style="white-space:pre-line;display:block;margin-top:4px">{{ $contact->fait_observe }}</div>
                             </div>
                         @endif
                         @if (filled($contact->angle_contact))
-                            <div>
+                            <div class="lb-prow" style="display:block;padding:12px 14px">
                                 <div class="k">Angle de premier contact</div>
-                                <div class="val" style="white-space:pre-line;display:block;margin-top:6px">{{ $contact->angle_contact }}</div>
+                                <div class="val" style="white-space:pre-line;display:block;margin-top:4px">{{ $contact->angle_contact }}</div>
                             </div>
                         @endif
                     </div>
