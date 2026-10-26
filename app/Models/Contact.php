@@ -191,6 +191,29 @@ class Contact extends Model
         return $this->hasMany(Email::class);
     }
 
+    /** Adresses e-mail secondaires (l'adresse principale est contacts.email). */
+    public function adressesEmail(): HasMany
+    {
+        return $this->hasMany(AdresseEmail::class);
+    }
+
+    /**
+     * Toutes les adresses e-mail du contact : la principale puis les secondaires,
+     * nettoyées et dédoublonnées (insensible à la casse).
+     *
+     * @return list<string>
+     */
+    public function toutesAdressesEmail(): array
+    {
+        return collect([$this->email])
+            ->merge($this->adressesEmail->pluck('adresse'))
+            ->map(fn ($a) => trim((string) $a))
+            ->filter(fn ($a) => $a !== '')
+            ->unique(fn ($a) => mb_strtolower($a))
+            ->values()
+            ->all();
+    }
+
     /** Les analyses de l'assistant pour ce contact. */
     public function analyses(): HasMany
     {

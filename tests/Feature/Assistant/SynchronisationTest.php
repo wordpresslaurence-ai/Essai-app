@@ -82,6 +82,17 @@ it('ne crée pas deux fois la tâche pour la même adresse inconnue', function (
     expect($r->tachesCreees)->toBe(0);
 });
 
+it('rattache un mail venu d’une adresse secondaire au bon contact (pas de prospect)', function () {
+    $contact = Contact::factory()->create(['email' => 'principal@example.com']);
+    $contact->adressesEmail()->create(['adresse' => 'perso@example.com']);
+
+    $r = sync([recu('s1', 'perso@example.com', [BOITE])]);
+
+    expect($r->emailsImportes)->toBe(1);
+    expect($r->tachesCreees)->toBe(0); // reconnu : aucune tâche « créer le prospect »
+    expect(Email::first()->contact_id)->toBe($contact->id);
+});
+
 it('met à jour la date de dernière synchronisation de la boîte', function () {
     expect($this->boite->derniere_synchro_at)->toBeNull();
     sync([]);

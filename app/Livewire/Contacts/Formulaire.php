@@ -28,6 +28,9 @@ class Formulaire extends Component
 
     public ?string $email = null;
 
+    /** @var array<int, string> Adresses e-mail secondaires. */
+    public array $adressesSecondaires = [];
+
     public ?string $telephone = null;
 
     public ?string $entreprise_id = null;
@@ -120,7 +123,21 @@ class Formulaire extends Component
             $this->ne_plus_contacter = (bool) $contact->ne_plus_contacter;
             $this->categorie_id = $contact->categorie_id ? (string) $contact->categorie_id : null;
             $this->etiquettesSelection = $contact->etiquettes->pluck('id')->all();
+            $this->adressesSecondaires = $contact->adressesEmail->pluck('adresse')->all();
         }
+    }
+
+    /** Ajoute une ligne vide d'adresse e-mail secondaire. */
+    public function ajouterAdresse(): void
+    {
+        $this->adressesSecondaires[] = '';
+    }
+
+    /** Retire l'adresse secondaire à l'index donné. */
+    public function retirerAdresse(int $index): void
+    {
+        unset($this->adressesSecondaires[$index]);
+        $this->adressesSecondaires = array_values($this->adressesSecondaires);
     }
 
     protected function rules(): array
@@ -131,6 +148,8 @@ class Formulaire extends Component
             'prenom' => ['nullable', 'string', 'max:255'],
             'fonction' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
+            'adressesSecondaires' => ['array'],
+            'adressesSecondaires.*' => ['nullable', 'email', 'max:255'],
             'telephone' => ['nullable', 'string', 'max:50'],
             'entreprise_id' => ['nullable', 'exists:contacts,id'],
             'site_web' => ['nullable', 'url', 'max:255'],
@@ -193,6 +212,9 @@ class Formulaire extends Component
             ->where(function ($q) use ($email, $nom, $critereEmail, $critereNom) {
                 if ($critereEmail) {
                     $q->orWhereRaw('LOWER(email) = ?', [mb_strtolower($email)]);
+                    // Même adresse trouvée parmi les adresses secondaires d'un contact.
+                    $q->orWhereHas('adressesEmail', fn ($a) => $a
+                        ->whereRaw('LOWER(adresse) = ?', [mb_strtolower($email)]));
                 }
                 if ($critereNom) {
                     $q->orWhere(fn ($sub) => $sub
@@ -207,6 +229,9 @@ class Formulaire extends Component
     public function enregistrer()
     {
         $donnees = $this->validate();
+
+        // Géré à part (pas une colonne de contacts).
+        unset($donnees['adressesSecondaires']);
 
         // Les champs propres à un type sont vidés pour l'autre type.
         if ($this->type === Contact::TYPE_ENTREPRISE) {
@@ -232,9 +257,33 @@ class Formulaire extends Component
         // Synchronise les étiquettes cochées avec le contact.
         $cible->etiquettes()->sync($this->etiquettesSelection);
 
+        // Synchronise les adresses e-mail secondaires.
+        $this->synchroniserAdresses($cible);
+
         session()->flash('message', $message);
 
         return $this->redirect(route('contacts.fiche', $cible), navigate: true);
+    }
+
+    /**
+     * Remplace les adresses secondaires du contact : vides et doublons retirés,
+     * et l'adresse principale (contacts.email) n'est jamais dupliquée ici.
+     */
+    protected function synchroniserAdresses(Contact $contact): void
+    {
+        $principale = mb_strtolower(trim((string) $contact->email));
+
+        $adresses = collect($this->adressesSecondaires)
+            ->map(fn ($a) => trim((string) $a))
+            ->filter(fn ($a) => $a !== '')
+            ->unique(fn ($a) => mb_strtolower($a))
+            ->reject(fn ($a) => mb_strtolower($a) === $principale)
+            ->values();
+
+        $contact->adressesEmail()->delete();
+        foreach ($adresses as $adresse) {
+            $contact->adressesEmail()->create(['adresse' => $adresse]);
+        }
     }
 
     public function render(): View

@@ -464,6 +464,13 @@
                             <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
                             @if ($contact->email)<a href="mailto:{{ $contact->email }}" class="lb-truncate">{{ $contact->email }}</a>@else — @endif
                         </div>
+                        @if ($contact->adressesEmail->isNotEmpty())
+                            <div style="margin-top:6px;display:flex;flex-direction:column;gap:3px">
+                                @foreach ($contact->adressesEmail as $adr)
+                                    <a href="mailto:{{ $adr->adresse }}" class="lb-truncate lb-muted" style="font-size:13px">{{ $adr->adresse }}</a>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                     <div>
                         <div class="k">Téléphone</div>

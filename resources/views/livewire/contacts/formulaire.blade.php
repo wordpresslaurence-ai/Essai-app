@@ -96,6 +96,24 @@
             </div>
         </div>
 
+        {{-- Adresses e-mail secondaires --}}
+        <div class="mt-4">
+            <label class="lb-label">Autres adresses e-mail</label>
+            @foreach ($adressesSecondaires as $i => $adr)
+                <div class="flex items-start gap-2 mt-2" wire:key="adr-{{ $i }}">
+                    <div style="flex:1">
+                        <input type="email" wire:model.blur="adressesSecondaires.{{ $i }}" class="lb-field" placeholder="autre@exemple.be">
+                        @error('adressesSecondaires.'.$i) <p class="lb-error">{{ $message }}</p> @enderror
+                    </div>
+                    <button type="button" wire:click="retirerAdresse({{ $i }})" class="lb-btn lb-btn-ghost" style="padding:10px 13px" aria-label="Retirer cette adresse">×</button>
+                </div>
+            @endforeach
+            <button type="button" wire:click="ajouterAdresse"
+                    class="lb-accent" style="font-size:12.5px;font-weight:600;background:none;border:0;cursor:pointer;padding:8px 0;margin-top:4px">
+                + Ajouter une adresse
+            </button>
+        </div>
+
         {{-- Adresse --}}
         <fieldset class="mt-6">
             <legend class="lb-label" style="margin-bottom:10px">Adresse</legend>

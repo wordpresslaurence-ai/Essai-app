@@ -29,10 +29,21 @@ class SynchronisationEmails
         }
 
         // Index des contacts connus par adresse e-mail (partagé entre les boîtes).
-        $contactsParEmail = Contact::query()
-            ->whereNotNull('email')
+        // On prend en compte l'adresse principale ET les adresses secondaires,
+        // afin de reconnaître un contact qui écrit depuis plusieurs adresses.
+        $contactsParEmail = collect();
+        Contact::query()
+            ->with('adressesEmail')
+            ->where(fn ($q) => $q->whereNotNull('email')->orHas('adressesEmail'))
             ->get()
-            ->keyBy(fn (Contact $c) => $this->normaliser($c->email));
+            ->each(function (Contact $c) use ($contactsParEmail) {
+                foreach ($c->toutesAdressesEmail() as $adresse) {
+                    $cle = $this->normaliser($adresse);
+                    if ($cle !== '' && ! $contactsParEmail->has($cle)) {
+                        $contactsParEmail->put($cle, $c);
+                    }
+                }
+            });
 
         // Évite de recréer la même tâche « créer le prospect » plusieurs fois dans ce tour.
         $adressesTacheesCeTour = [];
