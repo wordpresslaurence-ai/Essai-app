@@ -37,22 +37,25 @@ class ImportCsv extends Component
     /** Champs du contact que l'on peut mapper. */
     public function champsDisponibles(): array
     {
+        // Ordre aligné sur un export Odoo (Nom, E-mail, Téléphone, Rue, Ville,
+        // Pays…), puis les champs complémentaires, et les Étiquettes en dernier.
         return [
-            'type' => 'Type (personne/entreprise)',
             'nom' => 'Nom / Raison sociale',
-            'prenom' => 'Prénom',
-            'fonction' => 'Fonction',
             'email' => 'E-mail',
             'telephone' => 'Téléphone',
-            'numero_entreprise' => "N° d'entreprise (BCE)",
-            'numero_tva' => 'N° de TVA',
-            'site_web' => 'Site web',
-            'secteur' => 'Secteur',
             'adresse_rue' => 'Rue',
             'adresse_code_postal' => 'Code postal',
             'adresse_ville' => 'Ville',
             'adresse_pays' => 'Pays',
-            'notes' => 'Notes',
+            'type' => 'Type (personne/entreprise)',
+            'prenom' => 'Prénom',
+            'fonction' => 'Fonction',
+            'numero_entreprise' => "N° d'entreprise (BCE)",
+            'numero_tva' => 'N° de TVA',
+            'site_web' => 'Site web',
+            'secteur' => 'Secteur',
+            'url_profil' => 'Compte / lien',
+            'categorie' => 'Catégorie (nom)',
             'temperature' => 'Température',
             'origine' => 'Origine du contact',
             'origine_precision' => 'Précisions sur l’origine',
@@ -60,8 +63,7 @@ class ImportCsv extends Component
             'experience_yoga' => 'Expérience du yoga',
             'fait_observe' => 'Fait observé',
             'angle_contact' => 'Angle de premier contact',
-            'url_profil' => 'Compte / lien',
-            'categorie' => 'Catégorie (nom)',
+            'notes' => 'Notes',
             'etiquettes' => 'Étiquettes (séparées par , ou |)',
         ];
     }
