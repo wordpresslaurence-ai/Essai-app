@@ -18,7 +18,15 @@ class Etiquette extends Model
     protected $fillable = [
         'nom',
         'couleur',
+        'masquer_par_defaut',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'masquer_par_defaut' => 'boolean',
+        ];
+    }
 
     /** Les contacts portant cette étiquette. */
     public function contacts(): BelongsToMany

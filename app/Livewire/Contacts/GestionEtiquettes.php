@@ -72,6 +72,15 @@ class GestionEtiquettes extends Component
         session()->flash('message', 'Étiquette supprimée.');
     }
 
+    /** Masque / affiche par défaut les contacts portant cette étiquette dans le carnet. */
+    public function basculerMasquage(Etiquette $etiquette): void
+    {
+        $etiquette->update(['masquer_par_defaut' => ! $etiquette->masquer_par_defaut]);
+        session()->flash('message', $etiquette->masquer_par_defaut
+            ? 'Étiquette « '.$etiquette->nom.' » masquée par défaut dans le carnet.'
+            : 'Étiquette « '.$etiquette->nom.' » affichée dans le carnet.');
+    }
+
     public function render(): View
     {
         return view('livewire.contacts.gestion-etiquettes', [

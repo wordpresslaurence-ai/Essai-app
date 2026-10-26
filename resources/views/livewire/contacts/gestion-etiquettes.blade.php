@@ -36,7 +36,11 @@
                     <span class="lb-dot" style="width:14px;height:14px;background:{{ $et->couleur ?? 'var(--gold)' }}"></span>
                     <span class="nm">{{ $et->nom }}</span>
                     <span class="lb-muted" style="font-size:12px">· {{ $et->contacts_count }} contact(s)</span>
+                    @if ($et->masquer_par_defaut)<span class="lb-muted" style="font-size:11.5px">· 🙈 masquée</span>@endif
                     <div style="margin-left:auto" class="flex items-center gap-2">
+                        <button type="button" wire:click="basculerMasquage({{ $et->id }})"
+                                title="{{ $et->masquer_par_defaut ? 'Afficher dans le carnet par défaut' : 'Masquer dans le carnet par défaut' }}"
+                                class="lb-btn lb-btn-ghost" style="padding:7px 11px;font-size:13px">{{ $et->masquer_par_defaut ? '🙈' : '👁️' }}</button>
                         <button type="button" wire:click="editer({{ $et->id }})"
                                 class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px">Modifier</button>
                         <button type="button" wire:click="supprimer({{ $et->id }})" wire:confirm="Supprimer cette étiquette ?"

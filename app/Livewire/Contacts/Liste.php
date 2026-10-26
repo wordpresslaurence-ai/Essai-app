@@ -153,13 +153,19 @@ class Liste extends Component
                 $this->categorie === '' && $this->pole !== '',
                 fn ($q) => $q->whereHas('categorie', fn ($c) => $c->where('pole_id', $this->pole))
             )
-            // Catégories masquées par défaut (ex. « dormant ») : exclues sauf si on
-            // les demande explicitement (filtre catégorie) ou via « inclure masqués ».
+            // Catégories masquées par défaut : exclues sauf si on les demande
+            // explicitement (filtre catégorie) ou via « inclure masqués ».
             ->when(
                 $this->categorie === '' && ! $this->inclureMasques,
                 fn ($q) => $q->where(fn ($sub) => $sub
                     ->whereNull('categorie_id')
                     ->orWhereDoesntHave('categorie', fn ($c) => $c->where('masquer_par_defaut', true)))
+            )
+            // Étiquettes masquées par défaut (ex. « dormant ») : exclues sauf si on
+            // filtre sur une étiquette précise ou via « inclure masqués ».
+            ->when(
+                $this->etiquette === '' && ! $this->inclureMasques,
+                fn ($q) => $q->whereDoesntHave('etiquettes', fn ($e) => $e->where('masquer_par_defaut', true))
             )
             ->orderBy($triAutorise, $sensAutorise)
             ->paginate(15);

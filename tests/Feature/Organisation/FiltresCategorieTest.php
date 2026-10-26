@@ -78,6 +78,38 @@ it('masque par défaut les contacts d’une catégorie « masquée », et peut l
         ->assertDontSee('Reveille');
 });
 
+it('masque par défaut les contacts portant une étiquette « masquée »', function () {
+    $dormant = App\Models\Etiquette::create(['nom' => 'Dormant', 'masquer_par_defaut' => true]);
+    $actif = Contact::factory()->create(['nom' => 'Reveille']);
+    $endormi = Contact::factory()->create(['nom' => 'Endormi']);
+    $endormi->etiquettes()->attach($dormant->id);
+
+    // Par défaut : masqué.
+    Livewire::test(Liste::class)
+        ->assertSee('Reveille')
+        ->assertDontSee('Endormi');
+
+    // Case « afficher les masqués ».
+    Livewire::test(Liste::class)
+        ->set('inclureMasques', true)
+        ->assertSee('Endormi');
+
+    // Filtre explicite sur l'étiquette dormante.
+    Livewire::test(Liste::class)
+        ->set('etiquette', (string) $dormant->id)
+        ->assertSee('Endormi')
+        ->assertDontSee('Reveille');
+});
+
+it('bascule le masquage d’une étiquette depuis la gestion', function () {
+    $et = App\Models\Etiquette::create(['nom' => 'Client']);
+
+    Livewire::test(App\Livewire\Contacts\GestionEtiquettes::class)
+        ->call('basculerMasquage', $et->id);
+
+    expect($et->refresh()->masquer_par_defaut)->toBeTrue();
+});
+
 it('bascule le masquage d’une catégorie depuis l’organisation', function () {
     Livewire::test(App\Livewire\Organisation\Gestion::class)
         ->call('basculerMasquage', $this->formation->id);
