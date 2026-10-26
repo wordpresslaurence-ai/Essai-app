@@ -81,6 +81,27 @@ class Liste extends Component
         }
     }
 
+    /**
+     * Change la catégorie (donc le pôle) d'un contact directement depuis la liste.
+     * Une valeur vide retire la catégorie.
+     */
+    public function changerCategorie(int $contactId, ?string $categorieId = null): void
+    {
+        $contact = Contact::find($contactId);
+        if (! $contact) {
+            return;
+        }
+
+        $id = ($categorieId !== null && $categorieId !== '') ? (int) $categorieId : null;
+
+        // On n'accepte qu'une catégorie existante (sinon on retire).
+        if ($id !== null && ! \App\Models\Categorie::whereKey($id)->exists()) {
+            $id = null;
+        }
+
+        $contact->update(['categorie_id' => $id]);
+    }
+
     public function reinitialiserFiltres(): void
     {
         $this->reset(['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie']);

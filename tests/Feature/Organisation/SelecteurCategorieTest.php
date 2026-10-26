@@ -39,6 +39,30 @@ it('pré-remplit la catégorie du contact en mode édition', function () {
         ->assertSet('categorie_id', (string) $this->formation->id);
 });
 
+it('change la catégorie d’un contact directement depuis la liste', function () {
+    $contact = Contact::factory()->create(['categorie_id' => null]);
+
+    Livewire::test(App\Livewire\Contacts\Liste::class)
+        ->call('changerCategorie', $contact->id, (string) $this->formation->id);
+
+    expect($contact->refresh()->categorie_id)->toBe($this->formation->id);
+
+    // Valeur vide -> on retire la catégorie.
+    Livewire::test(App\Livewire\Contacts\Liste::class)
+        ->call('changerCategorie', $contact->id, '');
+
+    expect($contact->refresh()->categorie_id)->toBeNull();
+});
+
+it('ignore une catégorie inexistante depuis la liste', function () {
+    $contact = Contact::factory()->create(['categorie_id' => $this->formation->id]);
+
+    Livewire::test(App\Livewire\Contacts\Liste::class)
+        ->call('changerCategorie', $contact->id, '999999');
+
+    expect($contact->refresh()->categorie_id)->toBeNull(); // catégorie inconnue -> retirée
+});
+
 it('refuse une catégorie inexistante sur un contact', function () {
     Livewire::test(ContactFormulaire::class)
         ->set('type', Contact::TYPE_PERSONNE)

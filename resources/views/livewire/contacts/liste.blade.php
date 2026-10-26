@@ -85,40 +85,60 @@
     {{-- Cartes --}}
     <div class="lb-cards mt-6">
         @forelse ($contacts as $contact)
-            <a href="{{ route('contacts.fiche', $contact) }}" class="lb-ccard" wire:key="c-{{ $contact->id }}" wire:navigate>
-                <span class="lb-av lb-av-44 lb-av-{{ $contact->couleurAvatar() }} {{ $contact->estEntreprise() ? 'sq' : '' }}">{{ $contact->initiales() }}</span>
-                <div style="min-width:0;flex:1">
-                    <div class="nm lb-truncate">
-                        {{ $contact->nomComplet() }}
-                        @if ($contact->estArchive()) <span class="lb-muted" style="font-size:11px;font-weight:400">· archivé</span> @endif
-                    </div>
-                    <div class="meta lb-truncate">
-                        {{ $contact->estEntreprise() ? ($contact->secteur ?: 'Entreprise') : ($contact->fonction ?: 'Personne') }}
-                        @if ($contact->entreprise) · {{ $contact->entreprise->nom }} @endif
-                    </div>
+            <div class="lb-ccard" wire:key="c-{{ $contact->id }}" style="flex-wrap:wrap">
+                <a href="{{ route('contacts.fiche', $contact) }}" wire:navigate
+                   style="display:flex;gap:14px;align-items:flex-start;flex:1;min-width:200px;text-decoration:none;color:inherit">
+                    <span class="lb-av lb-av-44 lb-av-{{ $contact->couleurAvatar() }} {{ $contact->estEntreprise() ? 'sq' : '' }}">{{ $contact->initiales() }}</span>
+                    <div style="min-width:0;flex:1">
+                        <div class="nm lb-truncate">
+                            {{ $contact->nomComplet() }}
+                            @if ($contact->estArchive()) <span class="lb-muted" style="font-size:11px;font-weight:400">· archivé</span> @endif
+                        </div>
+                        <div class="meta lb-truncate">
+                            {{ $contact->estEntreprise() ? ($contact->secteur ?: 'Entreprise') : ($contact->fonction ?: 'Personne') }}
+                            @if ($contact->entreprise) · {{ $contact->entreprise->nom }} @endif
+                        </div>
 
-                    <div class="flex flex-wrap items-center gap-2 mt-3">
-                        <span class="lb-badge {{ $contact->estEntreprise() ? 'lb-b-firm' : 'lb-b-person' }}">
-                            <span class="lb-dot" style="background:{{ $contact->estEntreprise() ? 'var(--mint)' : 'var(--lav)' }}"></span>
-                            {{ $contact->estEntreprise() ? 'Entreprise' : 'Personne' }}
-                        </span>
-                        @if ($info = $contact->temperatureInfo())
-                            <span class="lb-badge lb-av-{{ $info[1] === 'muted' ? 'gold' : $info[1] }}">{{ $contact->temperature === 'chaud' ? '🔥 ' : '' }}{{ $info[0] }}</span>
-                        @endif
-                        @if ($contact->libelleOrigine())
-                            <span class="lb-tag" style="background:var(--surface)">📍 {{ $contact->libelleOrigine() }}</span>
-                        @endif
-                        @foreach ($contact->etiquettes as $et)
-                            <span class="lb-tag" style="background:var(--surface)">
-                                <span class="lb-dot" style="background:{{ $et->couleur ?: 'var(--gold)' }}"></span>{{ $et->nom }}
+                        <div class="flex flex-wrap items-center gap-2 mt-3">
+                            <span class="lb-badge {{ $contact->estEntreprise() ? 'lb-b-firm' : 'lb-b-person' }}">
+                                <span class="lb-dot" style="background:{{ $contact->estEntreprise() ? 'var(--mint)' : 'var(--lav)' }}"></span>
+                                {{ $contact->estEntreprise() ? 'Entreprise' : 'Personne' }}
                             </span>
-                        @endforeach
-                        @if ($contact->email)
-                            <span class="lb-accent" style="font-size:12.5px;font-weight:500">{{ $contact->email }}</span>
-                        @endif
+                            @if ($info = $contact->temperatureInfo())
+                                <span class="lb-badge lb-av-{{ $info[1] === 'muted' ? 'gold' : $info[1] }}">{{ $contact->temperature === 'chaud' ? '🔥 ' : '' }}{{ $info[0] }}</span>
+                            @endif
+                            @if ($contact->libelleOrigine())
+                                <span class="lb-tag" style="background:var(--surface)">📍 {{ $contact->libelleOrigine() }}</span>
+                            @endif
+                            @foreach ($contact->etiquettes as $et)
+                                <span class="lb-tag" style="background:var(--surface)">
+                                    <span class="lb-dot" style="background:{{ $et->couleur ?: 'var(--gold)' }}"></span>{{ $et->nom }}
+                                </span>
+                            @endforeach
+                            @if ($contact->email)
+                                <span class="lb-accent" style="font-size:12.5px;font-weight:500">{{ $contact->email }}</span>
+                            @endif
+                        </div>
                     </div>
+                </a>
+
+                {{-- Pôle / catégorie : modifiable directement depuis la liste --}}
+                <div style="flex:none;width:200px;max-width:100%">
+                    <label class="lb-muted" style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;display:block;margin-bottom:4px">Pôle / catégorie</label>
+                    <select class="lb-select" style="width:100%;font-size:12.5px;padding:8px 30px 8px 12px"
+                            aria-label="Pôle et catégorie du contact"
+                            wire:change="changerCategorie({{ $contact->id }}, $event.target.value)">
+                        <option value="">— Aucune —</option>
+                        @foreach ($poles as $p)
+                            <optgroup label="{{ $p->nom }}">
+                                @foreach ($p->categories as $cat)
+                                    <option value="{{ $cat->id }}" @selected((int) $contact->categorie_id === (int) $cat->id)>{{ $cat->nom }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
                 </div>
-            </a>
+            </div>
         @empty
             <div class="lb-placeholder" style="grid-column:1/-1">
                 Aucun contact trouvé.
