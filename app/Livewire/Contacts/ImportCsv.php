@@ -107,6 +107,11 @@ class ImportCsv extends Component
     {
         $e = mb_strtolower(trim($entete));
 
+        // En-tête identique à une clé de champ (cas du modèle téléchargé) : direct.
+        if (array_key_exists($e, $this->champsDisponibles())) {
+            return $e;
+        }
+
         return match (true) {
             $e === 'type' || str_contains($e, 'type de') || str_contains($e, 'is_company') => 'type',
             str_contains($e, 'prénom') || str_contains($e, 'prenom') || str_contains($e, 'first') => 'prenom',

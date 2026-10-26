@@ -112,11 +112,12 @@ class Formulaire extends Component
                 'secteur', 'region', 'linkedin', 'instagram', 'facebook', 'langues',
                 'discipline', 'discipline_precision', 'public_precision', 'formats_proposes',
                 'fait_observe', 'angle_contact', 'role_commercial', 'priorite_prospection',
-                'interet_exprime', 'besoin_exprime', 'url_sources', 'ne_plus_contacter',
+                'interet_exprime', 'besoin_exprime', 'url_sources',
                 'experience_yoga', 'origine', 'origine_precision', 'url_profil', 'temperature',
                 'adresse_rue', 'adresse_code_postal', 'adresse_ville', 'adresse_pays', 'notes',
             ]));
             $this->date_verification = $contact->date_verification?->format('Y-m-d');
+            $this->ne_plus_contacter = (bool) $contact->ne_plus_contacter;
             $this->categorie_id = $contact->categorie_id ? (string) $contact->categorie_id : null;
             $this->etiquettesSelection = $contact->etiquettes->pluck('id')->all();
         }
