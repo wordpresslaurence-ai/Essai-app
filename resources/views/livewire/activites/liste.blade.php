@@ -91,10 +91,31 @@
     </div>
 
     @if ($vue === 'liste')
+    {{-- Barre de sélection groupée --}}
+    @if ($activites->isNotEmpty())
+        <div class="flex flex-wrap items-center gap-3 mt-4">
+            <label class="flex items-center gap-2" style="font-size:13px;cursor:pointer">
+                <input type="checkbox" wire:click="basculerTout" style="width:16px;height:16px"
+                       @checked(count($selection) >= $activites->count() && $activites->count() > 0)>
+                Tout sélectionner
+            </label>
+            @if (count($selection) > 0)
+                <span class="lb-muted" style="font-size:13px">{{ count($selection) }} sélectionnée(s)</span>
+                <button type="button" wire:click="supprimerSelection"
+                        wire:confirm="Supprimer définitivement les {{ count($selection) }} activité(s) sélectionnée(s) ?"
+                        class="lb-btn lb-btn-danger" style="padding:7px 13px;font-size:12.5px">
+                    Supprimer la sélection
+                </button>
+            @endif
+        </div>
+    @endif
+
     {{-- Liste --}}
     <div class="lb-people mt-4">
         @forelse ($activites as $a)
             <div class="lb-prow" wire:key="a-{{ $a->id }}">
+                <input type="checkbox" value="{{ $a->id }}" wire:model.live="selection"
+                       aria-label="Sélectionner cette activité" style="width:16px;height:16px;flex:none">
                 <button type="button" class="lb-check {{ $a->estTerminee() ? 'done' : '' }}" wire:click="basculer({{ $a->id }})"
                         aria-label="{{ $a->estTerminee() ? 'Marquer à faire' : 'Marquer terminée' }}">
                     <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>

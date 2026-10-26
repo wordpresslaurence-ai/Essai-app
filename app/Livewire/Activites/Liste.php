@@ -39,10 +39,48 @@ class Liste extends Component
     #[Url]
     public ?string $dateRef = null;
 
-    /** Changer de pôle réinitialise la catégorie choisie. */
+    /** @var array<int, string> Activités cochées pour une action groupée. */
+    public array $selection = [];
+
+    /** Changer de pôle réinitialise la catégorie choisie (et vide la sélection). */
     public function updatedPole(): void
     {
         $this->categorie = '';
+        $this->selection = [];
+    }
+
+    /** Changer de filtre ou de catégorie vide la sélection (évite une sélection fantôme). */
+    public function updatedFiltre(): void
+    {
+        $this->selection = [];
+    }
+
+    public function updatedCategorie(): void
+    {
+        $this->selection = [];
+    }
+
+    /** Coche ou décoche toutes les activités actuellement affichées. */
+    public function basculerTout(): void
+    {
+        $ids = $this->requeteFiltree()->pluck('id')->all();
+
+        $this->selection = count($this->selection) >= count($ids) && $ids !== []
+            ? []
+            : array_map('strval', $ids);
+    }
+
+    /** Supprime les activités cochées. */
+    public function supprimerSelection(): void
+    {
+        if ($this->selection === []) {
+            return;
+        }
+
+        $nombre = Activite::whereIn('id', $this->selection)->delete();
+        $this->selection = [];
+
+        session()->flash('message', $nombre.' activité(s) supprimée(s).');
     }
 
     private function reference(): Carbon
@@ -102,10 +140,15 @@ class Liste extends Component
         session()->flash('message', 'Activité supprimée.');
     }
 
-    public function render(): View
+    /**
+     * Requête de base : filtres statut + organisation (partagée liste / calendrier
+     * / sélection groupée).
+     *
+     * @return \Illuminate\Database\Eloquent\Builder<Activite>
+     */
+    private function requeteFiltree()
     {
-        // Requête de base : filtres statut + organisation (partagée liste / calendrier).
-        $base = Activite::with(['contact', 'opportunite'])
+        return Activite::query()
             ->when($this->filtre === 'a_faire', fn ($q) => $q->aFaire())
             ->when($this->filtre === 'terminees', fn ($q) => $q->terminees())
             ->when($this->categorie !== '', fn ($q) => $q->whereHas(
@@ -116,6 +159,11 @@ class Liste extends Component
                 'contact',
                 fn ($c) => $c->whereHas('categorie', fn ($cat) => $cat->where('pole_id', $this->pole))
             ));
+    }
+
+    public function render(): View
+    {
+        $base = $this->requeteFiltree()->with(['contact', 'opportunite']);
 
         $activites = (clone $base)
             ->orderByRaw('echeance is null')

@@ -29,6 +29,48 @@ it('ajoute une activité avec échéance aujourd\'hui, visible dans « À faire 
     Livewire::test(TableauBord::class)->assertSee('Rappeler un client');
 });
 
+it('sélectionne toutes les activités affichées puis les supprime', function () {
+    Activite::factory()->terminee()->create(['titre' => 'Finie A']);
+    Activite::factory()->terminee()->create(['titre' => 'Finie B']);
+    $aFaire = Activite::factory()->create(['titre' => 'Encore à faire']); // hors filtre « terminées »
+
+    $composant = Livewire::test(Liste::class)
+        ->set('filtre', 'terminees')
+        ->call('basculerTout');
+
+    // Les deux terminées sont cochées, pas celle « à faire ».
+    expect($composant->get('selection'))->toHaveCount(2);
+
+    $composant->call('supprimerSelection');
+
+    expect(Activite::whereIn('titre', ['Finie A', 'Finie B'])->count())->toBe(0);
+    expect(Activite::find($aFaire->id))->not->toBeNull(); // préservée
+    expect($composant->get('selection'))->toBe([]);
+});
+
+it('supprime uniquement les activités cochées', function () {
+    $a = Activite::factory()->terminee()->create(['titre' => 'Supprimer']);
+    $b = Activite::factory()->terminee()->create(['titre' => 'Garder']);
+
+    Livewire::test(Liste::class)
+        ->set('filtre', 'terminees')
+        ->set('selection', [(string) $a->id])
+        ->call('supprimerSelection');
+
+    expect(Activite::find($a->id))->toBeNull();
+    expect(Activite::find($b->id))->not->toBeNull();
+});
+
+it('vide la sélection quand on change de filtre', function () {
+    $a = Activite::factory()->terminee()->create();
+
+    Livewire::test(Liste::class)
+        ->set('filtre', 'terminees')
+        ->set('selection', [(string) $a->id])
+        ->set('filtre', 'toutes')
+        ->assertSet('selection', []);
+});
+
 it('coche une activité comme terminée', function () {
     $a = Activite::factory()->create(['titre' => 'À cocher']);
 
