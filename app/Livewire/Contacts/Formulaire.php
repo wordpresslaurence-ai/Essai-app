@@ -175,19 +175,28 @@ class Formulaire extends Component
      */
     public function getDoublonsProperty()
     {
-        if (blank($this->email) && blank($this->nom)) {
+        $email = trim((string) $this->email);
+        $nom = trim((string) $this->nom);
+
+        // Critères de doublon réellement applicables : même e-mail, ou même nom
+        // dans la même entreprise. Sans critère, on ne cherche RIEN (sinon un
+        // WHERE vide ramènerait tous les contacts → faux doublons).
+        $critereEmail = $email !== '';
+        $critereNom = $nom !== '' && filled($this->entreprise_id);
+
+        if (! $critereEmail && ! $critereNom) {
             return collect();
         }
 
         return Contact::query()
             ->when($this->contact, fn ($q) => $q->whereKeyNot($this->contact->id))
-            ->where(function ($q) {
-                if (filled($this->email)) {
-                    $q->orWhere('email', $this->email);
+            ->where(function ($q) use ($email, $nom, $critereEmail, $critereNom) {
+                if ($critereEmail) {
+                    $q->orWhereRaw('LOWER(email) = ?', [mb_strtolower($email)]);
                 }
-                if (filled($this->nom) && filled($this->entreprise_id)) {
+                if ($critereNom) {
                     $q->orWhere(fn ($sub) => $sub
-                        ->where('nom', $this->nom)
+                        ->where('nom', $nom)
                         ->where('entreprise_id', $this->entreprise_id));
                 }
             })

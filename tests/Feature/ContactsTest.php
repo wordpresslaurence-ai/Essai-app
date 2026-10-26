@@ -99,6 +99,25 @@ it('archive puis désarchive un contact', function () {
     expect($contact->fresh()->estArchive())->toBeFalse();
 });
 
+it('ne signale pas de faux doublons pour un contact sans e-mail ni entreprise', function () {
+    Contact::factory()->create(['nom' => 'ContactExistant', 'email' => 'autre@exemple.be']);
+
+    Livewire::test(Formulaire::class)
+        ->set('type', Contact::TYPE_PERSONNE)
+        ->set('nom', 'NouveauSansMail')
+        ->set('email', '')
+        ->assertDontSee('ContactExistant'); // aucun doublon affiché
+});
+
+it('signale un doublon quand l’e-mail existe déjà (insensible à la casse)', function () {
+    Contact::factory()->create(['nom' => 'DejaLa', 'email' => 'dup@exemple.be']);
+
+    Livewire::test(Formulaire::class)
+        ->set('nom', 'Nouveau')
+        ->set('email', 'DUP@exemple.be')
+        ->assertSee('DejaLa');
+});
+
 it('importe un CSV en ignorant les lignes invalides', function () {
     $csv = "nom,email,type\n".
         "Durand,marie@exemple.be,personne\n".
