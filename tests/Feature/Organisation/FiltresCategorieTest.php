@@ -56,25 +56,26 @@ it('filtre par catégorie sans avoir choisi de pôle, et vide le pôle', functio
 
 it('masque par défaut les contacts d’une catégorie « masquée », et peut les afficher', function () {
     $dormant = Categorie::create(['pole_id' => $this->prana->id, 'nom' => 'Dormant', 'masquer_par_defaut' => true]);
-    Contact::factory()->create(['nom' => 'Actif', 'categorie_id' => $this->formation->id]);
+    // Nom distinctif (évite une collision avec « Actifs » du filtre statut).
+    Contact::factory()->create(['nom' => 'Reveille', 'categorie_id' => $this->formation->id]);
     Contact::factory()->create(['nom' => 'Endormi', 'categorie_id' => $dormant->id]);
 
     // Par défaut : le dormant est masqué.
     Livewire::test(Liste::class)
-        ->assertSee('Actif')
+        ->assertSee('Reveille')
         ->assertDontSee('Endormi');
 
     // Case « afficher les masqués » : il réapparaît.
     Livewire::test(Liste::class)
         ->set('inclureMasques', true)
-        ->assertSee('Actif')
+        ->assertSee('Reveille')
         ->assertSee('Endormi');
 
     // Filtrer explicitement sur la catégorie dormante : il s'affiche aussi.
     Livewire::test(Liste::class)
         ->set('categorie', (string) $dormant->id)
         ->assertSee('Endormi')
-        ->assertDontSee('Actif');
+        ->assertDontSee('Reveille');
 });
 
 it('bascule le masquage d’une catégorie depuis l’organisation', function () {
