@@ -143,19 +143,22 @@ class AssistantClaude implements AssistantIA
         }
 
         $systeme = <<<'TXT'
-            Tu es l'assistant de Laurence (« Prana Vidya »). Pour ce mail, tu combines l'expertise
-            d'un rédacteur en copywriting, d'un spécialiste du marketing bienveillant et d'une
-            formatrice de profs de yoga expérimentée. Rédige un brouillon de mail de PROSPECTION en
-            français vers un prof de yoga, pour l'inviter à rejoindre la formation.
-            Appuie-toi sur « l'offre & les liens » de la catégorie et le contexte du contact fournis
-            ci-dessous : n'invente aucun fait, prix ou date qui n'y figure pas. Tu ne peux PAS ouvrir
-            les liens : fonde-toi sur la description fournie et présente les liens comme des appels à
-            l'action (« en savoir plus », « s'inscrire »). Style : expert, crédible et chaleureux,
-            JAMAIS insistant ni trop commercial ; donne sincèrement envie de s'inscrire avec une
-            invitation claire et motivante. Personnalise avec les infos du contact. Rédige un mail
-            COMPLET et termine toujours tes phrases (ne t'arrête jamais au milieu d'une phrase).
-            Réponds UNIQUEMENT par un objet JSON avec les clés "objet" (court et engageant) et
-            "corps" (le mail complet, signé « Laurence »).
+            Tu es l'assistant de Laurence (coach bien-être « Prana Vidya »). Pour ce mail, tu combines
+            l'expertise d'un rédacteur en copywriting et d'un spécialiste du marketing bienveillant.
+            Rédige un brouillon de mail de PROSPECTION en français adressé au contact ci-dessous, pour
+            lui présenter L'OFFRE DÉCRITE DANS LE CONTEXTE (section « offre & liens », source
+            principale) et l'inviter à la découvrir. L'objet comme le corps doivent porter sur CETTE
+            offre précise (celle de la catégorie du contact), jamais sur une autre offre, et ne la
+            présente pas comme une formation si ce n'en est pas une.
+            Appuie-toi uniquement sur « l'offre & les liens » et le contexte du contact fournis :
+            n'invente aucun fait, prix ou date qui n'y figure pas. Tu ne peux PAS ouvrir les liens :
+            fonde-toi sur la description fournie et présente les liens comme des appels à l'action
+            (« en savoir plus », « s'inscrire »). Style : expert, crédible et chaleureux, JAMAIS
+            insistant ni trop commercial ; donne sincèrement envie avec une invitation claire et
+            motivante. Personnalise avec les infos du contact. Rédige un mail COMPLET et termine
+            toujours tes phrases (ne t'arrête jamais au milieu d'une phrase). Réponds UNIQUEMENT par
+            un objet JSON avec les clés "objet" (court, engageant et centré sur l'offre) et "corps"
+            (le mail complet, signé « Laurence »).
             TXT;
 
         $utilisateur = $this->contexteProspection($contact, $p, $angle);
@@ -163,8 +166,10 @@ class AssistantClaude implements AssistantIA
         $texte = $this->envoyer($p, $systeme, $utilisateur, 3000);
         $json = $this->decoderJson($texte);
 
+        $objetDefaut = $cat ? 'Découvrir « '.$cat->libelleComplet().' »' : 'Une proposition pour vous';
+
         return new ResultatProspection(
-            objet: (string) ($json['objet'] ?? 'Découvrir la formation Prana Vidya'),
+            objet: (string) ($json['objet'] ?? $objetDefaut),
             corps: filled($json['corps'] ?? null)
                 ? (string) $json['corps']
                 : 'Le brouillon n’a pas pu être généré entièrement. Clique à nouveau sur « Rédiger ».',

@@ -261,3 +261,35 @@ it('insère les liens de la catégorie du contact dans la requête de prospectio
 
     Http::assertSent(fn ($request) => str_contains(json_encode($request->data()), 'formation-prana'));
 });
+
+it('prospecte sur l’offre de la catégorie courante (pas une autre) et sans forcer « la formation »', function () {
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test', 'pitch_prospection' => null]);
+
+    $pole = App\Models\Pole::create(['nom' => 'Prana']);
+    $cat = App\Models\Categorie::create([
+        'pole_id' => $pole->id, 'nom' => 'Journée aura et chakra',
+        'offre' => 'Journée de nettoyage de l’aura et équilibrage des chakras.',
+    ]);
+    $contact = Contact::factory()->create(['categorie_id' => $cat->id]);
+
+    Http::fake([
+        'api.anthropic.com/*' => Http::response([
+            'content' => [['type' => 'text', 'text' => json_encode(['objet' => 'O', 'corps' => 'C Laurence'])]],
+        ], 200),
+    ]);
+
+    (new AssistantClaude())->redigerProspection($contact);
+
+    Http::assertSent(function ($request) {
+        $charge = json_encode($request->data());
+
+        // L'offre de la catégorie courante est bien transmise…
+        expect($charge)->toContain('Journée aura et chakra');
+        expect($charge)->toContain('aura');
+
+        // …et le prompt système n'impose plus « rejoindre la formation ».
+        expect($charge)->not->toContain('rejoindre la formation');
+
+        return true;
+    });
+});
