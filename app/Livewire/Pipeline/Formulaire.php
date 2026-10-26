@@ -26,6 +26,8 @@ class Formulaire extends Component
 
     public ?string $date_creation = null;
 
+    public ?string $role = null;
+
     public string $etape = Opportunite::ETAPE_NOUVEAU;
 
     public ?string $notes = null;
@@ -39,6 +41,7 @@ class Formulaire extends Component
             $this->categorie_id = $opportunite->categorie_id ? (string) $opportunite->categorie_id : null;
             $this->montant = $opportunite->montant !== null ? (string) $opportunite->montant : null;
             $this->date_creation = $opportunite->date_creation?->format('Y-m-d');
+            $this->role = $opportunite->role;
             $this->etape = $opportunite->etape;
             $this->notes = $opportunite->notes;
 
@@ -118,6 +121,7 @@ class Formulaire extends Component
             'categorie_id' => ['nullable', 'exists:categories,id'],
             'montant' => ['nullable', 'numeric', 'min:0'],
             'date_creation' => ['nullable', 'date'],
+            'role' => ['nullable', Rule::in(array_keys(Opportunite::ROLES))],
             'etape' => ['required', Rule::in(array_keys(Opportunite::libellesEtapes()))],
             'notes' => ['nullable', 'string'],
         ];
@@ -161,6 +165,7 @@ class Formulaire extends Component
         return view('livewire.pipeline.formulaire', [
             'contacts' => Contact::actifs()->orderBy('nom')->get(['id', 'nom', 'prenom', 'type']),
             'libelles' => Opportunite::libellesEtapes(),
+            'roles' => Opportunite::ROLES,
             'poles' => Pole::with('categories')->orderBy('ordre')->orderBy('nom')->get(),
         ]);
     }

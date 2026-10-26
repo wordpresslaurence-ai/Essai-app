@@ -124,7 +124,7 @@
                     @forelse ($contact->opportunites as $op)
                         <a href="{{ route('pipeline.modifier', $op) }}" class="lb-prow" wire:navigate wire:key="op-{{ $op->id }}" style="text-decoration:none">
                             <span class="lb-dot" style="width:10px;height:10px;background:var(--{{ \App\Models\Opportunite::couleurEtape($op->etape) }})"></span>
-                            <div style="min-width:0"><div class="nm lb-truncate">{{ $op->titre }}</div><div class="mt">{{ $op->libelleEtape() }}</div></div>
+                            <div style="min-width:0"><div class="nm lb-truncate">{{ $op->titre }}</div><div class="mt">{{ $op->libelleEtape() }}@if ($op->libelleRole()) · {{ $op->libelleRole() }}@endif</div></div>
                             @if ($op->montant)<span class="serif" style="margin-left:auto;font-weight:600;color:var(--accent)">{{ number_format($op->montant, 0, ',', ' ') }} €</span>@endif
                         </a>
                     @empty

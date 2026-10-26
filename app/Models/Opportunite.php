@@ -30,12 +30,20 @@ class Opportunite extends Model
     /** Jours sans changement d'étape au-delà desquels une opportunité « stagne ». */
     public const JOURS_STAGNATION = 21;
 
+    /** Rôle du contact pour cette opportunité. */
+    public const ROLES = [
+        'participant' => 'Participant',
+        'partenaire' => 'Partenaire',
+        'les_deux' => 'Les deux',
+    ];
+
     protected $fillable = [
         'titre',
         'contact_id',
         'categorie_id',
         'montant',
         'date_creation',
+        'role',
         'etape',
         'etape_changee_le',
         'notes',
@@ -100,6 +108,23 @@ class Opportunite extends Model
     public function libelleEtape(): string
     {
         return self::libellesEtapes()[$this->etape] ?? $this->etape;
+    }
+
+    /** Libellé lisible du rôle (ou null si non renseigné). */
+    public function libelleRole(): ?string
+    {
+        return $this->role ? (self::ROLES[$this->role] ?? $this->role) : null;
+    }
+
+    /** Couleur d'accent par rôle (jetons du design system). */
+    public static function couleurRole(?string $role): string
+    {
+        return match ($role) {
+            'participant' => 'lav',
+            'partenaire' => 'gold',
+            'les_deux' => 'mint',
+            default => 'muted',
+        };
     }
 
     // --- Relations -----------------------------------------------------------

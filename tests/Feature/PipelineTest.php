@@ -127,3 +127,32 @@ it('initialise la date de création au jour même et l’enregistre', function (
     $op = Opportunite::where('titre', 'Avec date')->firstOrFail();
     expect($op->date_creation?->toDateString())->toBe(now()->toDateString());
 });
+
+it('enregistre le rôle de l’opportunité', function () {
+    Livewire::test(Formulaire::class)
+        ->set('titre', 'Partenariat aura')
+        ->set('role', 'partenaire')
+        ->call('enregistrer')
+        ->assertHasNoErrors();
+
+    expect(Opportunite::where('titre', 'Partenariat aura')->firstOrFail()->role)->toBe('partenaire');
+});
+
+it('refuse un rôle hors liste', function () {
+    Livewire::test(Formulaire::class)
+        ->set('titre', 'Mauvais rôle')
+        ->set('role', 'nimporte')
+        ->call('enregistrer')
+        ->assertHasErrors(['role']);
+});
+
+it('filtre le pipeline par rôle', function () {
+    $c = Contact::factory()->create();
+    Opportunite::create(['titre' => 'DealPartenaire', 'contact_id' => $c->id, 'role' => 'partenaire', 'etape' => Opportunite::ETAPE_NOUVEAU]);
+    Opportunite::create(['titre' => 'DealParticipant', 'contact_id' => $c->id, 'role' => 'participant', 'etape' => Opportunite::ETAPE_NOUVEAU]);
+
+    Livewire::test(Tableau::class)
+        ->set('role', 'partenaire')
+        ->assertSee('DealPartenaire')
+        ->assertDontSee('DealParticipant');
+});

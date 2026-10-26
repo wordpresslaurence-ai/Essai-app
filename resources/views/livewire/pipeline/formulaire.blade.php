@@ -47,7 +47,17 @@
             </div>
         </div>
 
-        <div class="mt-5">
+        <div class="grid gap-5 sm:grid-cols-2 mt-5">
+            <div>
+                <label for="role" class="lb-label">Rôle</label>
+                <select id="role" wire:model="role" class="lb-field">
+                    <option value="">— Non précisé —</option>
+                    @foreach ($roles as $cle => $lib)
+                        <option value="{{ $cle }}">{{ $lib }}</option>
+                    @endforeach
+                </select>
+                @error('role') <p class="lb-error">{{ $message }}</p> @enderror
+            </div>
             <div>
                 <label for="categorie_id" class="lb-label">Catégorie</label>
                 @if ($poles->isEmpty())

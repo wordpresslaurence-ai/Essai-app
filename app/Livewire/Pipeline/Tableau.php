@@ -24,6 +24,10 @@ class Tableau extends Component
     #[Url]
     public string $categorie = '';
 
+    /** Filtre par rôle (participant / partenaire / les_deux). */
+    #[Url]
+    public string $role = '';
+
     /** Changer de pôle réinitialise la catégorie choisie. */
     public function updatedPole(): void
     {
@@ -60,6 +64,7 @@ class Tableau extends Component
                 $this->categorie === '' && $this->pole !== '',
                 fn ($q) => $q->whereHas('categorie', fn ($c) => $c->where('pole_id', $this->pole))
             )
+            ->when($this->role !== '', fn ($q) => $q->where('role', $this->role))
             ->orderByDesc('montant')
             ->get()
             ->groupBy('etape');
@@ -78,6 +83,7 @@ class Tableau extends Component
         return view('livewire.pipeline.tableau', [
             'colonnes' => $colonnes,
             'libelles' => Opportunite::libellesEtapes(),
+            'roles' => Opportunite::ROLES,
             'nbPerdus' => Opportunite::perdues()->count(),
             'poles' => Pole::with('categories')->orderBy('ordre')->orderBy('nom')->get(),
         ]);

@@ -36,6 +36,13 @@
                 </select>
             @endif
         @endif
+
+        <select wire:model.live="role" class="lb-select" aria-label="Rôle">
+            <option value="">Tous les rôles</option>
+            @foreach ($roles as $cle => $lib)
+                <option value="{{ $cle }}">{{ $lib }}</option>
+            @endforeach
+        </select>
     </div>
 
     {{-- Kanban --}}
@@ -60,6 +67,9 @@
                                     <div style="font-weight:600;font-size:13.5px;color:var(--ink)">{{ $op->titre }}</div>
                                     @if ($op->contact)
                                         <div class="lb-muted" style="font-size:12px;margin-top:2px">{{ $op->contact->nomComplet() }}</div>
+                                    @endif
+                                    @if ($op->libelleRole())
+                                        <span class="lb-badge lb-av-{{ \App\Models\Opportunite::couleurRole($op->role) }}" style="margin-top:5px;font-size:11px">{{ $op->libelleRole() }}</span>
                                     @endif
                                     @if ($op->montant)
                                         <div class="serif" style="font-size:18px;font-weight:600;color:var(--accent);margin-top:5px;font-variant-numeric:tabular-nums">{{ number_format($op->montant, 0, ',', ' ') }} €</div>
