@@ -11,12 +11,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Categorie extends Model
 {
-    protected $fillable = ['pole_id', 'nom', 'couleur', 'ordre', 'offre', 'liens'];
+    protected $fillable = ['pole_id', 'nom', 'couleur', 'ordre', 'offre', 'liens', 'masquer_par_defaut'];
 
     protected function casts(): array
     {
         return [
             'liens' => 'array',
+            'masquer_par_defaut' => 'boolean',
         ];
     }
 

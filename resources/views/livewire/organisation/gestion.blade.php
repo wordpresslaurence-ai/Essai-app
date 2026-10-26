@@ -86,6 +86,11 @@
                             <span wire:key="cat-{{ $cat->id }}" class="lb-tag" style="gap:7px">
                                 <span class="lb-dot" style="width:11px;height:11px;background:{{ $cat->couleur ?? 'var(--lav)' }}"></span>
                                 {{ $cat->nom }}
+                                @if ($cat->masquer_par_defaut)<span class="lb-muted" style="font-size:11px">· masquée</span>@endif
+                                <button type="button" wire:click="basculerMasquage({{ $cat->id }})"
+                                        title="{{ $cat->masquer_par_defaut ? 'Afficher dans le carnet par défaut' : 'Masquer dans le carnet par défaut' }}"
+                                        aria-label="Masquer ou afficher la catégorie dans le carnet"
+                                        style="border:0;background:none;cursor:pointer;color:var(--text-muted);font-size:13px;line-height:1">{{ $cat->masquer_par_defaut ? '🙈' : '👁️' }}</button>
                                 <button type="button" wire:click="editerCategorie({{ $cat->id }})"
                                         title="Renommer" aria-label="Renommer la catégorie"
                                         style="border:0;background:none;cursor:pointer;color:var(--text-muted);font-size:12px;line-height:1">✎</button>

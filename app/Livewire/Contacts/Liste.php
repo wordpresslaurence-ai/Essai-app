@@ -48,6 +48,10 @@ class Liste extends Component
     #[Url]
     public string $categorie = '';
 
+    /** Afficher aussi les catégories « masquées par défaut » (ex. dormant). */
+    #[Url]
+    public bool $inclureMasques = false;
+
     /** Colonne de tri. */
     #[Url]
     public string $tri = 'nom';
@@ -59,7 +63,7 @@ class Liste extends Component
     /** Réinitialise la pagination dès qu'un filtre change. */
     public function updating($name): void
     {
-        if (in_array($name, ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie'], true)) {
+        if (in_array($name, ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'inclureMasques'], true)) {
             $this->resetPage();
         }
     }
@@ -112,7 +116,7 @@ class Liste extends Component
 
     public function reinitialiserFiltres(): void
     {
-        $this->reset(['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie']);
+        $this->reset(['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'inclureMasques']);
         $this->resetPage();
     }
 
@@ -148,6 +152,14 @@ class Liste extends Component
             ->when(
                 $this->categorie === '' && $this->pole !== '',
                 fn ($q) => $q->whereHas('categorie', fn ($c) => $c->where('pole_id', $this->pole))
+            )
+            // Catégories masquées par défaut (ex. « dormant ») : exclues sauf si on
+            // les demande explicitement (filtre catégorie) ou via « inclure masqués ».
+            ->when(
+                $this->categorie === '' && ! $this->inclureMasques,
+                fn ($q) => $q->where(fn ($sub) => $sub
+                    ->whereNull('categorie_id')
+                    ->orWhereDoesntHave('categorie', fn ($c) => $c->where('masquer_par_defaut', true)))
             )
             ->orderBy($triAutorise, $sensAutorise)
             ->paginate(15);

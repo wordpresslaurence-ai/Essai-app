@@ -85,6 +85,11 @@
             <option value="nom">Trier : nom</option>
             <option value="updated_at">Trier : récent</option>
         </select>
+
+        <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text-muted)">
+            <input type="checkbox" wire:model.live="inclureMasques" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+            Afficher les masqués
+        </label>
     </div>
 
     {{-- Cartes --}}

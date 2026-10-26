@@ -113,6 +113,15 @@ class Gestion extends Component
         session()->flash('message', 'Catégorie supprimée.');
     }
 
+    /** Masque / affiche par défaut les contacts de cette catégorie dans le carnet. */
+    public function basculerMasquage(Categorie $categorie): void
+    {
+        $categorie->update(['masquer_par_defaut' => ! $categorie->masquer_par_defaut]);
+        session()->flash('message', $categorie->masquer_par_defaut
+            ? 'Catégorie « '.$categorie->nom.' » masquée par défaut dans le carnet.'
+            : 'Catégorie « '.$categorie->nom.' » affichée dans le carnet.');
+    }
+
     public function editerCategorie(Categorie $categorie): void
     {
         $this->resetValidation();
