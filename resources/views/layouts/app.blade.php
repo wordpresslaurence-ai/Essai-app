@@ -25,9 +25,23 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div class="lb-shell">
+        <div class="lb-shell" x-data="{ menu: false }" @keydown.escape.window="menu = false">
+            {{-- Barre supérieure (mobile uniquement) --}}
+            <header class="lb-topbar">
+                <button type="button" class="lb-burger" @click="menu = true" aria-label="Ouvrir le menu">
+                    <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+                </button>
+                <a href="{{ route('dashboard') }}" class="lb-brand" wire:navigate style="gap:9px" @click="menu = false">
+                    <img src="{{ asset('images/prana-vidya-logo-epais-transparent.png') }}" alt="" class="tb-logo">
+                    <span class="tb-name">Laurence B.</span>
+                </a>
+            </header>
+
+            {{-- Voile derrière le tiroir (mobile) --}}
+            <button type="button" class="lb-backdrop" x-show="menu" x-transition.opacity x-cloak @click="menu = false" aria-label="Fermer le menu"></button>
+
             {{-- Barre latérale (logo unique en tête) --}}
-            <aside class="lb-side">
+            <aside class="lb-side" :class="{ 'open': menu }" @click="menu = false">
                 <a href="{{ route('dashboard') }}" class="lb-brand" wire:navigate>
                     <img src="{{ asset('images/prana-vidya-logo-epais-transparent.png') }}" alt="Logo Laurence B.">
                     <span>
