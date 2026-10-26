@@ -8,7 +8,17 @@
             <p class="lb-muted" style="font-size:13.5px">
                 Sélectionne un fichier CSV (par exemple exporté depuis Odoo). La première ligne doit
                 contenir les noms de colonnes. Séparateur « , » ou « ; » accepté.
+                Les colonnes sont reconnues automatiquement (y compris les intitulés Odoo), et tu
+                peux corriger chaque correspondance à l'étape suivante.
             </p>
+            <div class="mt-3">
+                <button type="button" wire:click="telechargerModele" class="lb-btn lb-btn-ghost" style="font-size:13px">
+                    ⬇️ Télécharger le modèle CSV (avec exemples)
+                </button>
+                <p class="lb-muted" style="font-size:12px;margin-top:6px">
+                    Remplis une ligne par contact. Les colonnes facultatives peuvent rester vides ou être supprimées.
+                </p>
+            </div>
             <div class="mt-4">
                 <label for="fichier" class="lb-label">Fichier CSV</label>
                 <input id="fichier" type="file" wire:model="fichier" accept=".csv,text/csv" class="lb-field" style="box-shadow:var(--raise-sm)">

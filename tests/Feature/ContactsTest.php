@@ -119,6 +119,80 @@ it('importe un CSV en ignorant les lignes invalides', function () {
     expect(Contact::count())->toBe(2); // la ligne sans nom a été ignorée
 });
 
+it('importe les nouveaux champs : origine, expérience, discipline (clé ou libellé)', function () {
+    $csv = "nom;origine;experience_yoga;discipline;fait_observe\n".
+        "Nidra;Instagram;Professeurs de yoga;Yoga nidra;Anime des ateliers\n".
+        "Keys;instagram;professeurs;Hatha yoga;\n";
+
+    $fichier = UploadedFile::fake()->createWithContent('contacts.csv', $csv);
+
+    Livewire::test(ImportCsv::class)
+        ->set('fichier', $fichier)
+        ->call('importer')
+        ->assertSet('rapport.importes', 2);
+
+    $libelle = Contact::where('nom', 'Nidra')->firstOrFail();
+    expect($libelle->origine)->toBe('instagram');            // libellé « Instagram » -> clé
+    expect($libelle->experience_yoga)->toBe('professeurs');
+    expect($libelle->discipline)->toBe('Yoga nidra');
+    expect($libelle->fait_observe)->toBe('Anime des ateliers');
+
+    $parCle = Contact::where('nom', 'Keys')->firstOrFail();
+    expect($parCle->origine)->toBe('instagram');             // clé directe acceptée aussi
+});
+
+it('ignore une origine hors liste sans bloquer l’import', function () {
+    $csv = "nom;origine\nTest;ValeurBidon\n";
+    $fichier = UploadedFile::fake()->createWithContent('contacts.csv', $csv);
+
+    Livewire::test(ImportCsv::class)
+        ->set('fichier', $fichier)
+        ->call('importer')
+        ->assertSet('rapport.importes', 1);
+
+    expect(Contact::where('nom', 'Test')->firstOrFail()->origine)->toBeNull();
+});
+
+it('rattache la catégorie (par nom) et les étiquettes à l’import', function () {
+    $pole = App\Models\Pole::create(['nom' => 'Prana']);
+    $cat = App\Models\Categorie::create(['pole_id' => $pole->id, 'nom' => 'Formation profs de yoga']);
+
+    $csv = "nom;categorie;etiquettes\n".
+        "Marie;formation profs de yoga;Prospect|Intéressé formation profs\n";
+
+    $fichier = UploadedFile::fake()->createWithContent('contacts.csv', $csv);
+
+    Livewire::test(ImportCsv::class)
+        ->set('fichier', $fichier)
+        ->call('importer')
+        ->assertSet('rapport.importes', 1);
+
+    $contact = Contact::where('nom', 'Marie')->firstOrFail();
+    expect($contact->categorie_id)->toBe($cat->id);          // catégorie résolue par nom
+    expect($contact->etiquettes()->pluck('nom')->sort()->values()->all())
+        ->toBe(['Intéressé formation profs', 'Prospect']);    // étiquettes créées + rattachées
+});
+
+it('reconnaît des intitulés de colonnes façon Odoo', function () {
+    // En-têtes typiques d'un export Odoo (res.partner).
+    $csv = "Name,Email,Phone,Job Position,Street,Zip,City,Country,VAT\n".
+        "Studio Zen,contact@zen.be,+32 81 22,Gérant,Rue Zen 1,5000,Namur,BE,BE0403.170.701\n";
+
+    $fichier = UploadedFile::fake()->createWithContent('odoo.csv', $csv);
+
+    Livewire::test(ImportCsv::class)
+        ->set('fichier', $fichier)
+        ->call('importer')
+        ->assertSet('rapport.importes', 1);
+
+    $contact = Contact::where('nom', 'Studio Zen')->firstOrFail();
+    expect($contact->email)->toBe('contact@zen.be');
+    expect($contact->fonction)->toBe('Gérant');              // « Job Position » -> fonction
+    expect($contact->adresse_code_postal)->toBe('5000');     // « Zip » -> code postal
+    expect($contact->adresse_ville)->toBe('Namur');
+    expect($contact->numero_tva)->toBe('BE0403.170.701');    // « VAT » -> n° TVA
+});
+
 it('enregistre et affiche le lien du compte / profil', function () {
     Livewire::test(Formulaire::class)
         ->set('type', Contact::TYPE_PERSONNE)
