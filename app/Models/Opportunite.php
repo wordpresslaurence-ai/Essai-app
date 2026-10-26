@@ -35,6 +35,7 @@ class Opportunite extends Model
         'contact_id',
         'categorie_id',
         'montant',
+        'date_creation',
         'etape',
         'etape_changee_le',
         'notes',
@@ -45,6 +46,7 @@ class Opportunite extends Model
     {
         return [
             'montant' => 'decimal:2',
+            'date_creation' => 'date',
             'date_cloture' => 'date',
             'etape_changee_le' => 'datetime',
         ];
@@ -52,10 +54,14 @@ class Opportunite extends Model
 
     protected static function booted(): void
     {
-        // À la création, on initialise la date de dernier changement d'étape.
+        // À la création, on initialise la date de dernier changement d'étape
+        // et, à défaut, la date de création au jour même.
         static::creating(function (self $opp) {
             if ($opp->etape_changee_le === null) {
                 $opp->etape_changee_le = now();
+            }
+            if ($opp->date_creation === null) {
+                $opp->date_creation = now()->toDateString();
             }
         });
     }

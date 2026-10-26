@@ -2,8 +2,10 @@
 
 use App\Livewire\Pipeline\Formulaire;
 use App\Livewire\Pipeline\Tableau;
+use App\Models\Categorie;
 use App\Models\Contact;
 use App\Models\Opportunite;
+use App\Models\Pole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -82,4 +84,46 @@ it('affiche un lien vers la fiche du contact dans le formulaire opportunité', f
 
     Livewire::test(Formulaire::class, ['opportunite' => $op])
         ->assertSee('Voir la fiche du contact');
+});
+
+it('pré-remplit titre, contact, catégorie et montant depuis la fiche d’un contact', function () {
+    $pole = Pole::create(['nom' => 'Digital']);
+    $cat = Categorie::create(['pole_id' => $pole->id, 'nom' => 'Site web', 'prix' => 1200]);
+    $contact = Contact::factory()->create(['nom' => 'Durand', 'prenom' => 'Marie', 'categorie_id' => $cat->id]);
+
+    Livewire::withQueryParams(['contact' => $contact->id])
+        ->test(Formulaire::class)
+        ->assertSet('titre', 'Opportunité — Marie Durand')
+        ->assertSet('contact_id', (string) $contact->id)
+        ->assertSet('categorie_id', (string) $cat->id)
+        ->assertSet('montant', '1200.00');
+});
+
+it('pré-remplit le montant avec le prix de la catégorie choisie', function () {
+    $pole = Pole::create(['nom' => 'Prana']);
+    $cat = Categorie::create(['pole_id' => $pole->id, 'nom' => 'Formation', 'prix' => 950]);
+
+    Livewire::test(Formulaire::class)
+        ->set('categorie_id', (string) $cat->id)
+        ->assertSet('montant', '950.00');
+});
+
+it('n’écrase pas un montant déjà saisi quand on choisit une catégorie', function () {
+    $pole = Pole::create(['nom' => 'Prana']);
+    $cat = Categorie::create(['pole_id' => $pole->id, 'nom' => 'Formation', 'prix' => 950]);
+
+    Livewire::test(Formulaire::class)
+        ->set('montant', '500')
+        ->set('categorie_id', (string) $cat->id)
+        ->assertSet('montant', '500');
+});
+
+it('initialise la date de création au jour même et l’enregistre', function () {
+    Livewire::test(Formulaire::class)
+        ->assertSet('date_creation', now()->toDateString())
+        ->set('titre', 'Avec date')
+        ->call('enregistrer');
+
+    $op = Opportunite::where('titre', 'Avec date')->firstOrFail();
+    expect($op->date_creation?->toDateString())->toBe(now()->toDateString());
 });

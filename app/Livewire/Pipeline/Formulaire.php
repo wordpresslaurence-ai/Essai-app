@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pipeline;
 
+use App\Models\Categorie;
 use App\Models\Contact;
 use App\Models\Opportunite;
 use App\Models\Pole;
@@ -23,6 +24,8 @@ class Formulaire extends Component
 
     public ?string $montant = null;
 
+    public ?string $date_creation = null;
+
     public string $etape = Opportunite::ETAPE_NOUVEAU;
 
     public ?string $notes = null;
@@ -35,8 +38,33 @@ class Formulaire extends Component
             $this->contact_id = $opportunite->contact_id ? (string) $opportunite->contact_id : null;
             $this->categorie_id = $opportunite->categorie_id ? (string) $opportunite->categorie_id : null;
             $this->montant = $opportunite->montant !== null ? (string) $opportunite->montant : null;
+            $this->date_creation = $opportunite->date_creation?->format('Y-m-d');
             $this->etape = $opportunite->etape;
             $this->notes = $opportunite->notes;
+
+            return;
+        }
+
+        // Création : date au jour même par défaut.
+        $this->date_creation = now()->toDateString();
+
+        // Depuis la fiche d'un contact (…/pipeline/creer?contact=ID) : pré-remplit
+        // le titre « Opportunité — <nom> », rattache le contact, sa catégorie et le
+        // prix de référence de celle-ci.
+        $contactId = request()->integer('contact');
+
+        if ($contactId) {
+            $contact = Contact::find($contactId);
+
+            if ($contact) {
+                $this->contact_id = (string) $contact->id;
+                $this->titre = 'Opportunité — '.$contact->nomComplet();
+
+                if ($contact->categorie_id) {
+                    $this->categorie_id = (string) $contact->categorie_id;
+                    $this->prefillMontantDepuisCategorie();
+                }
+            }
         }
     }
 
@@ -54,6 +82,31 @@ class Formulaire extends Component
 
         if ($categorieContact) {
             $this->categorie_id = (string) $categorieContact;
+            $this->prefillMontantDepuisCategorie();
+        }
+    }
+
+    /** À la sélection d'une catégorie, pré-remplit le montant avec son prix de référence. */
+    public function updatedCategorieId(): void
+    {
+        $this->prefillMontantDepuisCategorie();
+    }
+
+    /**
+     * Reporte le prix de référence de la catégorie choisie dans le montant,
+     * sans écraser un montant déjà saisi.
+     */
+    protected function prefillMontantDepuisCategorie(): void
+    {
+        if (blank($this->categorie_id) || filled($this->montant)) {
+            return;
+        }
+
+        // On passe par le modèle pour bénéficier du cast decimal:2 (ex. « 1200.00 »).
+        $prix = Categorie::whereKey($this->categorie_id)->first()?->prix;
+
+        if ($prix !== null) {
+            $this->montant = (string) $prix;
         }
     }
 
@@ -64,6 +117,7 @@ class Formulaire extends Component
             'contact_id' => ['nullable', 'exists:contacts,id'],
             'categorie_id' => ['nullable', 'exists:categories,id'],
             'montant' => ['nullable', 'numeric', 'min:0'],
+            'date_creation' => ['nullable', 'date'],
             'etape' => ['required', Rule::in(array_keys(Opportunite::libellesEtapes()))],
             'notes' => ['nullable', 'string'],
         ];

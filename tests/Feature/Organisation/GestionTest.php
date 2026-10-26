@@ -156,6 +156,33 @@ it('renomme une catégorie', function () {
     expect(Categorie::find($cat->id)->nom)->toBe('Formation profs');
 });
 
+it('enregistre un prix de référence à la création d’une catégorie', function () {
+    $pole = Pole::create(['nom' => 'Digital']);
+
+    Livewire::test(Gestion::class)
+        ->set('categoriePoleId', $pole->id)
+        ->set('categorieNom', 'Site vitrine')
+        ->set('categoriePrix', '1500')
+        ->call('ajouterCategorie')
+        ->assertHasNoErrors();
+
+    expect((float) Categorie::where('nom', 'Site vitrine')->firstOrFail()->prix)->toBe(1500.0);
+});
+
+it('modifie le prix de référence d’une catégorie', function () {
+    $pole = Pole::create(['nom' => 'Prana']);
+    $cat = Categorie::create(['pole_id' => $pole->id, 'nom' => 'Formation profs', 'prix' => 100]);
+
+    Livewire::test(Gestion::class)
+        ->call('editerCategorie', $cat->id)
+        ->assertSet('categorieEditPrix', '100.00')
+        ->set('categorieEditPrix', '2500')
+        ->call('renommerCategorie')
+        ->assertHasNoErrors();
+
+    expect((float) $cat->refresh()->prix)->toBe(2500.0);
+});
+
 it('exige une connexion pour accéder à l’organisation', function () {
     auth()->logout();
     $this->get(route('organisation.index'))->assertRedirect(route('login'));

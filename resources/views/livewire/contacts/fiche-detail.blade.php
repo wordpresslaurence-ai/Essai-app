@@ -118,7 +118,7 @@
             <div class="lb-card" style="padding:20px">
                 <div class="flex items-center justify-between">
                     <h3 class="lb-h3" style="font-size:19px">Opportunités</h3>
-                    <a href="{{ route('pipeline.creer') }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>+ Ajouter</a>
+                    <a href="{{ route('pipeline.creer', ['contact' => $contact->id]) }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>+ Ajouter</a>
                 </div>
                 <div class="lb-people mt-3">
                     @forelse ($contact->opportunites as $op)

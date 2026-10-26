@@ -41,6 +41,11 @@
                 <input id="categorieNom" type="text" wire:model="categorieNom" placeholder="ex. Formation profs, Sites web…" class="lb-field">
                 @error('categorieNom') <p class="lb-error">{{ $message }}</p> @enderror
             </div>
+            <div style="width:7rem">
+                <label for="categoriePrix" class="lb-label">Prix (€)</label>
+                <input id="categoriePrix" type="number" step="0.01" min="0" wire:model="categoriePrix" placeholder="0,00" class="lb-field">
+                @error('categoriePrix') <p class="lb-error">{{ $message }}</p> @enderror
+            </div>
             <div>
                 <label for="categorieCouleur" class="lb-label">Couleur</label>
                 <input id="categorieCouleur" type="color" wire:model="categorieCouleur" class="lb-field" style="height:44px;width:60px;padding:4px;box-shadow:var(--raise-sm)">
@@ -77,15 +82,18 @@
                     @forelse ($pole->categories as $cat)
                         @if ($categorieEditId === $cat->id)
                             <form wire:key="cat-edit-{{ $cat->id }}" wire:submit="renommerCategorie" class="flex items-center gap-2">
-                                <input type="text" wire:model="categorieEditNom" class="lb-field" style="max-width:14rem" autofocus>
+                                <input type="text" wire:model="categorieEditNom" class="lb-field" style="max-width:14rem" autofocus placeholder="Nom">
+                                <input type="number" step="0.01" min="0" wire:model="categorieEditPrix" class="lb-field" style="max-width:7rem" placeholder="Prix €">
                                 <button type="submit" class="lb-btn lb-btn-primary" style="padding:6px 11px;font-size:12px">OK</button>
                                 <button type="button" wire:click="annulerEditionCategorie" class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px">Annuler</button>
                                 @error('categorieEditNom') <span class="lb-error">{{ $message }}</span> @enderror
+                                @error('categorieEditPrix') <span class="lb-error">{{ $message }}</span> @enderror
                             </form>
                         @else
                             <span wire:key="cat-{{ $cat->id }}" class="lb-tag" style="gap:7px">
                                 <span class="lb-dot" style="width:11px;height:11px;background:{{ $cat->couleur ?? 'var(--lav)' }}"></span>
                                 {{ $cat->nom }}
+                                @if ($cat->prix !== null)<span class="lb-muted" style="font-size:11px">· {{ rtrim(rtrim(number_format((float) $cat->prix, 2, ',', ' '), '0'), ',') }} €</span>@endif
                                 @if ($cat->masquer_par_defaut)<span class="lb-muted" style="font-size:11px">· masquée</span>@endif
                                 <button type="button" wire:click="basculerMasquage({{ $cat->id }})"
                                         title="{{ $cat->masquer_par_defaut ? 'Afficher dans le carnet par défaut' : 'Masquer dans le carnet par défaut' }}"

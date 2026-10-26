@@ -28,6 +28,8 @@ class Gestion extends Component
 
     public ?string $categorieCouleur = '#6C74B4';
 
+    public ?string $categoriePrix = null;
+
     // Renommage en ligne
     public ?int $poleEditId = null;
 
@@ -36,6 +38,8 @@ class Gestion extends Component
     public ?int $categorieEditId = null;
 
     public string $categorieEditNom = '';
+
+    public ?string $categorieEditPrix = null;
 
     public function ajouterPole(): void
     {
@@ -92,6 +96,7 @@ class Gestion extends Component
                 Rule::unique('categories', 'nom')->where('pole_id', $this->categoriePoleId),
             ],
             'categorieCouleur' => ['nullable', 'string', 'max:20'],
+            'categoriePrix' => ['nullable', 'numeric', 'min:0'],
         ], [
             'categoriePoleId.required' => 'Choisis un pôle.',
             'categorieNom.unique' => 'Cette catégorie existe déjà dans ce pôle.',
@@ -101,9 +106,12 @@ class Gestion extends Component
             'pole_id' => $donnees['categoriePoleId'],
             'nom' => $donnees['categorieNom'],
             'couleur' => $donnees['categorieCouleur'],
+            'prix' => $donnees['categoriePrix'] !== null && $donnees['categoriePrix'] !== ''
+                ? $donnees['categoriePrix']
+                : null,
         ]);
 
-        $this->reset('categorieNom');
+        $this->reset('categorieNom', 'categoriePrix');
         session()->flash('message', 'Catégorie ajoutée.');
     }
 
@@ -127,6 +135,7 @@ class Gestion extends Component
         $this->resetValidation();
         $this->categorieEditId = $categorie->id;
         $this->categorieEditNom = $categorie->nom;
+        $this->categorieEditPrix = $categorie->prix !== null ? (string) $categorie->prix : null;
         $this->poleEditId = null;
     }
 
@@ -139,13 +148,19 @@ class Gestion extends Component
                 'required', 'string', 'max:255',
                 Rule::unique('categories', 'nom')->where('pole_id', $categorie->pole_id)->ignore($categorie->id),
             ],
+            'categorieEditPrix' => ['nullable', 'numeric', 'min:0'],
         ], [
             'categorieEditNom.unique' => 'Cette catégorie existe déjà dans ce pôle.',
         ]);
 
-        $categorie->update(['nom' => $donnees['categorieEditNom']]);
+        $categorie->update([
+            'nom' => $donnees['categorieEditNom'],
+            'prix' => $donnees['categorieEditPrix'] !== null && $donnees['categorieEditPrix'] !== ''
+                ? $donnees['categorieEditPrix']
+                : null,
+        ]);
         $this->categorieEditId = null;
-        session()->flash('message', 'Catégorie renommée.');
+        session()->flash('message', 'Catégorie enregistrée.');
     }
 
     public function annulerEditionCategorie(): void

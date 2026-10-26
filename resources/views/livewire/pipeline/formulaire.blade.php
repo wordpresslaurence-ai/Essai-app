@@ -33,6 +33,11 @@
 
         <div class="grid gap-5 sm:grid-cols-2 mt-5">
             <div>
+                <label for="date_creation" class="lb-label">Date de création</label>
+                <input id="date_creation" type="date" wire:model="date_creation" class="lb-field">
+                @error('date_creation') <p class="lb-error">{{ $message }}</p> @enderror
+            </div>
+            <div>
                 <label for="etape" class="lb-label">Étape</label>
                 <select id="etape" wire:model="etape" class="lb-field">
                     @foreach ($libelles as $cle => $lib)
@@ -40,6 +45,9 @@
                     @endforeach
                 </select>
             </div>
+        </div>
+
+        <div class="mt-5">
             <div>
                 <label for="categorie_id" class="lb-label">Catégorie</label>
                 @if ($poles->isEmpty())
@@ -48,7 +56,7 @@
                         <a href="{{ route('organisation.index') }}" wire:navigate style="color:var(--accent)">En créer</a>.
                     </p>
                 @else
-                    <select id="categorie_id" wire:model="categorie_id" class="lb-field">
+                    <select id="categorie_id" wire:model.live="categorie_id" class="lb-field">
                         <option value="">— Sans catégorie —</option>
                         @foreach ($poles as $pole)
                             <optgroup label="{{ $pole->nom }}">
