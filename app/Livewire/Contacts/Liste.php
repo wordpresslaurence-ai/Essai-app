@@ -140,7 +140,11 @@ class Liste extends Component
                 fn ($q) => $q->where('temperature', $this->temperature)
             )
             ->when($this->origine !== '', fn ($q) => $q->where('origine', $this->origine))
-            ->when($this->categorie !== '', fn ($q) => $q->where('categorie_id', $this->categorie))
+            ->when($this->categorie === 'aucune', fn ($q) => $q->whereNull('categorie_id'))
+            ->when(
+                $this->categorie !== '' && $this->categorie !== 'aucune',
+                fn ($q) => $q->where('categorie_id', $this->categorie)
+            )
             ->when(
                 $this->categorie === '' && $this->pole !== '',
                 fn ($q) => $q->whereHas('categorie', fn ($c) => $c->where('pole_id', $this->pole))

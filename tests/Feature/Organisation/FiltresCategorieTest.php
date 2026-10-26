@@ -54,6 +54,16 @@ it('filtre par catégorie sans avoir choisi de pôle, et vide le pôle', functio
         ->assertDontSee('ContactSites');
 });
 
+it('filtre les contacts sans catégorie', function () {
+    Contact::factory()->create(['nom' => 'Classe', 'categorie_id' => $this->formation->id]);
+    Contact::factory()->create(['nom' => 'SansCateg', 'categorie_id' => null]);
+
+    Livewire::test(Liste::class)
+        ->set('categorie', 'aucune')
+        ->assertSee('SansCateg')
+        ->assertDontSee('Classe');
+});
+
 it('réinitialise la catégorie quand on change de pôle', function () {
     Livewire::test(Liste::class)
         ->set('pole', (string) $this->prana->id)

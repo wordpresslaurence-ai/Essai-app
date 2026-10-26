@@ -68,6 +68,7 @@
             {{-- Filtre catégorie toujours disponible, groupé par pôle --}}
             <select wire:model.live="categorie" class="lb-select" aria-label="Catégorie">
                 <option value="">Toutes les catégories</option>
+                <option value="aucune">— Sans catégorie —</option>
                 @foreach ($poles as $p)
                     @if ($p->categories->isNotEmpty())
                         <optgroup label="{{ $p->nom }}">
