@@ -281,7 +281,8 @@ it('prospecte sur l’offre de la catégorie courante (pas une autre) et sans fo
     (new AssistantClaude())->redigerProspection($contact);
 
     Http::assertSent(function ($request) {
-        $charge = json_encode($request->data());
+        // JSON_UNESCAPED_UNICODE : sinon les accents sont échappés (é) et ne matchent pas.
+        $charge = json_encode($request->data(), JSON_UNESCAPED_UNICODE);
 
         // L'offre de la catégorie courante est bien transmise…
         expect($charge)->toContain('Journée aura et chakra');
