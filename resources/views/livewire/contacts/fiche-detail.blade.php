@@ -74,8 +74,24 @@
 
             {{-- Profil yoga & prospection --}}
             @php
-                $aProfilYoga = filled($contact->discipline) || $contact->libelleExperienceYoga()
-                    || filled($contact->fait_observe) || filled($contact->angle_contact);
+                $champsProfil = [
+                    'Discipline enseignée' => $contact->discipline,
+                    'Précisions sur les disciplines' => $contact->discipline_precision,
+                    'Expérience du yoga' => $contact->libelleExperienceYoga(),
+                    'Précisions sur le public' => $contact->public_precision,
+                    'Formats proposés' => $contact->formats_proposes,
+                    'Langues de communication' => $contact->langues,
+                    'Fait observé' => $contact->fait_observe,
+                    'Angle de premier contact' => $contact->angle_contact,
+                    'Rôle commercial envisagé' => $contact->role_commercial,
+                    'Priorité de prospection' => $contact->libellePriorite(),
+                    'Intérêt exprimé' => $contact->interet_exprime,
+                    'Besoin exprimé' => $contact->besoin_exprime,
+                    'URL des sources' => $contact->url_sources,
+                    'Date de vérification' => $contact->date_verification?->translatedFormat('d/m/Y'),
+                ];
+                $champsProfil = array_filter($champsProfil, fn ($v) => filled($v));
+                $aProfilYoga = $champsProfil !== [];
             @endphp
             @if ($aProfilYoga)
                 <div class="lb-card" style="padding:20px" x-data="{ ouvert: false }">
@@ -88,30 +104,12 @@
                         </svg>
                     </button>
                     <div class="lb-people mt-3" x-show="ouvert" x-cloak x-transition>
-                        @if (filled($contact->discipline))
+                        @foreach ($champsProfil as $libelle => $valeur)
                             <div class="lb-prow" style="display:block;padding:12px 14px">
-                                <div class="nm">Discipline enseignée</div>
-                                <div style="margin-top:4px;color:var(--text);font-size:14px;line-height:1.5">{{ $contact->discipline }}</div>
+                                <div class="nm">{{ $libelle }}</div>
+                                <div style="margin-top:4px;color:var(--text);font-size:14px;line-height:1.5;white-space:pre-line">{{ $valeur }}</div>
                             </div>
-                        @endif
-                        @if ($contact->libelleExperienceYoga())
-                            <div class="lb-prow" style="display:block;padding:12px 14px">
-                                <div class="nm">Expérience du yoga</div>
-                                <div style="margin-top:4px;color:var(--text);font-size:14px;line-height:1.5">{{ $contact->libelleExperienceYoga() }}</div>
-                            </div>
-                        @endif
-                        @if (filled($contact->fait_observe))
-                            <div class="lb-prow" style="display:block;padding:12px 14px">
-                                <div class="nm">Fait observé</div>
-                                <div style="margin-top:4px;color:var(--text);font-size:14px;line-height:1.5;white-space:pre-line">{{ $contact->fait_observe }}</div>
-                            </div>
-                        @endif
-                        @if (filled($contact->angle_contact))
-                            <div class="lb-prow" style="display:block;padding:12px 14px">
-                                <div class="nm">Angle de premier contact</div>
-                                <div style="margin-top:4px;color:var(--text);font-size:14px;line-height:1.5;white-space:pre-line">{{ $contact->angle_contact }}</div>
-                            </div>
-                        @endif
+                        @endforeach
                     </div>
                 </div>
             @endif
@@ -408,6 +406,12 @@
                         <span class="lb-dot" style="background:{{ $contact->estEntreprise() ? 'var(--mint)' : 'var(--lav)' }}"></span>
                         {{ $contact->estEntreprise() ? 'Entreprise' : 'Personne' }}
                     </span>
+                    @if ($contact->ne_plus_contacter)
+                        <span class="lb-badge" style="background:var(--terra-tint);color:var(--terra)">🚫 Ne plus contacter</span>
+                    @endif
+                    @if ($contact->libellePriorite())
+                        <span class="lb-badge" style="background:var(--gold-tint);color:var(--accent)">Priorité : {{ $contact->libellePriorite() }}</span>
+                    @endif
                     @if ($contact->estArchive())
                         <span class="lb-tag" style="background:var(--gold-tint);color:var(--accent)">Archivé</span>
                     @endif
@@ -512,9 +516,24 @@
                     <div>
                         <div class="k">Adresse</div>
                         <div class="val">
-                            {{ collect([$contact->adresse_rue, trim(($contact->adresse_code_postal ?? '').' '.($contact->adresse_ville ?? '')), $contact->adresse_pays])->filter()->join(', ') ?: '—' }}
+                            {{ collect([$contact->adresse_rue, trim(($contact->adresse_code_postal ?? '').' '.($contact->adresse_ville ?? '')), $contact->region, $contact->adresse_pays])->filter()->join(', ') ?: '—' }}
                         </div>
                     </div>
+
+                    @php $reseaux = array_filter(['LinkedIn' => $contact->linkedin, 'Instagram' => $contact->instagram, 'Facebook' => $contact->facebook]); @endphp
+                    @if ($reseaux !== [])
+                        <div>
+                            <div class="k">Réseaux sociaux</div>
+                            <div class="val" style="flex-wrap:wrap;gap:6px 14px">
+                                @foreach ($reseaux as $nom => $lien)
+                                    <span>{{ $nom }} : <span class="lb-muted">{{ $lien }}</span></span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                    @if (filled($contact->langues))
+                        <div><div class="k">Langues</div><div class="val">{{ $contact->langues }}</div></div>
+                    @endif
 
                     @if ($contact->notes)
                         <div>

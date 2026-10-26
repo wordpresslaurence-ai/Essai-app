@@ -43,6 +43,32 @@ it('enregistre les champs profil yoga & origine du contact', function () {
     expect($contact->origine_precision)->toBe('Recommandée par Sophie');
 });
 
+it('enregistre les champs de prospection et le drapeau « ne plus contacter »', function () {
+    Livewire::test(Formulaire::class)
+        ->set('type', Contact::TYPE_PERSONNE)
+        ->set('nom', 'Prospect')
+        ->set('region', 'Wallonie')
+        ->set('linkedin', 'linkedin.com/in/x')
+        ->set('langues', 'FR, EN')
+        ->set('discipline_precision', 'aussi méditation')
+        ->set('formats_proposes', 'ateliers')
+        ->set('role_commercial', 'Partenaire')
+        ->set('priorite_prospection', 'haute')
+        ->set('besoin_exprime', 'formation')
+        ->set('date_verification', '2026-10-15')
+        ->set('ne_plus_contacter', true)
+        ->call('enregistrer')
+        ->assertHasNoErrors();
+
+    $c = Contact::where('nom', 'Prospect')->firstOrFail();
+    expect($c->region)->toBe('Wallonie');
+    expect($c->linkedin)->toBe('linkedin.com/in/x');
+    expect($c->priorite_prospection)->toBe('haute');
+    expect($c->libellePriorite())->toBe('Haute');
+    expect($c->ne_plus_contacter)->toBeTrue();
+    expect($c->date_verification?->format('Y-m-d'))->toBe('2026-10-15');
+});
+
 it('refuse une origine hors liste', function () {
     Livewire::test(Formulaire::class)
         ->set('nom', 'Test')

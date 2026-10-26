@@ -30,6 +30,13 @@ class Contact extends Model
         'a_qualifier' => ['À qualifier', 'muted'],
     ];
 
+    /** Priorité de prospection (choix unique). */
+    public const PRIORITES = [
+        'haute' => 'Haute',
+        'moyenne' => 'Moyenne',
+        'basse' => 'Basse',
+    ];
+
     /** Expérience du yoga du contact (choix unique). */
     public const EXPERIENCES_YOGA = [
         'debutants' => 'Débutants',
@@ -104,9 +111,24 @@ class Contact extends Model
         'numero_entreprise',
         'numero_tva',
         'secteur',
+        'region',
+        'linkedin',
+        'instagram',
+        'facebook',
+        'langues',
         'discipline',
+        'discipline_precision',
+        'public_precision',
+        'formats_proposes',
         'fait_observe',
         'angle_contact',
+        'role_commercial',
+        'priorite_prospection',
+        'interet_exprime',
+        'besoin_exprime',
+        'url_sources',
+        'date_verification',
+        'ne_plus_contacter',
         'experience_yoga',
         'origine',
         'origine_precision',
@@ -126,6 +148,8 @@ class Contact extends Model
         return [
             'archived_at' => 'datetime',
             'newsletter_exporte_le' => 'datetime',
+            'date_verification' => 'date',
+            'ne_plus_contacter' => 'boolean',
         ];
     }
 
@@ -331,6 +355,14 @@ class Contact extends Model
     {
         return filled($this->experience_yoga)
             ? (self::EXPERIENCES_YOGA[$this->experience_yoga] ?? $this->experience_yoga)
+            : null;
+    }
+
+    /** Libellé lisible de la priorité de prospection (ou null). */
+    public function libellePriorite(): ?string
+    {
+        return filled($this->priorite_prospection)
+            ? (self::PRIORITES[$this->priorite_prospection] ?? $this->priorite_prospection)
             : null;
     }
 

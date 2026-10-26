@@ -34,6 +34,7 @@ class ExportNewsletter extends Component
     {
         return Contact::query()
             ->actifs()
+            ->where('ne_plus_contacter', false)
             ->whereNotNull('email')
             ->where('email', '!=', '')
             ->when($this->etiquette !== '', fn (Builder $q) => $q->whereHas(

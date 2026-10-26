@@ -46,6 +46,7 @@ class ImportCsv extends Component
             'adresse_rue' => 'Rue',
             'adresse_code_postal' => 'Code postal',
             'adresse_ville' => 'Ville',
+            'region' => 'Région',
             'adresse_pays' => 'Pays',
             'type' => 'Type (personne/entreprise)',
             'prenom' => 'Prénom',
@@ -53,16 +54,30 @@ class ImportCsv extends Component
             'numero_entreprise' => "N° d'entreprise (BCE)",
             'numero_tva' => 'N° de TVA',
             'site_web' => 'Site web',
+            'linkedin' => 'LinkedIn',
+            'instagram' => 'Instagram',
+            'facebook' => 'Facebook',
+            'langues' => 'Langues de communication',
             'secteur' => 'Secteur',
             'url_profil' => 'Compte / lien',
             'categorie' => 'Catégorie (nom)',
             'temperature' => 'Température',
             'origine' => 'Origine du contact',
             'origine_precision' => 'Précisions sur l’origine',
+            'url_sources' => 'URL des sources',
+            'date_verification' => 'Date de vérification',
             'discipline' => 'Discipline enseignée',
-            'experience_yoga' => 'Expérience du yoga',
+            'discipline_precision' => 'Précisions sur les disciplines',
+            'experience_yoga' => 'Expérience du yoga (public)',
+            'public_precision' => 'Précisions sur le public',
+            'formats_proposes' => 'Formats proposés',
             'fait_observe' => 'Fait observé',
             'angle_contact' => 'Angle de premier contact',
+            'role_commercial' => 'Rôle commercial envisagé',
+            'priorite_prospection' => 'Priorité de prospection',
+            'interet_exprime' => 'Intérêt exprimé',
+            'besoin_exprime' => 'Besoin exprimé',
+            'ne_plus_contacter' => 'Ne plus contacter (oui/non)',
             'notes' => 'Notes',
             'etiquettes' => 'Étiquettes (séparées par , ou |)',
         ];
@@ -101,20 +116,35 @@ class ImportCsv extends Component
             str_contains($e, 'mobile') || str_contains($e, 'tel') || str_contains($e, 'phone') || str_contains($e, 'gsm') => 'telephone',
             str_contains($e, 'tva') || str_contains($e, 'vat') => 'numero_tva',
             str_contains($e, 'bce') || str_contains($e, 'kbo') || str_contains($e, 'company_registry') || str_contains($e, "n° d'entreprise") => 'numero_entreprise',
+            str_contains($e, 'linkedin') => 'linkedin',
+            str_contains($e, 'instagram') || str_contains($e, 'insta') => 'instagram',
+            str_contains($e, 'facebook') => 'facebook',
             str_contains($e, 'profil') || str_contains($e, 'compte') => 'url_profil',
             str_contains($e, 'web') || str_contains($e, 'site') => 'site_web',
+            str_contains($e, 'langue') || str_contains($e, 'language') || str_contains($e, 'lang') => 'langues',
             str_contains($e, 'secteur') || str_contains($e, 'industry') => 'secteur',
             str_contains($e, 'rue') || str_contains($e, 'street') || str_contains($e, 'adresse') => 'adresse_rue',
             str_contains($e, 'postal') || $e === 'cp' || str_contains($e, 'zip') => 'adresse_code_postal',
             str_contains($e, 'ville') || str_contains($e, 'city') => 'adresse_ville',
+            str_contains($e, 'région') || str_contains($e, 'region') || str_contains($e, 'province') || str_contains($e, 'state') => 'region',
             str_contains($e, 'pays') || str_contains($e, 'country') => 'adresse_pays',
+            str_contains($e, 'disciplines') && (str_contains($e, 'précis') || str_contains($e, 'precis')) => 'discipline_precision',
+            str_contains($e, 'public') && (str_contains($e, 'précis') || str_contains($e, 'precis')) => 'public_precision',
             str_contains($e, 'précision') || str_contains($e, 'precision') => 'origine_precision',
             str_contains($e, 'origine') || str_contains($e, 'origin') || $e === 'source' => 'origine',
+            str_contains($e, 'url') && str_contains($e, 'source') => 'url_sources',
+            str_contains($e, 'vérif') || str_contains($e, 'verif') => 'date_verification',
             str_contains($e, 'températ') || str_contains($e, 'temperat') => 'temperature',
             str_contains($e, 'discipline') => 'discipline',
-            str_contains($e, 'expérience') || str_contains($e, 'experience') || str_contains($e, 'niveau') => 'experience_yoga',
+            str_contains($e, 'public') || str_contains($e, 'expérience') || str_contains($e, 'experience') || str_contains($e, 'niveau') => 'experience_yoga',
+            str_contains($e, 'format') => 'formats_proposes',
             str_contains($e, 'observ') => 'fait_observe',
             str_contains($e, 'angle') => 'angle_contact',
+            str_contains($e, 'rôle') || str_contains($e, 'role') => 'role_commercial',
+            str_contains($e, 'priorité') || str_contains($e, 'priorite') || str_contains($e, 'priority') => 'priorite_prospection',
+            str_contains($e, 'intérêt') || str_contains($e, 'interet') || str_contains($e, 'interest') => 'interet_exprime',
+            str_contains($e, 'besoin') || str_contains($e, 'need') => 'besoin_exprime',
+            str_contains($e, 'ne plus contacter') || str_contains($e, 'opt-out') || str_contains($e, 'opt out') || str_contains($e, 'do not') || str_contains($e, 'blacklist') => 'ne_plus_contacter',
             str_contains($e, 'catégor') || str_contains($e, 'categor') => 'categorie',
             str_contains($e, 'étiquet') || str_contains($e, 'etiquet') || str_contains($e, 'tag') => 'etiquettes',
             str_contains($e, 'note') || str_contains($e, 'comment') => 'notes',
@@ -196,6 +226,7 @@ class ImportCsv extends Component
             'temperature' => $this->libellesTemperatures(),
             'origine' => Contact::ORIGINES,
             'experience_yoga' => Contact::EXPERIENCES_YOGA,
+            'priorite_prospection' => Contact::PRIORITES,
         ];
 
         foreach ($listes as $champ => $map) {
@@ -209,7 +240,48 @@ class ImportCsv extends Component
             }
         }
 
+        // « Ne plus contacter » : oui/non, true/false, 1/0, x, vrai/faux…
+        if (isset($donnees['ne_plus_contacter'])) {
+            $donnees['ne_plus_contacter'] = $this->versBooleen($donnees['ne_plus_contacter']);
+        }
+
+        // Date de vérification : on ne garde qu'une date lisible, sinon on ignore.
+        if (isset($donnees['date_verification'])) {
+            $date = $this->versDate($donnees['date_verification']);
+            if ($date === null) {
+                unset($donnees['date_verification']);
+            } else {
+                $donnees['date_verification'] = $date;
+            }
+        }
+
         return $donnees;
+    }
+
+    /** Interprète une valeur « oui/non » tolérante en booléen. */
+    protected function versBooleen(string $valeur): bool
+    {
+        $v = mb_strtolower(trim($valeur));
+
+        return in_array($v, ['1', 'oui', 'yes', 'true', 'vrai', 'x', 'y', 'o'], true);
+    }
+
+    /** Normalise une date (formats FR/ISO) en AAAA-MM-JJ, ou null si illisible. */
+    protected function versDate(string $valeur): ?string
+    {
+        $valeur = trim($valeur);
+        if ($valeur === '') {
+            return null;
+        }
+
+        foreach (['Y-m-d', 'd/m/Y', 'd-m-Y', 'd.m.Y', 'Y/m/d'] as $format) {
+            $date = \DateTime::createFromFormat($format, $valeur);
+            if ($date instanceof \DateTime) {
+                return $date->format('Y-m-d');
+            }
+        }
+
+        return null;
     }
 
     /** Clé d'une liste dont la valeur correspond à la clé ou au libellé (sinon null). */
@@ -388,14 +460,22 @@ class ImportCsv extends Component
                 'type' => 'personne', 'nom' => 'Dubois', 'prenom' => 'Marie',
                 'fonction' => 'Professeure de yoga', 'email' => 'marie.dubois@exemple.be',
                 'telephone' => '+32 475 11 22 33', 'site_web' => 'https://exemple.be',
-                'secteur' => 'Bien-être', 'adresse_rue' => 'Rue des Fleurs 10',
-                'adresse_code_postal' => '5000', 'adresse_ville' => 'Namur', 'adresse_pays' => 'BE',
+                'linkedin' => 'linkedin.com/in/marie-dubois', 'instagram' => '@marie.yoga',
+                'langues' => 'FR, NL', 'secteur' => 'Bien-être', 'region' => 'Wallonie',
+                'adresse_rue' => 'Rue des Fleurs 10', 'adresse_code_postal' => '5000',
+                'adresse_ville' => 'Namur', 'adresse_pays' => 'BE',
                 'notes' => 'Rencontrée au salon', 'temperature' => 'Intérêt élevé',
                 'origine' => 'Salon ou événement', 'origine_precision' => 'Salon Zen Namur 2026',
-                'discipline' => 'Yoga nidra', 'experience_yoga' => 'Professeurs de yoga',
+                'url_sources' => 'instagram.com/marie.yoga', 'date_verification' => '15/10/2026',
+                'discipline' => 'Yoga nidra', 'discipline_precision' => 'Aussi méditation guidée',
+                'experience_yoga' => 'Professeurs de yoga', 'public_precision' => 'Surtout des adultes',
+                'formats_proposes' => 'Cours collectifs, ateliers',
                 'fait_observe' => 'Enseigne le nidra ; propose des ateliers.',
                 'angle_contact' => 'Explorer le prana en complément du nidra.',
-                'url_profil' => 'instagram.com/marie.yoga', 'categorie' => 'Formation profs de yoga',
+                'role_commercial' => 'Future partenaire', 'priorite_prospection' => 'Haute',
+                'interet_exprime' => 'Approfondir le prana', 'besoin_exprime' => 'Formation certifiante',
+                'ne_plus_contacter' => 'non', 'url_profil' => 'instagram.com/marie.yoga',
+                'categorie' => 'Formation profs de yoga',
                 'etiquettes' => 'Prospect|Intéressé formation profs',
             ],
             [

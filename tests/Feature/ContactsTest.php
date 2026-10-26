@@ -173,6 +173,39 @@ it('rattache la catégorie (par nom) et les étiquettes à l’import', function
         ->toBe(['Intéressé formation profs', 'Prospect']);    // étiquettes créées + rattachées
 });
 
+it('importe les champs de prospection (priorité, date, ne plus contacter)', function () {
+    $csv = "nom;region;linkedin;priorite_prospection;date_verification;ne_plus_contacter\n".
+        "Alpha;Wallonie;linkedin.com/in/a;Haute;15/10/2026;oui\n".
+        "Beta;;;;;non\n";
+
+    $fichier = UploadedFile::fake()->createWithContent('contacts.csv', $csv);
+
+    Livewire::test(ImportCsv::class)
+        ->set('fichier', $fichier)
+        ->call('importer')
+        ->assertSet('rapport.importes', 2);
+
+    $a = Contact::where('nom', 'Alpha')->firstOrFail();
+    expect($a->region)->toBe('Wallonie');
+    expect($a->linkedin)->toBe('linkedin.com/in/a');
+    expect($a->priorite_prospection)->toBe('haute');       // « Haute » -> clé
+    expect($a->date_verification?->format('Y-m-d'))->toBe('2026-10-15'); // JJ/MM/AAAA -> date
+    expect($a->ne_plus_contacter)->toBeTrue();
+
+    expect(Contact::where('nom', 'Beta')->firstOrFail()->ne_plus_contacter)->toBeFalse();
+});
+
+it('exclut « ne plus contacter » de l’export newsletter', function () {
+    $joignable = Contact::factory()->create(['nom' => 'Joignable', 'email' => 'ok@x.be', 'ne_plus_contacter' => false]);
+    $exclu = Contact::factory()->create(['nom' => 'Exclu', 'email' => 'non@x.be', 'ne_plus_contacter' => true]);
+
+    // L'export marque les contacts ciblés comme exportés : l'exclu ne doit pas l'être.
+    Livewire::test(App\Livewire\Contacts\ExportNewsletter::class)->call('exporter');
+
+    expect($joignable->refresh()->newsletter_exporte_le)->not->toBeNull();
+    expect($exclu->refresh()->newsletter_exporte_le)->toBeNull();
+});
+
 it('reconnaît des intitulés de colonnes façon Odoo', function () {
     // En-têtes typiques d'un export Odoo (res.partner).
     $csv = "Name,Email,Phone,Job Position,Street,Zip,City,Country,VAT\n".

@@ -116,6 +116,33 @@
                     <label for="adresse_pays" class="lb-label" style="font-weight:500;color:var(--text-muted)">Pays</label>
                     <input id="adresse_pays" type="text" wire:model="adresse_pays" class="lb-field">
                 </div>
+                <div>
+                    <label for="region" class="lb-label" style="font-weight:500;color:var(--text-muted)">Région</label>
+                    <input id="region" type="text" wire:model="region" class="lb-field" placeholder="ex. Wallonie, Bruxelles…">
+                </div>
+            </div>
+        </fieldset>
+
+        {{-- Présence en ligne --}}
+        <fieldset class="mt-6">
+            <legend class="lb-label" style="margin-bottom:10px">Présence en ligne (facultatif)</legend>
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label for="linkedin" class="lb-label" style="font-weight:500;color:var(--text-muted)">LinkedIn</label>
+                    <input id="linkedin" type="text" wire:model="linkedin" placeholder="linkedin.com/in/…" class="lb-field">
+                </div>
+                <div>
+                    <label for="instagram" class="lb-label" style="font-weight:500;color:var(--text-muted)">Instagram</label>
+                    <input id="instagram" type="text" wire:model="instagram" placeholder="@compte ou lien" class="lb-field">
+                </div>
+                <div>
+                    <label for="facebook" class="lb-label" style="font-weight:500;color:var(--text-muted)">Facebook</label>
+                    <input id="facebook" type="text" wire:model="facebook" placeholder="facebook.com/…" class="lb-field">
+                </div>
+                <div>
+                    <label for="langues" class="lb-label" style="font-weight:500;color:var(--text-muted)">Langues de communication</label>
+                    <input id="langues" type="text" wire:model="langues" placeholder="ex. FR, NL, EN" class="lb-field">
+                </div>
             </div>
         </fieldset>
 
@@ -221,6 +248,20 @@
                     @error('experience_yoga') <p class="lb-error">{{ $message }}</p> @enderror
                 </div>
             </div>
+            <div class="grid gap-5 sm:grid-cols-2 mt-4">
+                <div>
+                    <label for="discipline_precision" class="lb-label" style="font-weight:500;color:var(--text-muted)">Précisions sur les disciplines</label>
+                    <input id="discipline_precision" type="text" wire:model="discipline_precision" class="lb-field" placeholder="ex. aussi prana nidra, méditation guidée…">
+                </div>
+                <div>
+                    <label for="public_precision" class="lb-label" style="font-weight:500;color:var(--text-muted)">Précisions sur le public</label>
+                    <input id="public_precision" type="text" wire:model="public_precision" class="lb-field" placeholder="ex. surtout des femmes 40-60 ans">
+                </div>
+            </div>
+            <div class="mt-4">
+                <label for="formats_proposes" class="lb-label" style="font-weight:500;color:var(--text-muted)">Formats proposés</label>
+                <input id="formats_proposes" type="text" wire:model="formats_proposes" class="lb-field" placeholder="ex. cours collectifs, ateliers, stages, en ligne…">
+            </div>
             <div class="mt-4">
                 <label for="fait_observe" class="lb-label" style="font-weight:500;color:var(--text-muted)">Fait observé</label>
                 <textarea id="fait_observe" rows="2" wire:model="fait_observe" placeholder="ex. Enseigne le hatha et le yoga nidra ; propose des ateliers." class="lb-field"></textarea>
@@ -233,6 +274,58 @@
                 <p class="lb-muted" style="font-size:12px;margin-top:4px">Sert d'angle par défaut quand l'assistant rédige un mail de prospection.</p>
                 @error('angle_contact') <p class="lb-error">{{ $message }}</p> @enderror
             </div>
+        </fieldset>
+
+        {{-- Prospection --}}
+        <fieldset class="mt-6">
+            <legend class="lb-label" style="margin-bottom:10px">Prospection (facultatif)</legend>
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label for="role_commercial" class="lb-label" style="font-weight:500;color:var(--text-muted)">Rôle commercial envisagé</label>
+                    <input id="role_commercial" type="text" wire:model="role_commercial" class="lb-field" placeholder="ex. future partenaire, ambassadrice…">
+                </div>
+                <div>
+                    <label for="priorite_prospection" class="lb-label" style="font-weight:500;color:var(--text-muted)">Priorité de prospection</label>
+                    <select id="priorite_prospection" wire:model="priorite_prospection" class="lb-field">
+                        <option value="">—</option>
+                        @foreach (\App\Models\Contact::PRIORITES as $cle => $libelle)
+                            <option value="{{ $cle }}">{{ $libelle }}</option>
+                        @endforeach
+                    </select>
+                    @error('priorite_prospection') <p class="lb-error">{{ $message }}</p> @enderror
+                </div>
+            </div>
+            <div class="grid gap-5 sm:grid-cols-2 mt-4">
+                <div>
+                    <label for="interet_exprime" class="lb-label" style="font-weight:500;color:var(--text-muted)">Intérêt exprimé</label>
+                    <textarea id="interet_exprime" rows="2" wire:model="interet_exprime" class="lb-field" placeholder="ce que la personne a montré comme intérêt"></textarea>
+                </div>
+                <div>
+                    <label for="besoin_exprime" class="lb-label" style="font-weight:500;color:var(--text-muted)">Besoin exprimé</label>
+                    <textarea id="besoin_exprime" rows="2" wire:model="besoin_exprime" class="lb-field" placeholder="le besoin ou la problématique évoquée"></textarea>
+                </div>
+            </div>
+        </fieldset>
+
+        {{-- Vérification & contact --}}
+        <fieldset class="mt-6">
+            <legend class="lb-label" style="margin-bottom:10px">Vérification & contact (facultatif)</legend>
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                    <label for="url_sources" class="lb-label" style="font-weight:500;color:var(--text-muted)">URL des sources</label>
+                    <textarea id="url_sources" rows="2" wire:model="url_sources" class="lb-field" placeholder="liens d'où viennent les infos (profil, annuaire, article…)"></textarea>
+                </div>
+                <div>
+                    <label for="date_verification" class="lb-label" style="font-weight:500;color:var(--text-muted)">Date de vérification</label>
+                    <input id="date_verification" type="date" wire:model="date_verification" class="lb-field">
+                    @error('date_verification') <p class="lb-error">{{ $message }}</p> @enderror
+                </div>
+            </div>
+            <label style="display:inline-flex;align-items:center;gap:10px;cursor:pointer;margin-top:14px">
+                <input type="checkbox" wire:model="ne_plus_contacter" style="width:18px;height:18px;accent-color:var(--terra);cursor:pointer">
+                <span style="font-weight:600;color:var(--text)">Ne plus contacter</span>
+                <span class="lb-muted" style="font-size:12.5px">(exclu automatiquement des exports newsletter)</span>
+            </label>
         </fieldset>
 
         {{-- Étiquettes --}}

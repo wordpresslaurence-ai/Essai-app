@@ -40,11 +40,41 @@ class Formulaire extends Component
 
     public ?string $secteur = null;
 
+    public ?string $region = null;
+
+    public ?string $linkedin = null;
+
+    public ?string $instagram = null;
+
+    public ?string $facebook = null;
+
+    public ?string $langues = null;
+
     public ?string $discipline = null;
+
+    public ?string $discipline_precision = null;
+
+    public ?string $public_precision = null;
+
+    public ?string $formats_proposes = null;
 
     public ?string $fait_observe = null;
 
     public ?string $angle_contact = null;
+
+    public ?string $role_commercial = null;
+
+    public ?string $priorite_prospection = null;
+
+    public ?string $interet_exprime = null;
+
+    public ?string $besoin_exprime = null;
+
+    public ?string $url_sources = null;
+
+    public ?string $date_verification = null;
+
+    public bool $ne_plus_contacter = false;
 
     public ?string $experience_yoga = null;
 
@@ -79,10 +109,14 @@ class Formulaire extends Component
             $this->fill($contact->only([
                 'type', 'nom', 'prenom', 'fonction', 'email', 'telephone',
                 'entreprise_id', 'site_web', 'numero_entreprise', 'numero_tva',
-                'secteur', 'discipline', 'fait_observe', 'angle_contact', 'experience_yoga',
-                'origine', 'origine_precision', 'url_profil', 'temperature',
+                'secteur', 'region', 'linkedin', 'instagram', 'facebook', 'langues',
+                'discipline', 'discipline_precision', 'public_precision', 'formats_proposes',
+                'fait_observe', 'angle_contact', 'role_commercial', 'priorite_prospection',
+                'interet_exprime', 'besoin_exprime', 'url_sources', 'ne_plus_contacter',
+                'experience_yoga', 'origine', 'origine_precision', 'url_profil', 'temperature',
                 'adresse_rue', 'adresse_code_postal', 'adresse_ville', 'adresse_pays', 'notes',
             ]));
+            $this->date_verification = $contact->date_verification?->format('Y-m-d');
             $this->categorie_id = $contact->categorie_id ? (string) $contact->categorie_id : null;
             $this->etiquettesSelection = $contact->etiquettes->pluck('id')->all();
         }
@@ -102,9 +136,24 @@ class Formulaire extends Component
             'numero_entreprise' => ['nullable', new NumeroEntrepriseBe],
             'numero_tva' => ['nullable', new NumeroTvaBe],
             'secteur' => ['nullable', 'string', 'max:255'],
+            'region' => ['nullable', 'string', 'max:255'],
+            'linkedin' => ['nullable', 'string', 'max:255'],
+            'instagram' => ['nullable', 'string', 'max:255'],
+            'facebook' => ['nullable', 'string', 'max:255'],
+            'langues' => ['nullable', 'string', 'max:255'],
             'discipline' => ['nullable', 'string', 'max:255'],
+            'discipline_precision' => ['nullable', 'string', 'max:2000'],
+            'public_precision' => ['nullable', 'string', 'max:2000'],
+            'formats_proposes' => ['nullable', 'string', 'max:2000'],
             'fait_observe' => ['nullable', 'string', 'max:2000'],
             'angle_contact' => ['nullable', 'string', 'max:2000'],
+            'role_commercial' => ['nullable', 'string', 'max:255'],
+            'priorite_prospection' => ['nullable', Rule::in(array_keys(Contact::PRIORITES))],
+            'interet_exprime' => ['nullable', 'string', 'max:2000'],
+            'besoin_exprime' => ['nullable', 'string', 'max:2000'],
+            'url_sources' => ['nullable', 'string', 'max:2000'],
+            'date_verification' => ['nullable', 'date'],
+            'ne_plus_contacter' => ['boolean'],
             'experience_yoga' => ['nullable', Rule::in(array_keys(Contact::EXPERIENCES_YOGA))],
             'origine' => ['nullable', Rule::in(array_keys(Contact::ORIGINES))],
             'origine_precision' => ['nullable', 'string', 'max:255'],
