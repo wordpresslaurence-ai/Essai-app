@@ -70,6 +70,14 @@ class Liste extends Component
         $this->categorie = '';
     }
 
+    /** Choisir une catégorie précise prime sur le filtre pôle (on le vide). */
+    public function updatedCategorie(): void
+    {
+        if ($this->categorie !== '') {
+            $this->pole = '';
+        }
+    }
+
     /** Change la colonne de tri (ou inverse le sens si déjà active). */
     public function trierPar(string $colonne): void
     {

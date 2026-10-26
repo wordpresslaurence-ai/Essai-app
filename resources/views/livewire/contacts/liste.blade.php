@@ -65,15 +65,19 @@
                 @endforeach
             </select>
 
-            @php($poleActif = $pole !== '' ? $poles->firstWhere('id', (int) $pole) : null)
-            @if ($poleActif && $poleActif->categories->isNotEmpty())
-                <select wire:model.live="categorie" class="lb-select" aria-label="Catégorie">
-                    <option value="">Toutes les catégories</option>
-                    @foreach ($poleActif->categories as $cat)
-                        <option value="{{ $cat->id }}">{{ $cat->nom }}</option>
-                    @endforeach
-                </select>
-            @endif
+            {{-- Filtre catégorie toujours disponible, groupé par pôle --}}
+            <select wire:model.live="categorie" class="lb-select" aria-label="Catégorie">
+                <option value="">Toutes les catégories</option>
+                @foreach ($poles as $p)
+                    @if ($p->categories->isNotEmpty())
+                        <optgroup label="{{ $p->nom }}">
+                            @foreach ($p->categories as $cat)
+                                <option value="{{ $cat->id }}">{{ $cat->nom }}</option>
+                            @endforeach
+                        </optgroup>
+                    @endif
+                @endforeach
+            </select>
         @endif
 
         <select wire:model.live="tri" class="lb-select" aria-label="Trier par">
