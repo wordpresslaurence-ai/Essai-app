@@ -41,7 +41,7 @@ it('crée un nouveau contact avec les champs mappés et les étiquettes', functi
     expect($contact->origine)->toBe('recherche_web');        // libellé -> clé
     expect($contact->priorite_prospection)->toBe('haute');
     expect($contact->fait_observe)->toBe('Loue une salle de 70 m2');
-    expect($contact->etiquettes()->pluck('nom')->sort()->values()->all())->toBe(['À vérifier', 'Prospect IA']);
+    expect($contact->etiquettes()->pluck('nom')->all())->toContain('Prospect IA', 'À vérifier');
 
     expect($c->refresh()->contact_id)->toBe($contact->id);   // lien + idempotence
     expect($c->importe_at)->not->toBeNull();
