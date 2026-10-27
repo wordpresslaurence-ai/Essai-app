@@ -56,6 +56,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('prospection', \App\Livewire\Prospection\Liste::class)->name('prospection.index');
     Route::get('prospection/creer', \App\Livewire\Prospection\Formulaire::class)->name('prospection.creer');
     Route::get('prospection/{recherche}/modifier', \App\Livewire\Prospection\Formulaire::class)->name('prospection.modifier');
+    Route::get('prospection/{recherche}/resultats', \App\Livewire\Prospection\Resultats::class)->name('prospection.resultats');
 
     // Module Pipeline
     Route::get('pipeline', PipelineTableau::class)->name('pipeline.index');

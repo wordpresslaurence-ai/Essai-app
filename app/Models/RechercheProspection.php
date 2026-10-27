@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Une campagne de prospection : paramètres validés + copie figée de l'offre.
@@ -41,6 +42,11 @@ class RechercheProspection extends Model
     public function categorie(): BelongsTo
     {
         return $this->belongsTo(Categorie::class);
+    }
+
+    public function candidats(): HasMany
+    {
+        return $this->hasMany(CandidatProspection::class);
     }
 
     /** Libellés lisibles des sources choisies. @return list<string> */

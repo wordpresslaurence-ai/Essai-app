@@ -29,7 +29,8 @@
                     </div>
                 </div>
                 <div style="margin-left:auto" class="flex items-center gap-2">
-                    <a href="{{ route('prospection.modifier', $r) }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>Ouvrir le brief</a>
+                    <a href="{{ route('prospection.modifier', $r) }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>Brief</a>
+                    <a href="{{ route('prospection.resultats', $r) }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>Résultats</a>
                     <button type="button" wire:click="supprimer({{ $r->id }})" wire:confirm="Supprimer cette recherche ?"
                             class="lb-iconbtn" style="width:30px;height:30px;color:var(--terra)" aria-label="Supprimer">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>

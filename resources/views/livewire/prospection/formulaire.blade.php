@@ -21,6 +21,9 @@
             <p class="lb-muted" style="font-size:12.5px;margin-top:4px">
                 Colle-le dans ChatGPT. Tu récupéreras un tableau + un CSV que tu pourras ensuite réimporter ici.
             </p>
+            <a href="{{ route('prospection.resultats', $recherche) }}" class="lb-btn lb-btn-ghost" style="margin-top:10px" wire:navigate>
+                Coller le résultat de ChatGPT →
+            </a>
             <pre x-ref="brief" style="white-space:pre-wrap;word-break:break-word;background:var(--bg);border-radius:12px;padding:16px;margin-top:12px;font-size:12px;line-height:1.5;box-shadow:var(--inset);max-height:420px;overflow:auto">{{ $brief }}</pre>
         </div>
     @endif
