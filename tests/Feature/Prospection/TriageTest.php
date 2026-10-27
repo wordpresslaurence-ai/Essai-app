@@ -55,6 +55,24 @@ it('signale un doublon potentiel entre deux candidats de même e-mail', function
     expect($map[$b->id]['type'])->toBe('liste');
 });
 
+it('alerte « même adresse » entre une structure et une personne au même lieu', function () {
+    // Une personne existe au carnet à cette adresse (e-mail différent).
+    Contact::factory()->create([
+        'nom' => 'Hermans', 'prenom' => 'Eve', 'email' => 'eve@perso.be',
+        'adresse_rue' => 'Chaussée d’Alsemberg 786', 'adresse_code_postal' => '1420', 'adresse_ville' => 'Braine-l’Alleud',
+    ]);
+    // Le candidat est la structure, e-mail différent, même adresse.
+    $c = candidat($this->recherche, [
+        'nom' => 'Feeling Better', 'email' => 'info@feelingbetter.be',
+        'adresse_rue' => 'Chaussée d’Alsemberg 786', 'adresse_code_postal' => '1420', 'adresse_ville' => 'Braine-l’Alleud',
+    ]);
+
+    $map = app(Dedoublonnage::class)->pour(collect([$c]));
+
+    expect($map[$c->id]['type'])->toBe('nouveau');                 // pas un doublon
+    expect($map[$c->id]['adresse_partagee'] ?? null)->toContain('Eve'); // mais alerté
+});
+
 it('marque « nouveau » un candidat sans correspondance', function () {
     $c = candidat($this->recherche, ['nom' => 'Neuf', 'email' => 'neuf@y.be']);
     $map = app(Dedoublonnage::class)->pour(collect([$c]));

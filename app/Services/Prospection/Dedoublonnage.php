@@ -16,8 +16,9 @@ class Dedoublonnage
 {
     /**
      * @param  Collection<int, \App\Models\CandidatProspection>  $candidats
-     * @return array<int, array{type: string, contact_id?: int, contact_nom?: string}>
-     *                                                            type = 'crm' (déjà au carnet), 'liste' (doublon dans la liste) ou 'nouveau'
+     * @return array<int, array{type: string, contact_id?: int, contact_nom?: string, adresse_partagee?: string}>
+     *                                                            type = 'crm' (déjà au carnet), 'liste' (doublon dans la liste) ou 'nouveau' ;
+     *                                                            adresse_partagee = nom d'une fiche/candidat au même lieu (alerte douce, pas une fusion)
      */
     public function pour(Collection $candidats): array
     {
@@ -32,6 +33,18 @@ class Dedoublonnage
             ->map(fn ($e) => mb_strtolower(trim((string) $e)))->countBy();
         $comptesUrl = $candidats->pluck('url_profil')->map(fn ($u) => self::normaliserUrl($u))
             ->filter()->countBy();
+
+        // Adresses (alerte douce : une personne et une structure peuvent partager
+        // un lieu sans être un doublon). On n'alerte que si la rue est renseignée.
+        $adrCandidats = [];
+        foreach ($candidats as $c) {
+            $a = self::normaliserAdresse($c->champ('adresse_rue'), $c->champ('adresse_code_postal'), $c->champ('adresse_ville'));
+            if ($a !== '') {
+                $adrCandidats[$c->id] = $a;
+            }
+        }
+        $comptesAdr = collect($adrCandidats)->countBy();
+        $contactsParAdresse = $adrCandidats === [] ? [] : $this->indexerAdresses();
 
         $resultat = [];
         foreach ($candidats as $c) {
@@ -55,7 +68,24 @@ class Dedoublonnage
             $doublonListe = ($email && ($comptesEmail[$email] ?? 0) > 1)
                 || ($url !== '' && ($comptesUrl[$url] ?? 0) > 1);
 
-            $resultat[$c->id] = ['type' => $doublonListe ? 'liste' : 'nouveau'];
+            $entree = ['type' => $doublonListe ? 'liste' : 'nouveau'];
+
+            // Alerte « même adresse » (seulement si pas déjà rapproché par e-mail/URL).
+            $adr = $adrCandidats[$c->id] ?? '';
+            if ($adr !== '') {
+                $nomMeme = null;
+                if (isset($contactsParAdresse[$adr])) {
+                    $nomMeme = $contactsParAdresse[$adr]->nomComplet();
+                } elseif (($comptesAdr[$adr] ?? 0) > 1) {
+                    $autre = $candidats->first(fn ($o) => $o->id !== $c->id && ($adrCandidats[$o->id] ?? '') === $adr);
+                    $nomMeme = $autre?->nom;
+                }
+                if (filled($nomMeme)) {
+                    $entree['adresse_partagee'] = $nomMeme;
+                }
+            }
+
+            $resultat[$c->id] = $entree;
         }
 
         return $resultat;
@@ -99,6 +129,39 @@ class Dedoublonnage
         }
 
         return [$parEmail, $parUrl];
+    }
+
+    /** @return array<string, Contact> contacts du carnet indexés par adresse normalisée. */
+    private function indexerAdresses(): array
+    {
+        $map = [];
+        Contact::query()->select('id', 'nom', 'prenom', 'type', 'adresse_rue', 'adresse_code_postal', 'adresse_ville')
+            ->whereNotNull('adresse_rue')
+            ->get()
+            ->each(function (Contact $c) use (&$map) {
+                $a = self::normaliserAdresse($c->adresse_rue, $c->adresse_code_postal, $c->adresse_ville);
+                if ($a !== '' && ! isset($map[$a])) {
+                    $map[$a] = $c;
+                }
+            });
+
+        return $map;
+    }
+
+    /** Clé d'adresse pour comparaison : rue|cp|ville en minuscules ; vide si pas de rue. */
+    public static function normaliserAdresse(?string $rue, ?string $cp, ?string $ville): string
+    {
+        $rueN = self::simplifier($rue);
+        if ($rueN === '') {
+            return '';
+        }
+
+        return $rueN.'|'.self::simplifier($cp).'|'.self::simplifier($ville);
+    }
+
+    private static function simplifier(?string $v): string
+    {
+        return preg_replace('/\s+/', ' ', mb_strtolower(trim((string) $v))) ?? '';
     }
 
     /** Normalise une URL pour comparaison : sans protocole, sans www, sans / final, en minuscules. */

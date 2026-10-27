@@ -104,6 +104,9 @@
                         @else
                             <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep);font-size:10.5px;margin-left:6px">Nouveau</span>
                         @endif
+                        @if (!empty($d['adresse_partagee']))
+                            <span class="lb-tag" style="background:var(--gold-tint);color:var(--accent);font-size:10.5px;margin-left:6px" title="Même adresse que « {{ $d['adresse_partagee'] }} » — à relier éventuellement, pas forcément un doublon">⚑ Même adresse</span>
+                        @endif
                         @if ($c->estImporte())<span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep);font-size:10.5px;margin-left:6px">Importé</span>@endif
                         @if ($c->ecarte)<span class="lb-muted" style="font-size:11px;margin-left:4px">· écarté</span>@endif
                     </div>
