@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -16,18 +17,26 @@ class CandidatProspection extends Model
     protected $fillable = [
         'recherche_prospection_id', 'donnees',
         'nom', 'email', 'telephone', 'url_profil', 'origine', 'statut',
+        'ecarte', 'motif_ecart',
     ];
 
     protected function casts(): array
     {
         return [
             'donnees' => 'array',
+            'ecarte' => 'boolean',
         ];
     }
 
     public function recherche(): BelongsTo
     {
         return $this->belongsTo(RechercheProspection::class, 'recherche_prospection_id');
+    }
+
+    /** @param  Builder<CandidatProspection>  $q */
+    public function scopeActifs(Builder $q): void
+    {
+        $q->where('ecarte', false);
     }
 
     /** Valeur d'un champ des 40 colonnes (ou null). */

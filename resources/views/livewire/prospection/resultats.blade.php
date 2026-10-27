@@ -50,27 +50,92 @@
         @endif
     </div>
 
-    {{-- Aperçu des candidats --}}
-    <h3 class="lb-h3 mt-6" style="font-size:18px">Candidats ({{ $candidats->count() }})</h3>
+    {{-- Tableau de tri --}}
+    <div class="flex flex-wrap items-center justify-between gap-3 mt-7">
+        <h3 class="lb-h3" style="font-size:18px">Candidats à trier</h3>
+        <label class="flex items-center gap-2" style="font-size:12.5px;cursor:pointer">
+            <input type="checkbox" wire:model.live="voirEcartes" style="width:15px;height:15px">
+            Afficher les écartés ({{ $nbEcartes }})
+        </label>
+    </div>
+
+    @if ($candidats->isNotEmpty())
+        <div class="flex flex-wrap items-center gap-3 mt-3">
+            <label class="flex items-center gap-2" style="font-size:13px;cursor:pointer">
+                <input type="checkbox" wire:click="basculerTout" style="width:16px;height:16px"
+                       @checked(count($selection) >= $nbActifs && $nbActifs > 0)>
+                Sélectionner les visibles
+            </label>
+            <span class="lb-muted" style="font-size:13px">{{ count($selection) }} sélectionné(s) sur {{ $nbActifs }}</span>
+            <span class="lb-muted" style="font-size:12px;margin-left:auto">L'import arrive à la prochaine étape.</span>
+        </div>
+    @endif
+
     <div class="lb-people mt-3">
         @forelse ($candidats as $c)
-            <div class="lb-prow" wire:key="cand-{{ $c->id }}">
+            @php($d = $doublons[$c->id] ?? ['type' => 'nouveau'])
+            <div class="lb-prow" wire:key="cand-{{ $c->id }}" style="{{ $c->ecarte ? 'opacity:.55' : '' }}">
+                @unless ($c->ecarte)
+                    <input type="checkbox" value="{{ $c->id }}" wire:model.live="selection" aria-label="Sélectionner" style="width:16px;height:16px;flex:none">
+                @else
+                    <span style="width:16px;flex:none"></span>
+                @endunless
+
                 <div style="min-width:0;flex:1">
-                    <div class="nm lb-truncate">{{ $c->nom }}</div>
+                    <div class="nm lb-truncate">
+                        {{ $c->nom }}
+                        @if ($d['type'] === 'crm')
+                            <a href="{{ route('contacts.fiche', $d['contact_id']) }}" wire:navigate class="lb-tag" style="background:var(--gold-tint);color:var(--accent);font-size:10.5px;margin-left:6px" title="Déjà dans le carnet : {{ $d['contact_nom'] ?? '' }}">Déjà dans le CRM</a>
+                        @elseif ($d['type'] === 'liste')
+                            <span class="lb-tag" style="background:var(--lav-tint,#efeafe);color:var(--lav);font-size:10.5px;margin-left:6px">Doublon potentiel</span>
+                        @else
+                            <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep);font-size:10.5px;margin-left:6px">Nouveau</span>
+                        @endif
+                        @if ($c->ecarte)<span class="lb-muted" style="font-size:11px;margin-left:4px">· écarté</span>@endif
+                    </div>
                     <div class="mt lb-truncate">
                         @if ($c->origine) {{ $c->origine }} @endif
-                        @if ($c->email) · {{ $c->email }} @endif
-                        @if ($c->champ('fonction')) · {{ $c->champ('fonction') }} @endif
+                        @if ($c->champ('adresse_ville')) · {{ $c->champ('adresse_ville') }} @endif
+                        @if ($c->email) · {{ $c->email }} @elseif ($c->champ('site_web')) · (site) @else · <span style="color:var(--terra)">aucun e-mail</span> @endif
                     </div>
+                    @if ($c->champ('fait_observe'))
+                        <div class="lb-muted lb-truncate" style="font-size:12px;margin-top:2px">{{ $c->champ('fait_observe') }}</div>
+                    @endif
                 </div>
-                @if ($c->url_profil)
-                    <a href="{{ \Illuminate\Support\Str::startsWith($c->url_profil, ['http://','https://']) ? $c->url_profil : 'https://'.$c->url_profil }}"
-                       target="_blank" rel="noopener noreferrer"
-                       class="lb-accent" style="margin-left:auto;font-size:12.5px;font-weight:600;text-decoration:none">Profil ↗</a>
-                @endif
+
+                <div class="flex items-center gap-3" style="margin-left:auto;flex:none">
+                    <button type="button" wire:click="voirDetail({{ $c->id }})" class="lb-accent" style="font-size:12px;font-weight:600;background:none;border:0;cursor:pointer">Détails</button>
+                    @if ($c->ecarte)
+                        <button type="button" wire:click="restaurer({{ $c->id }})" class="lb-muted" style="font-size:12px;background:none;border:0;cursor:pointer">Restaurer</button>
+                    @else
+                        <button type="button" wire:click="ecarter({{ $c->id }})" class="lb-muted" style="font-size:12px;background:none;border:0;cursor:pointer" title="Écarter pour cette recherche">Écarter</button>
+                    @endif
+                </div>
             </div>
         @empty
-            <div class="lb-placeholder">Aucun candidat pour l'instant. Colle le CSV ci-dessus et clique « Analyser ».</div>
+            <div class="lb-placeholder">Aucun candidat {{ $voirEcartes ? '' : 'actif ' }}pour l'instant. Dépose ou colle le CSV ci-dessus.</div>
         @endforelse
     </div>
+
+    {{-- Panneau détail (40 champs) --}}
+    @if ($detail)
+        <div class="lb-modal-backdrop" x-data x-on:keydown.escape.window="$wire.fermerDetail()">
+            <div class="lb-modal" style="max-width:640px;max-height:84vh;overflow:auto" x-on:click.outside="$wire.fermerDetail()">
+                <div class="flex items-center justify-between">
+                    <h3 class="lb-h3" style="font-size:19px">{{ $detail->nom }}</h3>
+                    <button type="button" wire:click="fermerDetail" class="lb-iconbtn" aria-label="Fermer">✕</button>
+                </div>
+                <div class="lb-kv mt-4" style="grid-template-columns:1fr;gap:10px">
+                    @foreach ($labels as $cle => $lib)
+                        @if ($detail->champ($cle))
+                            <div>
+                                <div class="k">{{ $lib }}</div>
+                                <div class="val" style="white-space:pre-wrap;word-break:break-word">{{ $detail->champ($cle) }}</div>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

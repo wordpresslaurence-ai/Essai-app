@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Prospection;
 
+use App\Livewire\Contacts\ImportCsv;
 use App\Models\CandidatProspection;
 use App\Models\RechercheProspection;
 use App\Services\Prospection\AnalyseurCsv;
+use App\Services\Prospection\Dedoublonnage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -28,9 +30,50 @@ class Resultats extends Component
     /** Dernier rapport d'analyse (total, ignorés, en-têtes inconnues). */
     public array $rapport = [];
 
+    /** @var array<int, string> Candidats cochés (pour l'import, tranche 4). */
+    public array $selection = [];
+
+    /** Afficher aussi les candidats écartés. */
+    public bool $voirEcartes = false;
+
+    /** Candidat dont on affiche la fiche détaillée (40 champs). */
+    public ?int $detailId = null;
+
     public function mount(RechercheProspection $recherche): void
     {
         $this->recherche = $recherche;
+    }
+
+    /** Coche / décoche tous les candidats actifs affichés. */
+    public function basculerTout(): void
+    {
+        $ids = $this->recherche->candidats()->actifs()->pluck('id')->all();
+        $this->selection = count($this->selection) >= count($ids) && $ids !== []
+            ? []
+            : array_map('strval', $ids);
+    }
+
+    /** Écarte un candidat pour cette recherche (reste en historique). */
+    public function ecarter(int $id, ?string $motif = null): void
+    {
+        $this->recherche->candidats()->whereKey($id)->update(['ecarte' => true, 'motif_ecart' => $motif]);
+        $this->selection = array_values(array_diff($this->selection, [(string) $id]));
+    }
+
+    /** Remet un candidat écarté dans la liste. */
+    public function restaurer(int $id): void
+    {
+        $this->recherche->candidats()->whereKey($id)->update(['ecarte' => false, 'motif_ecart' => null]);
+    }
+
+    public function voirDetail(int $id): void
+    {
+        $this->detailId = $id;
+    }
+
+    public function fermerDetail(): void
+    {
+        $this->detailId = null;
     }
 
     /**
@@ -91,6 +134,7 @@ class Resultats extends Component
             'ignores' => $resultat['ignores'],
             'entetes_inconnues' => $resultat['entetes_inconnues'],
         ];
+        $this->selection = [];
 
         session()->flash('message', $resultat['total'].' candidat(s) importé(s) dans la zone de préparation.');
     }
@@ -100,13 +144,29 @@ class Resultats extends Component
     {
         $this->recherche->candidats()->delete();
         $this->rapport = [];
+        $this->selection = [];
         session()->flash('message', 'Candidats effacés.');
     }
 
     public function render(): View
     {
+        $candidats = $this->recherche->candidats()
+            ->when(! $this->voirEcartes, fn ($q) => $q->actifs())
+            ->orderBy('nom')
+            ->get();
+
+        $detail = $this->detailId
+            ? $candidats->firstWhere('id', $this->detailId)
+                ?? $this->recherche->candidats()->whereKey($this->detailId)->first()
+            : null;
+
         return view('livewire.prospection.resultats', [
-            'candidats' => $this->recherche->candidats()->orderBy('nom')->get(),
+            'candidats' => $candidats,
+            'doublons' => app(Dedoublonnage::class)->pour($candidats),
+            'nbActifs' => $this->recherche->candidats()->actifs()->count(),
+            'nbEcartes' => $this->recherche->candidats()->where('ecarte', true)->count(),
+            'labels' => (new ImportCsv)->champsDisponibles(),
+            'detail' => $detail,
         ]);
     }
 }
