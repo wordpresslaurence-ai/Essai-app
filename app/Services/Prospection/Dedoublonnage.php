@@ -23,20 +23,20 @@ class Dedoublonnage
     {
         $emails = $candidats->pluck('email')->filter()
             ->map(fn ($e) => mb_strtolower(trim((string) $e)))->unique()->values();
-        $urls = $candidats->pluck('url_profil')->map(fn ($u) => $this->normaliserUrl($u))
+        $urls = $candidats->pluck('url_profil')->map(fn ($u) => self::normaliserUrl($u))
             ->filter()->unique()->values();
 
         [$contactsParEmail, $contactsParUrl] = $this->indexerCarnet($emails, $urls);
 
         $comptesEmail = $candidats->pluck('email')->filter()
             ->map(fn ($e) => mb_strtolower(trim((string) $e)))->countBy();
-        $comptesUrl = $candidats->pluck('url_profil')->map(fn ($u) => $this->normaliserUrl($u))
+        $comptesUrl = $candidats->pluck('url_profil')->map(fn ($u) => self::normaliserUrl($u))
             ->filter()->countBy();
 
         $resultat = [];
         foreach ($candidats as $c) {
             $email = filled($c->email) ? mb_strtolower(trim((string) $c->email)) : null;
-            $url = $this->normaliserUrl($c->url_profil);
+            $url = self::normaliserUrl($c->url_profil);
 
             $contact = ($email && isset($contactsParEmail[$email]))
                 ? $contactsParEmail[$email]
@@ -91,7 +91,7 @@ class Dedoublonnage
                 ->whereNotNull('url_profil')
                 ->get()
                 ->each(function (Contact $c) use (&$parUrl) {
-                    $n = $this->normaliserUrl($c->url_profil);
+                    $n = self::normaliserUrl($c->url_profil);
                     if ($n !== '') {
                         $parUrl[$n] = $c;
                     }
@@ -102,7 +102,7 @@ class Dedoublonnage
     }
 
     /** Normalise une URL pour comparaison : sans protocole, sans www, sans / final, en minuscules. */
-    private function normaliserUrl(?string $url): string
+    public static function normaliserUrl(?string $url): string
     {
         $u = mb_strtolower(trim((string) $url));
         if ($u === '') {

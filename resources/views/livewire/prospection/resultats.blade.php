@@ -66,8 +66,19 @@
                        @checked(count($selection) >= $nbActifs && $nbActifs > 0)>
                 Sélectionner les visibles
             </label>
-            <span class="lb-muted" style="font-size:13px">{{ count($selection) }} sélectionné(s) sur {{ $nbActifs }}</span>
-            <span class="lb-muted" style="font-size:12px;margin-left:auto">L'import arrive à la prochaine étape.</span>
+            <span class="lb-muted" style="font-size:13px">{{ count($selection) }} sélectionné(s)</span>
+            <button type="button" wire:click="preparerImport" @disabled(count($selection) === 0)
+                    class="lb-btn lb-btn-primary" style="margin-left:auto;padding:8px 14px;font-size:13px;{{ count($selection) === 0 ? 'opacity:.5;cursor:not-allowed' : '' }}">
+                Importer la sélection ({{ count($selection) }})
+            </button>
+        </div>
+    @endif
+
+    {{-- Rapport d'import --}}
+    @if ($rapportImport)
+        <div class="lb-alert lb-alert-success mt-4" style="font-size:13px">
+            Import terminé : <strong>{{ $rapportImport['crees'] }}</strong> créé(s),
+            <strong>{{ $rapportImport['completes'] }}</strong> complété(s)@if ($rapportImport['ignores']), {{ $rapportImport['ignores'] }} ignoré(s)@endif.
         </div>
     @endif
 
@@ -75,11 +86,13 @@
         @forelse ($candidats as $c)
             @php($d = $doublons[$c->id] ?? ['type' => 'nouveau'])
             <div class="lb-prow" wire:key="cand-{{ $c->id }}" style="{{ $c->ecarte ? 'opacity:.55' : '' }}">
-                @unless ($c->ecarte)
+                @if ($c->estImporte())
+                    <span title="Importé" style="width:16px;flex:none;color:var(--mint-deep)">✓</span>
+                @elseif (! $c->ecarte)
                     <input type="checkbox" value="{{ $c->id }}" wire:model.live="selection" aria-label="Sélectionner" style="width:16px;height:16px;flex:none">
                 @else
                     <span style="width:16px;flex:none"></span>
-                @endunless
+                @endif
 
                 <div style="min-width:0;flex:1">
                     <div class="nm lb-truncate">
@@ -91,6 +104,7 @@
                         @else
                             <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep);font-size:10.5px;margin-left:6px">Nouveau</span>
                         @endif
+                        @if ($c->estImporte())<span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep);font-size:10.5px;margin-left:6px">Importé</span>@endif
                         @if ($c->ecarte)<span class="lb-muted" style="font-size:11px;margin-left:4px">· écarté</span>@endif
                     </div>
                     <div class="mt lb-truncate">
@@ -105,7 +119,9 @@
 
                 <div class="flex items-center gap-3" style="margin-left:auto;flex:none">
                     <button type="button" wire:click="voirDetail({{ $c->id }})" class="lb-accent" style="font-size:12px;font-weight:600;background:none;border:0;cursor:pointer">Détails</button>
-                    @if ($c->ecarte)
+                    @if ($c->estImporte() && $c->contact_id)
+                        <a href="{{ route('contacts.fiche', $c->contact_id) }}" wire:navigate class="lb-muted" style="font-size:12px;text-decoration:none">Voir la fiche →</a>
+                    @elseif ($c->ecarte)
                         <button type="button" wire:click="restaurer({{ $c->id }})" class="lb-muted" style="font-size:12px;background:none;border:0;cursor:pointer">Restaurer</button>
                     @else
                         <button type="button" wire:click="ecarter({{ $c->id }})" class="lb-muted" style="font-size:12px;background:none;border:0;cursor:pointer" title="Écarter pour cette recherche">Écarter</button>
@@ -116,6 +132,26 @@
             <div class="lb-placeholder">Aucun candidat {{ $voirEcartes ? '' : 'actif ' }}pour l'instant. Dépose ou colle le CSV ci-dessus.</div>
         @endforelse
     </div>
+
+    {{-- Récapitulatif avant import --}}
+    @if ($confirmation)
+        <div class="lb-modal-backdrop" x-data x-on:keydown.escape.window="$wire.annulerImport()">
+            <div class="lb-modal" x-on:click.outside="$wire.annulerImport()">
+                <h3 class="lb-h3" style="font-size:20px">Confirmer l'import</h3>
+                <p class="lb-muted" style="font-size:13.5px;margin-top:10px">
+                    <strong>{{ $apercuImport['total'] ?? 0 }}</strong> contact(s) sélectionné(s) :
+                </p>
+                <ul style="font-size:13.5px;margin-top:8px;line-height:1.7">
+                    <li>➕ <strong>{{ $apercuImport['nouveaux'] ?? 0 }}</strong> nouveau(x) contact(s) créé(s)</li>
+                    <li>✎ <strong>{{ $apercuImport['a_completer'] ?? 0 }}</strong> fiche(s) existante(s) à compléter (champs vides remplis, notes ajoutées, rien d'écrasé)</li>
+                </ul>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" wire:click="annulerImport" class="lb-btn lb-btn-ghost">Annuler</button>
+                    <button type="button" wire:click="confirmerImport" class="lb-btn lb-btn-primary">Confirmer l'import de {{ $apercuImport['total'] ?? 0 }} contact(s)</button>
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- Panneau détail (40 champs) --}}
     @if ($detail)

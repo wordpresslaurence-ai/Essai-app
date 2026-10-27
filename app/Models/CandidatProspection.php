@@ -15,9 +15,9 @@ class CandidatProspection extends Model
     protected $table = 'candidats_prospection';
 
     protected $fillable = [
-        'recherche_prospection_id', 'donnees',
+        'recherche_prospection_id', 'contact_id', 'donnees',
         'nom', 'email', 'telephone', 'url_profil', 'origine', 'statut',
-        'ecarte', 'motif_ecart',
+        'ecarte', 'motif_ecart', 'importe_at',
     ];
 
     protected function casts(): array
@@ -25,12 +25,23 @@ class CandidatProspection extends Model
         return [
             'donnees' => 'array',
             'ecarte' => 'boolean',
+            'importe_at' => 'datetime',
         ];
     }
 
     public function recherche(): BelongsTo
     {
         return $this->belongsTo(RechercheProspection::class, 'recherche_prospection_id');
+    }
+
+    public function contact(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class);
+    }
+
+    public function estImporte(): bool
+    {
+        return $this->importe_at !== null;
     }
 
     /** @param  Builder<CandidatProspection>  $q */

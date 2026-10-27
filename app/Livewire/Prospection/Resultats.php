@@ -7,6 +7,7 @@ use App\Models\CandidatProspection;
 use App\Models\RechercheProspection;
 use App\Services\Prospection\AnalyseurCsv;
 use App\Services\Prospection\Dedoublonnage;
+use App\Services\Prospection\ImporteurCandidats;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -39,18 +40,73 @@ class Resultats extends Component
     /** Candidat dont on affiche la fiche détaillée (40 champs). */
     public ?int $detailId = null;
 
+    /** Étape de confirmation d'import (récapitulatif avant écriture). */
+    public bool $confirmation = false;
+
+    /** Aperçu de l'import (créations / compléments). */
+    public array $apercuImport = [];
+
+    /** Rapport après import. */
+    public array $rapportImport = [];
+
     public function mount(RechercheProspection $recherche): void
     {
         $this->recherche = $recherche;
     }
 
-    /** Coche / décoche tous les candidats actifs affichés. */
+    /** Coche / décoche tous les candidats actifs NON importés. */
     public function basculerTout(): void
     {
-        $ids = $this->recherche->candidats()->actifs()->pluck('id')->all();
+        $ids = $this->recherche->candidats()->actifs()->whereNull('importe_at')->pluck('id')->all();
         $this->selection = count($this->selection) >= count($ids) && $ids !== []
             ? []
             : array_map('strval', $ids);
+    }
+
+    /** Prépare le récapitulatif avant import (créations vs fiches à compléter). */
+    public function preparerImport(): void
+    {
+        $this->rapportImport = [];
+        if ($this->selection === []) {
+            return;
+        }
+
+        $selectionnes = $this->recherche->candidats()->actifs()
+            ->whereNull('importe_at')
+            ->whereIn('id', $this->selection)
+            ->get();
+
+        $dedup = app(Dedoublonnage::class)->pour($selectionnes);
+        $aCompleter = collect($dedup)->where('type', 'crm')->count();
+
+        $this->apercuImport = [
+            'total' => $selectionnes->count(),
+            'nouveaux' => $selectionnes->count() - $aCompleter,
+            'a_completer' => $aCompleter,
+        ];
+        $this->confirmation = true;
+    }
+
+    public function annulerImport(): void
+    {
+        $this->confirmation = false;
+    }
+
+    /** Écrit les contacts sélectionnés (création ou complément non destructif). */
+    public function confirmerImport(): void
+    {
+        if ($this->selection === []) {
+            $this->confirmation = false;
+
+            return;
+        }
+
+        $this->rapportImport = app(ImporteurCandidats::class)->importer($this->recherche, $this->selection);
+        $this->selection = [];
+        $this->confirmation = false;
+
+        $r = $this->rapportImport;
+        session()->flash('message', $r['crees'].' créé(s), '.$r['completes'].' complété(s)'.($r['ignores'] ? ', '.$r['ignores'].' ignoré(s)' : '').'.');
     }
 
     /** Écarte un candidat pour cette recherche (reste en historique). */
