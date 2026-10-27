@@ -75,6 +75,10 @@
                         <svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.2L19 10l-5.1 1.8L12 17l-1.9-5.2L5 10l5.1-1.8z"/></svg>
                         Assistant
                     </a>
+                    <a href="{{ route('prospection.index') }}" class="{{ request()->routeIs('prospection.*') ? 'active' : '' }}" wire:navigate>
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                        Prospection
+                    </a>
                     <a href="{{ route('etiquettes.index') }}" class="{{ request()->routeIs('etiquettes.*') ? 'active' : '' }}" wire:navigate>
                         <svg viewBox="0 0 24 24"><path d="M20.6 13.4 12 22l-8-8V4h10z"/><circle cx="8.5" cy="8.5" r="1.2"/></svg>
                         Étiquettes

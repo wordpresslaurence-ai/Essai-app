@@ -52,6 +52,11 @@ Route::middleware(['auth'])->group(function () {
     // Réglages : boîtes e-mail multiples (module 009)
     Route::get('reglages/boites', \App\Livewire\Reglages\BoitesEmail::class)->name('reglages.boites');
 
+    // Module Prospection (Option B : brief pour ChatGPT, tri et import côté CRM)
+    Route::get('prospection', \App\Livewire\Prospection\Liste::class)->name('prospection.index');
+    Route::get('prospection/creer', \App\Livewire\Prospection\Formulaire::class)->name('prospection.creer');
+    Route::get('prospection/{recherche}/modifier', \App\Livewire\Prospection\Formulaire::class)->name('prospection.modifier');
+
     // Module Pipeline
     Route::get('pipeline', PipelineTableau::class)->name('pipeline.index');
     Route::get('pipeline/creer', PipelineFormulaire::class)->name('pipeline.creer');
