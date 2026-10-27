@@ -6,6 +6,7 @@ use App\Models\RechercheProspection;
 use App\Models\User;
 use App\Services\Prospection\AnalyseurCsv;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -43,6 +44,30 @@ it('est idempotent : recoller le même CSV ne cumule pas les candidats', functio
     $c->set('csv', $csv)->call('analyser');
 
     expect(CandidatProspection::count())->toBe(1);
+});
+
+it('reconnaît un collage séparé par des tabulations (copie depuis un tableau)', function () {
+    $csv = "nom\temail\tfonction\n".
+        "Dupont\tmarie@exemple.be\tProfesseure\n";
+
+    $resultat = app(AnalyseurCsv::class)->analyser($csv);
+
+    expect($resultat['total'])->toBe(1);
+    expect($resultat['entetes_inconnues'])->toBe([]);         // tout est reconnu
+    expect($resultat['candidats'][0]['email'])->toBe('marie@exemple.be');
+});
+
+it('analyse un fichier .csv déposé', function () {
+    $csv = "nom;email\nDupont;marie@exemple.be\nStudio;contact@studio.be\n";
+    $fichier = UploadedFile::fake()->createWithContent('resultats.csv', $csv);
+
+    Livewire::test(Resultats::class, ['recherche' => $this->recherche])
+        ->set('fichier', $fichier)
+        ->call('analyserFichier')
+        ->assertHasNoErrors()
+        ->assertSet('rapport.total', 2);
+
+    expect(CandidatProspection::where('nom', 'Dupont')->exists())->toBeTrue();
 });
 
 it('signale les en-têtes non reconnues sans bloquer', function () {

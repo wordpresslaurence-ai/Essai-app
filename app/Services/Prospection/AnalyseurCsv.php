@@ -86,8 +86,18 @@ class AnalyseurCsv
             return [];
         }
 
-        $premiereLigne = strtok($contenu, "\n");
-        $separateur = substr_count((string) $premiereLigne, ';') >= substr_count((string) $premiereLigne, ',') ? ';' : ',';
+        // Séparateur détecté sur la 1re ligne, parmi ; (CSV), tabulation (copie
+        // depuis un tableau) et , (CSV anglo-saxon). On garde le plus fréquent.
+        $premiereLigne = (string) strtok($contenu, "\n");
+        $separateur = ';';
+        $meilleur = -1;
+        foreach ([';', "\t", ','] as $candidat) {
+            $n = substr_count($premiereLigne, $candidat);
+            if ($n > $meilleur) {
+                $meilleur = $n;
+                $separateur = $candidat;
+            }
+        }
 
         $flux = fopen('php://temp', 'r+');
         fwrite($flux, $contenu);

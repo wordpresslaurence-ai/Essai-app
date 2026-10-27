@@ -11,15 +11,29 @@
         <div class="lb-alert lb-alert-success mt-5">{{ session('message') }}</div>
     @endif
 
-    {{-- Zone de collage --}}
+    {{-- Dépôt du fichier (recommandé) --}}
     <div class="lb-card mt-5" style="padding:22px;max-width:860px">
-        <label for="csv" class="lb-label">CSV renvoyé par ChatGPT</label>
-        <textarea id="csv" rows="8" wire:model="csv" class="lb-field" style="font-family:ui-monospace,monospace;font-size:12.5px"
+        <label for="fichier" class="lb-label">Déposer le fichier .csv de ChatGPT <span class="lb-muted" style="font-weight:400">(recommandé — accents propres)</span></label>
+        <input id="fichier" type="file" wire:model="fichier" accept=".csv,.txt" class="lb-field">
+        @error('fichier') <p class="lb-error">{{ $message }}</p> @enderror
+        <div wire:loading wire:target="fichier" class="lb-muted" style="font-size:12px;margin-top:6px">Chargement…</div>
+        <div class="mt-3">
+            <button type="button" wire:click="analyserFichier" class="lb-btn lb-btn-primary">Analyser le fichier</button>
+        </div>
+
+        <div class="lb-muted" style="font-size:12px;margin:16px 0 8px;text-align:center">— ou colle le contenu —</div>
+
+        <label for="csv" class="lb-label">CSV collé</label>
+        <textarea id="csv" rows="7" wire:model="csv" class="lb-field" style="font-family:ui-monospace,monospace;font-size:12.5px"
                   placeholder="nom;email;telephone;…&#10;Dupont;marie@exemple.be;…"></textarea>
         @error('csv') <p class="lb-error">{{ $message }}</p> @enderror
+        <p class="lb-muted" style="font-size:11.5px;margin-top:4px">
+            Le collage accepte le point-virgule, la virgule ou la tabulation. Si tu colles depuis un tableau et que
+            les accents sont abîmés, préfère le dépôt du fichier ci-dessus.
+        </p>
 
         <div class="flex items-center gap-3 mt-4">
-            <button type="button" wire:click="analyser" class="lb-btn lb-btn-primary">Analyser le CSV</button>
+            <button type="button" wire:click="analyser" class="lb-btn lb-btn-primary">Analyser le texte collé</button>
             @if ($candidats->isNotEmpty())
                 <button type="button" wire:click="vider" wire:confirm="Effacer les candidats de cette recherche ?"
                         class="lb-btn lb-btn-ghost">Vider</button>
