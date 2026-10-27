@@ -1,4 +1,4 @@
-<div>
+<div x-data="{ sel: [] }" x-on:selection-videe.window="sel = []">
     <a href="{{ route('prospection.modifier', $recherche) }}" class="lb-muted" style="font-size:13px;text-decoration:none" wire:navigate>← Retour au brief</a>
 
     <h1 class="lb-h1 mt-4">Résultats — {{ $recherche->nom }}</h1>
@@ -60,16 +60,20 @@
     </div>
 
     @if ($candidats->isNotEmpty())
+        @php($idsJson = \Illuminate\Support\Js::from($idsSelectionnables))
         <div class="flex flex-wrap items-center gap-3 mt-3">
             <label class="flex items-center gap-2" style="font-size:13px;cursor:pointer">
-                <input type="checkbox" wire:click="basculerTout" style="width:16px;height:16px"
-                       @checked(count($selection) >= $nbActifs && $nbActifs > 0)>
+                <input type="checkbox" style="width:16px;height:16px"
+                       :checked="sel.length === {{ count($idsSelectionnables) }} && sel.length > 0"
+                       x-on:click="sel = (sel.length >= {{ count($idsSelectionnables) }} ? [] : {{ $idsJson }})"
+                       @disabled(count($idsSelectionnables) === 0)>
                 Sélectionner les visibles
             </label>
-            <span class="lb-muted" style="font-size:13px">{{ count($selection) }} sélectionné(s)</span>
-            <button type="button" wire:click="preparerImport" @disabled(count($selection) === 0)
-                    class="lb-btn lb-btn-primary" style="margin-left:auto;padding:8px 14px;font-size:13px;{{ count($selection) === 0 ? 'opacity:.5;cursor:not-allowed' : '' }}">
-                Importer la sélection ({{ count($selection) }})
+            <span class="lb-muted" style="font-size:13px"><span x-text="sel.length">0</span> sélectionné(s)</span>
+            <button type="button" x-on:click="$wire.preparerImport(sel)" :disabled="sel.length === 0"
+                    class="lb-btn lb-btn-primary" style="margin-left:auto;padding:8px 14px;font-size:13px"
+                    :style="sel.length === 0 ? 'opacity:.5;cursor:not-allowed' : ''">
+                Importer la sélection (<span x-text="sel.length">0</span>)
             </button>
         </div>
     @endif
@@ -89,7 +93,7 @@
                 @if ($c->estImporte())
                     <span title="Importé" style="width:16px;flex:none;color:var(--mint-deep);line-height:1.5">✓</span>
                 @elseif (! $c->ecarte)
-                    <input type="checkbox" value="{{ $c->id }}" wire:model.live="selection" aria-label="Sélectionner" style="width:16px;height:16px;flex:none;margin-top:3px">
+                    <input type="checkbox" value="{{ $c->id }}" x-model="sel" aria-label="Sélectionner" style="width:16px;height:16px;flex:none;margin-top:3px">
                 @else
                     <span style="width:16px;flex:none"></span>
                 @endif

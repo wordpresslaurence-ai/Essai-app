@@ -64,8 +64,11 @@ class Resultats extends Component
     }
 
     /** Prépare le récapitulatif avant import (créations vs fiches à compléter). */
-    public function preparerImport(): void
+    public function preparerImport(?array $ids = null): void
     {
+        if ($ids !== null) {
+            $this->selection = array_values(array_map('strval', $ids));
+        }
         $this->rapportImport = [];
         if ($this->selection === []) {
             return;
@@ -104,6 +107,7 @@ class Resultats extends Component
         $this->rapportImport = app(ImporteurCandidats::class)->importer($this->recherche, $this->selection);
         $this->selection = [];
         $this->confirmation = false;
+        $this->dispatch('selection-videe'); // réinitialise la sélection côté navigateur
 
         $r = $this->rapportImport;
         session()->flash('message', $r['crees'].' créé(s), '.$r['completes'].' complété(s)'.($r['ignores'] ? ', '.$r['ignores'].' ignoré(s)' : '').'.');
@@ -216,10 +220,17 @@ class Resultats extends Component
                 ?? $this->recherche->candidats()->whereKey($this->detailId)->first()
             : null;
 
+        // Ids cochables côté client (actifs, non importés).
+        $idsSelectionnables = $candidats
+            ->filter(fn ($c) => ! $c->ecarte && ! $c->estImporte())
+            ->map(fn ($c) => (string) $c->id)
+            ->values()
+            ->all();
+
         return view('livewire.prospection.resultats', [
             'candidats' => $candidats,
             'doublons' => app(Dedoublonnage::class)->pour($candidats),
-            'nbActifs' => $this->recherche->candidats()->actifs()->count(),
+            'idsSelectionnables' => $idsSelectionnables,
             'nbEcartes' => $this->recherche->candidats()->where('ecarte', true)->count(),
             'labels' => (new ImportCsv)->champsDisponibles(),
             'detail' => $detail,

@@ -112,6 +112,16 @@ it('ne crée qu’un contact pour deux candidats de même e-mail dans le lot', f
     expect($rapport['completes'])->toBe(1);
 });
 
+it('préparer l’import accepte les ids envoyés par le client', function () {
+    $c = cand($this->recherche, ['nom' => 'Zen', 'email' => 'z@z.be']);
+
+    Livewire::test(Resultats::class, ['recherche' => $this->recherche])
+        ->call('preparerImport', [(string) $c->id])
+        ->assertSet('confirmation', true)
+        ->assertSet('selection', [(string) $c->id])
+        ->assertSet('apercuImport.total', 1);
+});
+
 it('importe depuis le composant après confirmation', function () {
     $c = cand($this->recherche, ['nom' => 'Studio Zen', 'email' => 'contact@zen.be']);
 
