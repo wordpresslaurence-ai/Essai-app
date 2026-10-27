@@ -73,6 +73,18 @@ it('alerte « même adresse » entre une structure et une personne au même lieu
     expect($map[$c->id]['adresse_partagee'] ?? null)->toContain('Eve'); // mais alerté
 });
 
+it('signale un candidat déjà repéré dans une autre recherche (même e-mail)', function () {
+    $autreRecherche = RechercheProspection::create(['nom' => 'Précédente', 'nombre' => 10]);
+    candidat($autreRecherche, ['nom' => 'Feeling Better (ancien)', 'email' => 'info@feelingbetter.be']);
+
+    $c = candidat($this->recherche, ['nom' => 'Feeling Better', 'email' => 'info@feelingbetter.be']);
+
+    $map = app(Dedoublonnage::class)->pour(collect([$c]));
+
+    expect($map[$c->id]['type'])->toBe('nouveau');                        // pas au carnet
+    expect($map[$c->id]['deja_repere'] ?? null)->toContain('Feeling Better (ancien)'); // mais déjà repéré
+});
+
 it('marque « nouveau » un candidat sans correspondance', function () {
     $c = candidat($this->recherche, ['nom' => 'Neuf', 'email' => 'neuf@y.be']);
     $map = app(Dedoublonnage::class)->pour(collect([$c]));

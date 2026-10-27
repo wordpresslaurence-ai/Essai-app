@@ -85,32 +85,38 @@
     <div class="lb-people mt-3">
         @forelse ($candidats as $c)
             @php($d = $doublons[$c->id] ?? ['type' => 'nouveau'])
-            <div class="lb-prow" wire:key="cand-{{ $c->id }}" style="{{ $c->ecarte ? 'opacity:.55' : '' }}">
+            <div class="lb-prow" wire:key="cand-{{ $c->id }}" style="align-items:flex-start;flex-wrap:wrap;max-width:100%;{{ $c->ecarte ? 'opacity:.55' : '' }}">
                 @if ($c->estImporte())
-                    <span title="Importé" style="width:16px;flex:none;color:var(--mint-deep)">✓</span>
+                    <span title="Importé" style="width:16px;flex:none;color:var(--mint-deep);line-height:1.5">✓</span>
                 @elseif (! $c->ecarte)
-                    <input type="checkbox" value="{{ $c->id }}" wire:model.live="selection" aria-label="Sélectionner" style="width:16px;height:16px;flex:none">
+                    <input type="checkbox" value="{{ $c->id }}" wire:model.live="selection" aria-label="Sélectionner" style="width:16px;height:16px;flex:none;margin-top:3px">
                 @else
                     <span style="width:16px;flex:none"></span>
                 @endif
 
-                <div style="min-width:0;flex:1">
-                    <div class="nm lb-truncate">
-                        {{ $c->nom }}
+                <div style="min-width:0;flex:1 1 220px">
+                    <div class="nm lb-truncate">{{ $c->nom }}</div>
+
+                    {{-- Badges sur leur propre ligne (se replient, toujours visibles) --}}
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px">
                         @if ($d['type'] === 'crm')
-                            <a href="{{ route('contacts.fiche', $d['contact_id']) }}" wire:navigate class="lb-tag" style="background:var(--gold-tint);color:var(--accent);font-size:10.5px;margin-left:6px" title="Déjà dans le carnet : {{ $d['contact_nom'] ?? '' }}">Déjà dans le CRM</a>
+                            <a href="{{ route('contacts.fiche', $d['contact_id']) }}" wire:navigate class="lb-tag" style="background:var(--gold-tint);color:var(--accent);font-size:10.5px" title="Déjà dans le carnet : {{ $d['contact_nom'] ?? '' }}">Déjà dans le CRM</a>
                         @elseif ($d['type'] === 'liste')
-                            <span class="lb-tag" style="background:var(--lav-tint,#efeafe);color:var(--lav);font-size:10.5px;margin-left:6px">Doublon potentiel</span>
+                            <span class="lb-tag" style="background:var(--lav-tint,#efeafe);color:var(--lav);font-size:10.5px">Doublon potentiel</span>
                         @else
-                            <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep);font-size:10.5px;margin-left:6px">Nouveau</span>
+                            <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep);font-size:10.5px">Nouveau</span>
+                        @endif
+                        @if (!empty($d['deja_repere']))
+                            <span class="lb-tag" style="background:var(--lav-tint,#efeafe);color:var(--lav);font-size:10.5px" title="Déjà repéré dans une autre recherche : « {{ $d['deja_repere'] }} »">↩ Déjà repéré (autre recherche)</span>
                         @endif
                         @if (!empty($d['adresse_partagee']))
-                            <span class="lb-tag" style="background:var(--gold-tint);color:var(--accent);font-size:10.5px;margin-left:6px" title="Même adresse que « {{ $d['adresse_partagee'] }} » — à relier éventuellement, pas forcément un doublon">⚑ Même adresse</span>
+                            <span class="lb-tag" style="background:var(--gold-tint);color:var(--accent);font-size:10.5px" title="Même adresse que « {{ $d['adresse_partagee'] }} » — à relier éventuellement, pas forcément un doublon">⚑ Même adresse : {{ \Illuminate\Support\Str::limit($d['adresse_partagee'], 22) }}</span>
                         @endif
-                        @if ($c->estImporte())<span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep);font-size:10.5px;margin-left:6px">Importé</span>@endif
-                        @if ($c->ecarte)<span class="lb-muted" style="font-size:11px;margin-left:4px">· écarté</span>@endif
+                        @if ($c->estImporte())<span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep);font-size:10.5px">Importé</span>@endif
+                        @if ($c->ecarte)<span class="lb-tag" style="background:var(--surface);color:var(--text-muted);font-size:10.5px">Écarté</span>@endif
                     </div>
-                    <div class="mt lb-truncate">
+
+                    <div class="mt lb-truncate" style="margin-top:5px">
                         @if ($c->origine) {{ $c->origine }} @endif
                         @if ($c->champ('adresse_ville')) · {{ $c->champ('adresse_ville') }} @endif
                         @if ($c->email) · {{ $c->email }} @elseif ($c->champ('site_web')) · (site) @else · <span style="color:var(--terra)">aucun e-mail</span> @endif
@@ -120,7 +126,7 @@
                     @endif
                 </div>
 
-                <div class="flex items-center gap-3" style="margin-left:auto;flex:none">
+                <div class="flex items-center gap-3" style="flex:none;flex-wrap:wrap">
                     <button type="button" wire:click="voirDetail({{ $c->id }})" class="lb-accent" style="font-size:12px;font-weight:600;background:none;border:0;cursor:pointer">Détails</button>
                     @if ($c->estImporte() && $c->contact_id)
                         <a href="{{ route('contacts.fiche', $c->contact_id) }}" wire:navigate class="lb-muted" style="font-size:12px;text-decoration:none">Voir la fiche →</a>

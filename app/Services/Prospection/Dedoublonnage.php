@@ -3,6 +3,7 @@
 namespace App\Services\Prospection;
 
 use App\Models\AdresseEmail;
+use App\Models\CandidatProspection;
 use App\Models\Contact;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +47,10 @@ class Dedoublonnage
         $comptesAdr = collect($adrCandidats)->countBy();
         $contactsParAdresse = $adrCandidats === [] ? [] : $this->indexerAdresses();
 
+        // Rapprochement avec les candidats des AUTRES recherches (mémoire inter-campagnes).
+        $rechercheId = $candidats->first()?->recherche_prospection_id;
+        [$autresParEmail, $autresParUrl] = $this->indexerAutresCampagnes($rechercheId, $emails);
+
         $resultat = [];
         foreach ($candidats as $c) {
             $email = filled($c->email) ? mb_strtolower(trim((string) $c->email)) : null;
@@ -83,6 +88,14 @@ class Dedoublonnage
                 if (filled($nomMeme)) {
                     $entree['adresse_partagee'] = $nomMeme;
                 }
+            }
+
+            // Déjà repéré dans une autre recherche (même e-mail ou même URL).
+            $autre = ($email && isset($autresParEmail[$email]))
+                ? $autresParEmail[$email]
+                : (($url !== '' && isset($autresParUrl[$url])) ? $autresParUrl[$url] : null);
+            if ($autre) {
+                $entree['deja_repere'] = (string) $autre->nom;
             }
 
             $resultat[$c->id] = $entree;
@@ -126,6 +139,44 @@ class Dedoublonnage
                         $parUrl[$n] = $c;
                     }
                 });
+        }
+
+        return [$parEmail, $parUrl];
+    }
+
+    /**
+     * Candidats des autres recherches indexés par e-mail et par URL de profil.
+     *
+     * @return array{0: array<string, CandidatProspection>, 1: array<string, CandidatProspection>}
+     */
+    private function indexerAutresCampagnes(?int $rechercheId, Collection $emails): array
+    {
+        if ($rechercheId === null) {
+            return [[], []];
+        }
+
+        $autres = CandidatProspection::query()
+            ->where('recherche_prospection_id', '!=', $rechercheId)
+            ->where(function ($q) use ($emails) {
+                $q->whereNotNull('url_profil');
+                if ($emails->isNotEmpty()) {
+                    $q->orWhereIn(DB::raw('LOWER(email)'), $emails->all());
+                }
+            })
+            ->select('id', 'recherche_prospection_id', 'nom', 'email', 'url_profil')
+            ->get();
+
+        $parEmail = [];
+        $parUrl = [];
+        foreach ($autres as $o) {
+            if (filled($o->email)) {
+                $k = mb_strtolower(trim((string) $o->email));
+                $parEmail[$k] ??= $o;
+            }
+            $u = self::normaliserUrl($o->url_profil);
+            if ($u !== '') {
+                $parUrl[$u] ??= $o;
+            }
         }
 
         return [$parEmail, $parUrl];
