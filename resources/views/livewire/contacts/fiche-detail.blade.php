@@ -136,7 +136,10 @@
             {{-- Personnes rattachées (entreprise) --}}
             @if ($contact->estEntreprise())
                 <div class="lb-card" style="padding:20px">
-                    <h3 class="lb-h3" style="font-size:19px">Personnes de cette entreprise</h3>
+                    <div class="flex items-center justify-between">
+                        <h3 class="lb-h3" style="font-size:19px">Personnes de cette entreprise</h3>
+                        <a href="{{ route('contacts.creer', ['entreprise' => $contact->id]) }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>+ Ajouter une personne</a>
+                    </div>
                     <div class="lb-people mt-3">
                         @forelse ($contact->personnes as $p)
                             <a href="{{ route('contacts.fiche', $p) }}" class="lb-prow" wire:navigate wire:key="p-{{ $p->id }}" style="text-decoration:none">

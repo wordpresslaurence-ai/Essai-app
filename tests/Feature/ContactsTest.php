@@ -36,6 +36,21 @@ it('crée une personne et une entreprise, visibles dans la liste', function () {
         ->assertSee('ACME SPRL');
 });
 
+it('pré-remplit l’entreprise à la création depuis la fiche entreprise (+ Ajouter une personne)', function () {
+    $entreprise = Contact::factory()->entreprise()->create(['nom' => 'Feeling Better']);
+
+    Livewire::withQueryParams(['entreprise' => $entreprise->id])
+        ->test(Formulaire::class)
+        ->assertSet('type', Contact::TYPE_PERSONNE)
+        ->assertSet('entreprise_id', (string) $entreprise->id)
+        ->set('nom', 'Hermans')
+        ->set('prenom', 'Eve')
+        ->call('enregistrer')
+        ->assertHasNoErrors();
+
+    expect(Contact::where('nom', 'Hermans')->first()->entreprise_id)->toBe($entreprise->id);
+});
+
 it('rattache une personne à une entreprise et l\'affiche sur la fiche entreprise', function () {
     $entreprise = Contact::factory()->entreprise()->create(['nom' => 'ACME SPRL']);
 

@@ -124,6 +124,19 @@ class Formulaire extends Component
             $this->categorie_id = $contact->categorie_id ? (string) $contact->categorie_id : null;
             $this->etiquettesSelection = $contact->etiquettes->pluck('id')->all();
             $this->adressesSecondaires = $contact->adressesEmail->pluck('adresse')->all();
+
+            return;
+        }
+
+        // Création d'une personne déjà rattachée à une entreprise
+        // (bouton « + Ajouter une personne » depuis la fiche entreprise).
+        $entrepriseId = request()->integer('entreprise');
+        if ($entrepriseId) {
+            $entreprise = Contact::typeEntreprise()->whereKey($entrepriseId)->first();
+            if ($entreprise) {
+                $this->type = Contact::TYPE_PERSONNE;
+                $this->entreprise_id = (string) $entreprise->id;
+            }
         }
     }
 
