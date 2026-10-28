@@ -138,7 +138,55 @@ Tous protégés par authentification. Routes dans `routes/web.php`.
 | **Assistant IA** (brique 1) | `Assistant\Brief`, `Reglages\Assistant`, services `Email\*` et `IA\*` | Lecture des e-mails (IMAP), fil sur la fiche, bouton « Analyse & relances » (API Claude), brief du matin (réponses dues / à relancer / suggestions). Le brief crée des tâches « Répondre/Relancer » (bouton, anti-doublon, **échéance au choix**) et **clôture automatiquement** celles dont le motif a disparu. Specs : `specs/005-assistant-ia/`. |
 | **Organisation** (brique 2) | `Organisation\Gestion` | Pôles & Catégories que Laurence crée/renomme/supprime elle-même. Champ Catégorie sur contacts et opportunités (le pôle est déduit), filtres Pôle → Catégorie sur Contacts et Pipeline, badge sur la fiche. Specs : `specs/006-poles-categories/`. |
 | **Sessions** (brique 8) | `Sessions\Liste`, `Sessions\Formulaire`, `Sessions\Fiche` | Sessions datées (promos de formation, journées) avec places, inscrits et **liste d'attente** (table `seances` — « sessions » réservé par Laravel — + `inscriptions`). Promotion auto du 1ᵉʳ en attente quand une place se libère ; filtres Pôle→Catégorie ; encart sur la fiche contact. Specs : `specs/008-sessions/`. |
-| **Prospection** (brique 7) | `Reglages\Assistant` (offre & liens par catégorie + note générale), `Contacts\FicheDetail` (bouton), services `IA\*` | L'assistant rédige un brouillon de mail de prospection (prof de yoga) depuis la fiche contact. **Source principale : l'« offre & liens » de la catégorie du contact** (`offre` longText + `liens` json sur `categories` — accordéon dans Réglages, liens multiples ajoutables ; l'IA n'ouvre pas les URL) ; note générale (`pitch_prospection`) facultative. Ton expert, non pushy, mail complet. Jamais envoyé ; une tâche « à envoyer » sert de trace. Specs : `specs/007-prospection/`. |
+| **Prospection — mail** (brique 7) | `Reglages\Assistant` (offre & liens par catégorie + note générale), `Contacts\FicheDetail` (bouton), services `IA\*` | L'assistant rédige un brouillon de mail de prospection depuis la fiche contact. **Source principale : l'« offre & liens » de la catégorie du contact** (`offre` longText + `liens` json sur `categories` — accordéon dans Réglages, liens multiples ajoutables ; l'IA n'ouvre pas les URL) ; note générale (`pitch_prospection`) facultative. Le brouillon **suit l'offre de la catégorie** (plus figé sur « formation Prana Vidya »). Jamais envoyé ; une tâche « à envoyer » sert de trace. Specs : `specs/007-prospection/`. |
+| **Prospection — recherche & import** (Option B) | `Prospection\Liste`, `Prospection\Formulaire`, `Prospection\Resultats`, services `Prospection\*` | Le CRM prépare un **brief** à coller dans **ChatGPT conversationnel** (0 € d'API), on y recolle/dépose le **CSV** résultat → candidats en zone de préparation → **tableau de tri** (cases à cocher + dédoublonnage) → **import non destructif & idempotent**. Tables `recherches_prospection`, `candidats_prospection`. Voir notes ci-dessous. |
+
+### Assistant de prospection — recherche & import (Option B) — notes
+
+Flux complet **sans coût d'API** : le CRM prépare le travail, **ChatGPT conversationnel** fait la
+recherche web publique, le CRM trie et importe. (On a écarté le module API autonome à cause du
+coût par recherche et de l'exécution en arrière-plan sur mutualisé.)
+
+1. **Brief** — `Prospection\Formulaire` + `Services\Prospection\GenerateurBrief`. Une campagne
+   (`recherches_prospection`) stocke les paramètres (offre = **catégorie**, sources, zones,
+   nombre, critères…) + une **copie figée** de la description de l'offre. Le brief impose le
+   **format exact de l'import** (40 colonnes, listes fermées) ; un test garantit la **parité des
+   en-têtes** avec `ImportCsv`. Bouton « Copier le brief ».
+2. **Ingestion** — `Prospection\Resultats` + `AnalyseurCsv`. On **colle le CSV** ou on **dépose
+   le fichier .csv** (encodage propre). Séparateur `;`, `,` **ou tabulation** (copie depuis un
+   tableau) ; champs multi-lignes entre guillemets ; en-têtes inconnues signalées ; recoller
+   **remplace** (idempotent). Candidats rangés dans `candidats_prospection` — **zone de
+   préparation, jamais le carnet**.
+3. **Tri & dédoublonnage** — `Dedoublonnage`. Cases à cocher **instantanées** (Alpine, aucun
+   aller-retour serveur), « Sélectionner les visibles », compteur, panneau **détail des 40
+   champs**, **écarter/restaurer**. Badges : **Déjà dans le CRM** (e-mail principal **ou
+   secondaire**, ou URL de profil normalisée), **Doublon potentiel** (dans la liste), **Déjà
+   repéré (autre recherche)**, **⚑ Même adresse** (alerte douce — une personne et sa structure
+   au même lieu ne sont pas un doublon), **Nouveau**.
+4. **Import** — `ImporteurCandidats` + `MappeurContact`. **Non destructif & idempotent** :
+   nouveau contact créé (40 champs mappés, listes fermées, étiquettes, catégorie par nom) ;
+   fiche existante **complétée** (champs vides remplis, notes **ajoutées à la suite**, étiquettes
+   fusionnées, e-mail ajouté en **adresse secondaire**) — **jamais d'écrasement**, **opposition
+   « ne plus contacter » préservée** ; candidat déjà importé ignoré ; deux candidats de même
+   e-mail dans un lot ne créent qu'un contact ; lien campagne-candidat-contact (`contact_id`,
+   `importe_at`). **Récapitulatif avant écriture** (créations / fiches à compléter) + rapport après.
+
+### Nouveautés récentes (octobre 2026)
+
+- **Contacts — plusieurs adresses e-mail par contact** : adresses secondaires (`adresses_email`)
+  reconnues par la **synchro** (plus de faux « créer le prospect » quand quelqu'un écrit d'une 2ᵉ
+  adresse) et par le **dédoublonnage** ; l'adresse principale reste `contacts.email`.
+- **Contacts — « + Ajouter une personne »** depuis la fiche entreprise : crée une personne
+  **déjà rattachée** (`contacts.creer?entreprise=ID`).
+- **Opportunités** : champ **rôle** Participant / Partenaire / Les deux (+ filtre pipeline,
+  badge) ; **prix par catégorie** (réglages Organisation) qui **pré-remplit le montant** ;
+  **date de création** auto ; « + Ajouter » depuis la fiche contact pré-remplit titre + contact
+  + catégorie + montant.
+- **Activités** : sélection multiple + **suppression groupée** (vue liste) — pratique pour vider
+  les terminées.
+- **Prod** : `URL::forceScheme('https')` en production (évite les **405** sur `/livewire/update`
+  dus à une redirection http→https) ; **`php artisan optimize:clear`** ajouté au script de
+  mise à jour.
 
 ### Module Organisation / Pôles & Catégories (006) — notes
 - Deux niveaux : **Pôle** (Prana, Digital…) → **Catégorie** (Formation profs, Journée aura,

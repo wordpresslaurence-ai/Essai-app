@@ -6,11 +6,20 @@ reste sur Odoo (conformité Peppol en Belgique).
 
 > 👋 **Tu débutes ?** Pas d'inquiétude : cette page explique tout, pas à pas.
 
-## Ce que fait (fera) l'application
+## Ce que fait l'application
 
-- **Contacts / Entreprises** — carnet de tes clients, prospects, fournisseurs
-- **Pipeline commercial** — suivi de tes opportunités de vente *(à venir)*
-- **Activités** — rappels, rendez-vous, tâches *(à venir)*
+- **Contacts / Entreprises** — carnet de tes clients, prospects, fournisseurs (plusieurs
+  adresses e-mail par contact, import CSV, export newsletter, étiquettes)
+- **Pipeline commercial** — opportunités par étape, avec **rôle** (participant/partenaire),
+  **prix par catégorie** et date de création
+- **Activités** — rappels, rendez-vous, tâches (sélection multiple + suppression groupée)
+- **Sessions** — journées/formations avec places et liste d'attente
+- **Assistant IA** — lecture des e-mails, analyses, brief du matin, brouillons de prospection
+- **Prospection (recherche)** — prépare un brief pour ChatGPT, puis **trie et importe** les
+  prospects trouvés (dédoublonnage, import non destructif)
+
+> ℹ️ Après chaque déploiement : `php artisan optimize:clear`, puis recharge la page en forcé
+> (Ctrl + Maj + R). Détails dans [`DEPLOIEMENT.md`](./DEPLOIEMENT.md).
 
 ## Comment le projet est organisé
 

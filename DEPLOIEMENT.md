@@ -155,8 +155,15 @@ le CSS/JS). → On suit la check-list ci-dessous, **sans Docker**.
 - [ ] (Au besoin) **Exporter tes contacts newsletter** en CSV depuis l'app.
 - [ ] Mettre à jour le code (ou `git pull`), puis relancer uniquement :
       `composer2 install --no-dev -o`, recompiler le CSS/JS (ou ré-uploader `public/build`),
-      `php artisan migrate --force`, puis les trois `*:cache`.
+      `php artisan migrate --force`, **`php artisan optimize:clear`** (purge les caches périmés),
+      puis `php artisan config:cache` et `php artisan view:cache`.
 - [ ] **Ne jamais** lancer `php artisan migrate:fresh`, `migrate:refresh` ni `db:wipe` en prod.
+
+> 💡 **`php artisan optimize:clear` à chaque mise à jour** : il vide tous les caches (config,
+> routes, vues, cache applicatif). Oublier cette étape peut laisser une **ancienne configuration
+> figée** (p.ex. une `APP_URL` en `http`) et provoquer une erreur **405 sur `/livewire/update`**
+> (le POST de Livewire est redirigé en GET). Après le déploiement, pense aussi à **recharger la
+> page en forcé** (Ctrl + Maj + R) pour vider le cache du navigateur.
 
 ---
 
@@ -216,7 +223,7 @@ php artisan key:generate --force
 mkdir -p ~/crm-app/storage/app/public
 ln -sfn ~/crm-app/storage/app/public ~/crm-app/public/storage
 php artisan migrate --force
-php artisan config:cache && php artisan view:cache
+php artisan optimize:clear && php artisan config:cache && php artisan view:cache
 chmod -R 775 storage bootstrap/cache
 
 # 6. Brancher le sous-domaine sur public/ (supprimer la page par défaut de Hostinger)

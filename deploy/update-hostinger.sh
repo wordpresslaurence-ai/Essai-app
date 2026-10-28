@@ -41,8 +41,11 @@ npm run build
 echo "==> 4/6  Migrations (additives : elles ne suppriment jamais de données)"
 php artisan migrate --force
 
-echo "==> 5/6  Mise en cache (config + vues ; pas de route:cache)"
-php artisan config:clear
+echo "==> 5/6  Caches : purge complète puis remise en cache (config + vues ; pas de route:cache)"
+# optimize:clear vide TOUT (config, routes, vues, cache applicatif, vues compilées).
+# Indispensable après une mise à jour : des caches périmés provoquent des bugs
+# (p.ex. une ancienne APP_URL http -> redirection -> erreur 405 sur /livewire/update).
+php artisan optimize:clear
 php artisan config:cache
 php artisan view:cache
 
