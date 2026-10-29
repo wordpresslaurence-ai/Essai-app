@@ -28,6 +28,13 @@ class FicheDetail extends Component
 
     public ?string $prospectionErreur = null;
 
+    // Réponse à un mail reçu
+    public ?string $reponseObjet = null;
+
+    public ?string $reponseCorps = null;
+
+    public ?string $reponseErreur = null;
+
     public function mount(Contact $contact): void
     {
         $this->contact = $contact;
@@ -388,6 +395,20 @@ class FicheDetail extends Component
             }
         } catch (Throwable $e) {
             $this->prospectionErreur = $e->getMessage();
+        }
+    }
+
+    /** Propose un brouillon de réponse au dernier e-mail reçu de ce contact. */
+    public function redigerReponse(): void
+    {
+        $this->reset('reponseErreur', 'reponseObjet', 'reponseCorps');
+
+        try {
+            $r = app(AssistantIA::class)->redigerReponse($this->contact);
+            $this->reponseObjet = $r->objet;
+            $this->reponseCorps = $r->corps;
+        } catch (Throwable $e) {
+            $this->reponseErreur = $e->getMessage();
         }
     }
 

@@ -178,8 +178,14 @@
                 <div class="flex items-center justify-between">
                     <h3 class="lb-h3" style="font-size:19px">E-mails</h3>
                     @if ($contact->emails->isNotEmpty())
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3 flex-wrap">
                             <span class="lb-muted" style="font-size:12px">{{ $contact->emails->count() }} message(s)</span>
+                            <button type="button" wire:click="redigerReponse" class="lb-btn lb-btn-primary"
+                                    style="padding:6px 12px;font-size:12.5px;white-space:nowrap"
+                                    wire:loading.attr="disabled" wire:target="redigerReponse">
+                                <span wire:loading.remove wire:target="redigerReponse">✉️ Proposer une réponse</span>
+                                <span wire:loading wire:target="redigerReponse">Rédaction…</span>
+                            </button>
                             <button type="button" wire:click="viderEmails"
                                     wire:confirm="Vider tout l'historique e-mails de ce contact ? (Un e-mail encore présent dans ta boîte pourra revenir à la prochaine synchro.)"
                                     class="lb-btn lb-btn-ghost" style="padding:5px 11px;font-size:12px">Vider l'historique</button>
@@ -207,6 +213,28 @@
                         <div class="lb-placeholder">Aucun e-mail synchronisé.</div>
                     @endforelse
                 </div>
+
+                @if ($reponseErreur)
+                    <div class="lb-alert lb-alert-danger mt-3">{{ $reponseErreur }}</div>
+                @endif
+
+                @if ($reponseCorps !== null)
+                    <div class="lb-inset mt-4" style="padding:16px" x-data="{ copie: false }">
+                        <div class="flex items-center justify-between">
+                            <span style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Brouillon de réponse</span>
+                            <button type="button" class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px"
+                                    x-on:click="navigator.clipboard.writeText('Objet : ' + $refs.robjet.value + '\n\n' + $refs.rcorps.value).then(() => { copie = true; setTimeout(() => copie = false, 2000) })">
+                                <span x-show="!copie">Copier</span>
+                                <span x-show="copie" x-cloak>✓ Copié</span>
+                            </button>
+                        </div>
+                        <label class="lb-label" style="margin-top:8px">Objet</label>
+                        <input type="text" wire:model="reponseObjet" x-ref="robjet" class="lb-field">
+                        <label class="lb-label" style="margin-top:8px">Corps</label>
+                        <textarea wire:model="reponseCorps" x-ref="rcorps" rows="8" class="lb-field"></textarea>
+                        <p class="lb-muted" style="font-size:11.5px;margin-top:6px">Brouillon — relis, ajuste, puis copie-le dans ta messagerie. <strong>Rien n'est envoyé.</strong></p>
+                    </div>
+                @endif
             </div>
 
             {{-- Analyse & relances (assistant IA) --}}

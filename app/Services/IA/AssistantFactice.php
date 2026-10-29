@@ -16,6 +16,7 @@ class AssistantFactice implements AssistantIA
         private ?ResultatAnalyse $resultat = null,
         private array $suggestions = [],
         private ?ResultatProspection $prospection = null,
+        private ?ResultatProspection $reponse = null,
     ) {}
 
     public function analyser(Contact $contact): ResultatAnalyse
@@ -41,6 +42,15 @@ class AssistantFactice implements AssistantIA
             objet: 'Découvrir la formation Prana Vidya',
             corps: 'Bonjour '.$contact->nomComplet().', (brouillon de prospection factice)'
                 .($angle ? ' — '.$angle : ''),
+            modele: 'factice',
+        );
+    }
+
+    public function redigerReponse(Contact $contact): ResultatProspection
+    {
+        return $this->reponse ?? new ResultatProspection(
+            objet: 'Re: votre message',
+            corps: 'Bonjour '.$contact->nomComplet().', (brouillon de réponse factice) Laurence',
             modele: 'factice',
         );
     }

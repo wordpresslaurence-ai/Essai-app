@@ -294,3 +294,50 @@ it('prospecte sur l’offre de la catégorie courante (pas une autre) et sans fo
         return true;
     });
 });
+
+it('l’assistant factice rédige une réponse', function () {
+    $r = (new AssistantFactice())->redigerReponse(Contact::factory()->create(['nom' => 'Durand']));
+
+    expect($r)->toBeInstanceOf(App\Services\IA\ResultatProspection::class);
+    expect($r->corps)->toContain('Durand');
+});
+
+it('le client Claude rédige une réponse au dernier mail reçu (API simulée)', function () {
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test']);
+    $contact = Contact::factory()->create(['nom' => 'Durand']);
+    Email::create([
+        'contact_id' => $contact->id, 'direction' => Email::DIRECTION_ENTRANT,
+        'de' => 'd@x.be', 'a' => 'moi@x.be', 'objet' => 'Question tarif', 'extrait' => 'Combien coûte…',
+        'date_email' => now(), 'message_id' => uniqid(), 'boite' => 'moi@x.be',
+    ]);
+
+    Http::fake(['api.anthropic.com/*' => Http::response([
+        'content' => [['type' => 'text', 'text' => json_encode(['objet' => 'Re: Question tarif', 'corps' => 'Bonjour, voici… Laurence'])]],
+    ], 200)]);
+
+    $r = (new AssistantClaude())->redigerReponse($contact);
+
+    expect($r->objet)->toContain('Re:');
+    expect($r->corps)->toContain('Laurence');
+    Http::assertSent(fn ($request) => str_contains(json_encode($request->data(), JSON_UNESCAPED_UNICODE), 'Question tarif'));
+});
+
+it('refuse de rédiger une réponse sans aucun mail reçu', function () {
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test']);
+    $contact = Contact::factory()->create();
+
+    expect(fn () => (new AssistantClaude())->redigerReponse($contact))->toThrow(RuntimeException::class);
+});
+
+it('propose un brouillon de réponse depuis la fiche contact', function () {
+    $this->actingAs(App\Models\User::factory()->create());
+    app()->instance(App\Services\IA\AssistantIA::class, new AssistantFactice(
+        reponse: new App\Services\IA\ResultatProspection('Re: votre message', 'Bonjour Durand, voici… Laurence', 'factice'),
+    ));
+    $contact = Contact::factory()->create(['nom' => 'Durand']);
+
+    Livewire\Livewire::test(App\Livewire\Contacts\FicheDetail::class, ['contact' => $contact])
+        ->call('redigerReponse')
+        ->assertSet('reponseObjet', 'Re: votre message')
+        ->assertSee('Bonjour Durand');
+});

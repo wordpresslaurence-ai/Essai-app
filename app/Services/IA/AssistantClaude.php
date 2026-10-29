@@ -177,6 +177,53 @@ class AssistantClaude implements AssistantIA
         );
     }
 
+    public function redigerReponse(Contact $contact): ResultatProspection
+    {
+        $p = Parametre::instance();
+
+        $contact->loadMissing('emails');
+        $dernierRecu = $contact->emails
+            ->filter(fn ($m) => $m->estEntrant())
+            ->sortByDesc('date_email')
+            ->first();
+
+        if (! $dernierRecu) {
+            throw new RuntimeException('Aucun e-mail reçu de ce contact : il n’y a rien à quoi répondre.');
+        }
+
+        $systeme = <<<'TXT'
+            Tu es l'assistant de Laurence (coach bien-être « Prana Vidya »). Rédige, en son nom, un
+            brouillon de RÉPONSE au DERNIER e-mail REÇU du contact, en français. Réponds réellement
+            aux questions et points soulevés dans le fil ci-dessous. Style : chaleureux, professionnel,
+            clair et concret, jamais insistant. N'invente AUCUN fait, prix, date ou engagement qui ne
+            figure pas dans le fil : si une information manque, propose d'en convenir ensemble plutôt
+            que de l'inventer. Rédige un mail COMPLET et termine toujours tes phrases, signé « Laurence ».
+            Réponds UNIQUEMENT par un objet JSON avec les clés "objet" (commence par « Re: » si pertinent)
+            et "corps" (le mail complet).
+            TXT;
+
+        $lignes = ['### Contact', 'Nom : '.$contact->nomComplet()];
+        if (filled($contact->notes)) {
+            $lignes[] = 'Notes internes : '.$contact->notes;
+        }
+        $lignes[] = '';
+        $lignes[] = $this->transcription($contact);
+        $utilisateur = implode("\n", $lignes);
+
+        $texte = $this->envoyer($p, $systeme, $utilisateur, 2500);
+        $json = $this->decoderJson($texte);
+
+        $objetDefaut = 'Re: '.($dernierRecu->objet ?: 'votre message');
+
+        return new ResultatProspection(
+            objet: (string) ($json['objet'] ?? $objetDefaut),
+            corps: filled($json['corps'] ?? null)
+                ? (string) $json['corps']
+                : 'Le brouillon n’a pas pu être généré entièrement. Clique à nouveau sur « Proposer une réponse ».',
+            modele: $this->modele($p),
+        );
+    }
+
     public function suggestions(array $contexte): array
     {
         $p = Parametre::instance();

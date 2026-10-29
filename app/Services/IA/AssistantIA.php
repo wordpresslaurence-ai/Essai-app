@@ -22,6 +22,12 @@ interface AssistantIA
     public function redigerProspection(Contact $contact, ?string $angle = null): ResultatProspection;
 
     /**
+     * Rédige un brouillon de RÉPONSE au dernier e-mail reçu du contact (objet +
+     * corps), à partir du fil d'échanges. Ne l'envoie jamais.
+     */
+    public function redigerReponse(Contact $contact): ResultatProspection;
+
+    /**
      * Suggestions proactives pour le brief du matin, à partir d'un contexte agrégé.
      *
      * @param  array<string, mixed>  $contexte
