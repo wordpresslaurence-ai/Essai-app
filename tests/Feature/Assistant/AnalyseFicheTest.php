@@ -54,6 +54,11 @@ it('affiche une erreur propre si l’assistant échoue', function () {
                 throw new RuntimeException('non utilisé');
             }
 
+            public function redigerReponse(Contact $contact): ResultatProspection
+            {
+                throw new RuntimeException('non utilisé');
+            }
+
             public function suggestions(array $contexte): array
             {
                 return [];
