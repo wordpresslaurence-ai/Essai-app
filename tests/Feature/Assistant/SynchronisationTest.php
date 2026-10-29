@@ -162,3 +162,15 @@ it('stocke le corps du mail dans la tâche « créer le prospect »', function (
     expect($tache)->not->toBeNull();
     expect($tache->notes)->toContain('Je suis Jean');
 });
+
+it('tronque un identifiant de fil trop long (évite « data too long »)', function () {
+    Contact::factory()->create(['email' => 'client@example.com']);
+    $longFil = '<'.str_repeat('a', 400).'@x>';
+    $msg = new MessageEmail('fil1', 'client@example.com', [BOITE], 'Sujet', 'Texte', Carbon::parse('2026-06-01 10:00'), $longFil);
+
+    sync([$msg]);
+
+    $email = Email::first();
+    expect($email)->not->toBeNull();
+    expect(mb_strlen((string) $email->fil_id))->toBeLessThanOrEqual(255);
+});

@@ -84,8 +84,24 @@ class ClientImap implements LecteurEmails
             objet: isset($entete->subject) ? $this->decoder($entete->subject) : null,
             texte: $corps,
             date: isset($entete->date) ? Carbon::parse($entete->date) : Carbon::now(),
-            filId: isset($entete->references) ? trim((string) $entete->references) : $messageId,
+            filId: $this->racineDuFil($entete, $messageId),
         );
+    }
+
+    /**
+     * Identifiant de fil (court et stable) : la RACINE de la conversation,
+     * c.-à-d. le 1er message-id des References (sinon In-Reply-To, sinon le
+     * message lui-même). On évite de stocker toute la chaîne (colonne limitée).
+     */
+    private function racineDuFil(object $entete, string $messageId): string
+    {
+        foreach (['references', 'in_reply_to'] as $champ) {
+            if (isset($entete->{$champ}) && preg_match('/<[^>]+>/', (string) $entete->{$champ}, $m)) {
+                return mb_substr($m[0], 0, 255);
+            }
+        }
+
+        return mb_substr($messageId, 0, 255);
     }
 
     /** @param array<object> $adresses */

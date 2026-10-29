@@ -104,8 +104,9 @@ class SynchronisationEmails
                     'extrait' => $message->extrait(),
                     'corps' => $message->texte,
                     'date_email' => $message->date,
-                    'message_id' => $message->messageId,
-                    'fil_id' => $message->filId,
+                    'message_id' => mb_substr($message->messageId, 0, 255),
+                    // Garde-fou : la colonne fil_id est limitée (VARCHAR 255).
+                    'fil_id' => $message->filId !== null ? mb_substr($message->filId, 0, 255) : null,
                     'boite' => $boite->email,
                     'boite_email_id' => $boite->id,
                     'traite' => $direction === Email::DIRECTION_SORTANT,
