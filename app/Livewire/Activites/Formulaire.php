@@ -69,6 +69,22 @@ class Formulaire extends Component
         return $this->redirect(route('activites.index'), navigate: true);
     }
 
+    public function terminer()
+    {
+        $this->activite?->update(['terminee_at' => now()]);
+        session()->flash('message', 'Activité marquée terminée.');
+
+        return $this->redirect(route('activites.index'), navigate: true);
+    }
+
+    public function rouvrir()
+    {
+        $this->activite?->update(['terminee_at' => null]);
+        session()->flash('message', 'Activité rouverte.');
+
+        return $this->redirect(route('activites.index'), navigate: true);
+    }
+
     public function supprimer()
     {
         $this->activite?->delete();

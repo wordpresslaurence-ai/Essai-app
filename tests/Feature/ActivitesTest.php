@@ -188,3 +188,19 @@ it('affiche un lien vers la fiche du contact dans le formulaire activité', func
     Livewire::test(App\Livewire\Activites\Formulaire::class, ['activite' => $activite])
         ->assertSee('Voir la fiche du contact');
 });
+
+it('marque une activité terminée depuis le formulaire', function () {
+    $a = Activite::factory()->create(['titre' => 'À terminer']);
+
+    Livewire::test(Formulaire::class, ['activite' => $a])->call('terminer');
+
+    expect($a->fresh()->estTerminee())->toBeTrue();
+});
+
+it('rouvre une activité terminée depuis le formulaire', function () {
+    $a = Activite::factory()->terminee()->create(['titre' => 'Déjà faite']);
+
+    Livewire::test(Formulaire::class, ['activite' => $a])->call('rouvrir');
+
+    expect($a->fresh()->estTerminee())->toBeFalse();
+});

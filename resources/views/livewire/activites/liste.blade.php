@@ -134,6 +134,9 @@
                     </div>
                 </div>
                 <div style="margin-left:auto" class="flex items-center gap-2">
+                    @if (! $a->contact && \Illuminate\Support\Str::startsWith($a->titre, 'Créer le prospect : '))
+                        <a href="{{ route('contacts.creer', ['prospect' => $a->id]) }}" class="lb-accent" style="font-size:12.5px;font-weight:700;text-decoration:none" wire:navigate>Créer la fiche →</a>
+                    @endif
                     @if ($a->contact)
                         <a href="{{ route('contacts.fiche', $a->contact) }}" class="lb-muted" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>Fiche</a>
                     @endif

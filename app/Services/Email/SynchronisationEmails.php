@@ -118,7 +118,7 @@ class SynchronisationEmails
             // Adresse inconnue : tâche « créer le prospect » (seulement entrant).
             if ($direction === Email::DIRECTION_ENTRANT && $expediteur !== '') {
                 if (! in_array($expediteur, $adressesTacheesCeTour, true)
-                    && $this->creerTacheProspect($expediteur, $message->objet)) {
+                    && $this->creerTacheProspect($expediteur, $message->objet, $message->texte)) {
                     $resultat->ajouterProspect($expediteur, $message->objet);
                     $adressesTacheesCeTour[] = $expediteur;
                 }
@@ -131,7 +131,7 @@ class SynchronisationEmails
     }
 
     /** Crée la tâche si aucune tâche ouverte ne vise déjà cette adresse. */
-    private function creerTacheProspect(string $adresse, ?string $objet): bool
+    private function creerTacheProspect(string $adresse, ?string $objet, ?string $corps = null): bool
     {
         $titre = 'Créer le prospect : '.$adresse;
 
@@ -145,10 +145,21 @@ class SynchronisationEmails
             return false;
         }
 
+        // On conserve l'objet et le corps du mail : ils serviront à pré-remplir
+        // la fiche (deviner nom / entreprise depuis la signature, à la demande).
+        $notes = [];
+        if (filled($objet)) {
+            $notes[] = 'Objet du mail : '.$objet;
+        }
+        if (filled($corps)) {
+            $notes[] = '--- Message ---';
+            $notes[] = Str::limit($corps, 2000);
+        }
+
         Activite::create([
             'titre' => $titre,
             'type' => Activite::TYPE_TACHE,
-            'notes' => $objet ? 'Objet du mail : '.Str::limit($objet, 120) : null,
+            'notes' => $notes !== [] ? implode("\n", $notes) : null,
         ]);
 
         return true;

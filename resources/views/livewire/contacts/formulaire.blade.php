@@ -16,6 +16,24 @@
         </div>
     @endif
 
+    {{-- Pré-remplissage depuis une tâche « Créer le prospect » --}}
+    @if ($prospectActiviteId)
+        <div class="lb-card mt-5" style="padding:14px 18px;border:1px solid var(--accent)">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div style="font-size:13px">✨ Créé depuis un mail reçu. L'IA peut <strong>deviner le nom et l'entreprise</strong> depuis la signature.</div>
+                <button type="button" wire:click="devinerDepuisMail" class="lb-btn lb-btn-primary"
+                        style="padding:7px 13px;font-size:12.5px;white-space:nowrap"
+                        wire:loading.attr="disabled" wire:target="devinerDepuisMail">
+                    <span wire:loading.remove wire:target="devinerDepuisMail">✨ Pré-remplir depuis le mail</span>
+                    <span wire:loading wire:target="devinerDepuisMail">Analyse…</span>
+                </button>
+            </div>
+            @if ($prospectErreur)
+                <div class="lb-error" style="margin-top:8px">{{ $prospectErreur }}</div>
+            @endif
+        </div>
+    @endif
+
     <form wire:submit="enregistrer" class="lb-card mt-5" style="padding:24px">
         {{-- Type --}}
         <div class="max-w-xs">

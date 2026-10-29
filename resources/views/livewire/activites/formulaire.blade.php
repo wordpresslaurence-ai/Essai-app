@@ -54,6 +54,11 @@
             </div>
             <div class="flex items-center gap-3">
                 <a href="{{ route('activites.index') }}" class="lb-muted" style="font-size:13.5px;text-decoration:none" wire:navigate>Annuler</a>
+                @if ($activite && $activite->estTerminee())
+                    <button type="button" wire:click="rouvrir" class="lb-btn lb-btn-ghost">Rouvrir</button>
+                @elseif ($activite)
+                    <button type="button" wire:click="terminer" class="lb-btn lb-btn-ghost">✓ Marquer terminée</button>
+                @endif
                 <button type="submit" class="lb-btn lb-btn-primary">Enregistrer</button>
             </div>
         </div>

@@ -224,6 +224,36 @@ class AssistantClaude implements AssistantIA
         );
     }
 
+    public function devinerProspect(string $adresse, ?string $corps): array
+    {
+        $p = Parametre::instance();
+
+        $systeme = <<<'TXT'
+            Tu analyses un e-mail reçu d'une personne inconnue, pour aider à pré-remplir une fiche
+            contact. À partir de l'ADRESSE e-mail et du MESSAGE (surtout la SIGNATURE en fin de mail),
+            déduis UNIQUEMENT ce qui est explicitement présent : prénom, nom, entreprise/structure,
+            fonction, téléphone. N'invente RIEN : laisse null tout ce qui n'est pas clairement indiqué.
+            Ne devine pas un téléphone, et ne force pas un nom à partir de la seule adresse si ce n'est
+            pas évident. Réponds UNIQUEMENT par un objet JSON avec les clés "prenom", "nom",
+            "entreprise", "fonction", "telephone" (chaîne, ou null si inconnu).
+            TXT;
+
+        $utilisateur = 'Adresse e-mail : '.$adresse."\n\nMessage reçu :\n".($corps ?: '(aucun corps disponible)');
+
+        $texte = $this->envoyer($p, $systeme, $utilisateur, 500);
+        $json = $this->decoderJson($texte);
+
+        $val = fn (string $cle): ?string => filled($json[$cle] ?? null) ? trim((string) $json[$cle]) : null;
+
+        return [
+            'prenom' => $val('prenom'),
+            'nom' => $val('nom'),
+            'entreprise' => $val('entreprise'),
+            'fonction' => $val('fonction'),
+            'telephone' => $val('telephone'),
+        ];
+    }
+
     public function suggestions(array $contexte): array
     {
         $p = Parametre::instance();

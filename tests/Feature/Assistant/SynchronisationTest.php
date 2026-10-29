@@ -152,3 +152,13 @@ it('rattache sans filtrer par pôle (« ne rien rater »)', function () {
     expect($r->emailsImportes)->toBe(1);
     expect(Email::first()->contact_id)->toBe($contact->id);
 });
+
+it('stocke le corps du mail dans la tâche « créer le prospect »', function () {
+    $msg = new MessageEmail('b1', 'inconnu@example.com', [BOITE], 'Bonjour', 'Je suis Jean, prof de yoga.', Carbon::parse('2026-06-01 10:00'));
+
+    sync([$msg]);
+
+    $tache = Activite::where('type', Activite::TYPE_TACHE)->first();
+    expect($tache)->not->toBeNull();
+    expect($tache->notes)->toContain('Je suis Jean');
+});

@@ -59,6 +59,11 @@ it('affiche une erreur propre si l’assistant échoue', function () {
                 throw new RuntimeException('non utilisé');
             }
 
+            public function devinerProspect(string $adresse, ?string $corps): array
+            {
+                return ['prenom' => null, 'nom' => null, 'entreprise' => null, 'fonction' => null, 'telephone' => null];
+            }
+
             public function suggestions(array $contexte): array
             {
                 return [];

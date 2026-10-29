@@ -2,15 +2,19 @@
 
 namespace App\Livewire\Contacts;
 
+use App\Models\Activite;
 use App\Models\Contact;
 use App\Models\Etiquette;
 use App\Models\Pole;
 use App\Rules\NumeroEntrepriseBe;
 use App\Rules\NumeroTvaBe;
+use App\Services\IA\AssistantIA;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Throwable;
 
 #[Layout('layouts.app')]
 class Formulaire extends Component
@@ -104,6 +108,13 @@ class Formulaire extends Component
     /** @var array<int> Étiquettes cochées pour ce contact. */
     public array $etiquettesSelection = [];
 
+    // Création depuis une tâche « Créer le prospect » (pré-remplissage IA à la demande).
+    public ?int $prospectActiviteId = null;
+
+    public ?string $prospectCorps = null;
+
+    public ?string $prospectErreur = null;
+
     /** Pré-remplit le formulaire en mode édition. */
     public function mount(?Contact $contact = null): void
     {
@@ -137,6 +148,51 @@ class Formulaire extends Component
                 $this->type = Contact::TYPE_PERSONNE;
                 $this->entreprise_id = (string) $entreprise->id;
             }
+        }
+
+        // Création depuis une tâche « Créer le prospect : <adresse> ».
+        $prospectId = request()->integer('prospect');
+        if ($prospectId) {
+            $activite = Activite::find($prospectId);
+            if ($activite && str_starts_with((string) $activite->titre, 'Créer le prospect : ')) {
+                $this->prospectActiviteId = $activite->id;
+                $this->prospectCorps = $activite->notes;
+                $this->type = Contact::TYPE_PERSONNE;
+                $this->email = trim(Str::after($activite->titre, 'Créer le prospect : '));
+            }
+        }
+    }
+
+    /** Devine prénom / nom / entreprise / fonction depuis le mail du prospect (IA, à la demande). */
+    public function devinerDepuisMail(): void
+    {
+        $this->reset('prospectErreur');
+
+        if (blank($this->email) && blank($this->prospectCorps)) {
+            return;
+        }
+
+        try {
+            $infos = app(AssistantIA::class)->devinerProspect((string) $this->email, $this->prospectCorps);
+
+            if (blank($this->prenom) && filled($infos['prenom'])) {
+                $this->prenom = $infos['prenom'];
+            }
+            if (blank($this->nom) && filled($infos['nom'])) {
+                $this->nom = $infos['nom'];
+            }
+            if (blank($this->fonction) && filled($infos['fonction'])) {
+                $this->fonction = $infos['fonction'];
+            }
+            if (blank($this->telephone) && filled($infos['telephone'])) {
+                $this->telephone = $infos['telephone'];
+            }
+            if (filled($infos['entreprise'])) {
+                $ligne = 'Entreprise (à rattacher) : '.$infos['entreprise'];
+                $this->notes = trim(($this->notes ? $this->notes."\n" : '').$ligne);
+            }
+        } catch (Throwable $e) {
+            $this->prospectErreur = $e->getMessage();
         }
     }
 
@@ -272,6 +328,13 @@ class Formulaire extends Component
 
         // Synchronise les adresses e-mail secondaires.
         $this->synchroniserAdresses($cible);
+
+        // Fiche créée depuis une tâche « Créer le prospect » : on la clôture.
+        if ($this->prospectActiviteId) {
+            Activite::whereKey($this->prospectActiviteId)
+                ->whereNull('terminee_at')
+                ->update(['terminee_at' => now(), 'contact_id' => $cible->id]);
+        }
 
         session()->flash('message', $message);
 

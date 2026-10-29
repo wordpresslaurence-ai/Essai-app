@@ -28,6 +28,15 @@ interface AssistantIA
     public function redigerReponse(Contact $contact): ResultatProspection;
 
     /**
+     * Devine l'identité d'un prospect (prénom, nom, entreprise, fonction, téléphone)
+     * à partir de son adresse e-mail et du corps de son message (signature). Les
+     * champs inconnus restent null. N'invente jamais une coordonnée.
+     *
+     * @return array{prenom: ?string, nom: ?string, entreprise: ?string, fonction: ?string, telephone: ?string}
+     */
+    public function devinerProspect(string $adresse, ?string $corps): array;
+
+    /**
      * Suggestions proactives pour le brief du matin, à partir d'un contexte agrégé.
      *
      * @param  array<string, mixed>  $contexte

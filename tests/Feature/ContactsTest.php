@@ -276,3 +276,25 @@ it('enregistre et affiche le lien du compte / profil', function () {
     Livewire::test(FicheDetail::class, ['contact' => $contact])
         ->assertSee('facebook.com/marie.durand');
 });
+
+it('pré-remplit et devine une fiche depuis une tâche « Créer le prospect »', function () {
+    $tache = App\Models\Activite::create([
+        'titre' => 'Créer le prospect : jean@studio.be',
+        'type' => App\Models\Activite::TYPE_TACHE,
+        'notes' => "Objet du mail : Demande\n--- Message ---\nBonjour, Jean Testeur, Studio Factice.",
+    ]);
+    app()->instance(App\Services\IA\AssistantIA::class, new App\Services\IA\AssistantFactice());
+
+    Livewire::withQueryParams(['prospect' => $tache->id])
+        ->test(Formulaire::class)
+        ->assertSet('type', Contact::TYPE_PERSONNE)
+        ->assertSet('email', 'jean@studio.be')
+        ->call('devinerDepuisMail')
+        ->assertSet('prenom', 'Jean')
+        ->assertSet('nom', 'Testeur')
+        ->call('enregistrer')
+        ->assertHasNoErrors();
+
+    expect(Contact::where('nom', 'Testeur')->exists())->toBeTrue();
+    expect($tache->fresh()->estTerminee())->toBeTrue(); // tâche clôturée à la création
+});

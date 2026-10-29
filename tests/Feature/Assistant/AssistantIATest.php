@@ -341,3 +341,19 @@ it('propose un brouillon de réponse depuis la fiche contact', function () {
         ->assertSet('reponseObjet', 'Re: votre message')
         ->assertSet('reponseCorps', 'Bonjour Durand, voici… Laurence');
 });
+
+it('le client Claude devine un prospect depuis la signature (API simulée)', function () {
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test']);
+
+    Http::fake(['api.anthropic.com/*' => Http::response([
+        'content' => [['type' => 'text', 'text' => json_encode([
+            'prenom' => 'Marie', 'nom' => 'Durand', 'entreprise' => 'Studio Zen', 'fonction' => 'Professeure', 'telephone' => null,
+        ])]],
+    ], 200)]);
+
+    $infos = (new AssistantClaude())->devinerProspect('marie@zen.be', 'Bonjour, Marie Durand, Studio Zen');
+
+    expect($infos['prenom'])->toBe('Marie');
+    expect($infos['entreprise'])->toBe('Studio Zen');
+    expect($infos['telephone'])->toBeNull();
+});

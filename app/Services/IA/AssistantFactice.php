@@ -55,6 +55,17 @@ class AssistantFactice implements AssistantIA
         );
     }
 
+    public function devinerProspect(string $adresse, ?string $corps): array
+    {
+        return [
+            'prenom' => 'Jean',
+            'nom' => 'Testeur',
+            'entreprise' => 'Studio Factice',
+            'fonction' => 'Professeur',
+            'telephone' => null,
+        ];
+    }
+
     public function suggestions(array $contexte): array
     {
         return $this->suggestions;
