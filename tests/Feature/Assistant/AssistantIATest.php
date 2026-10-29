@@ -339,5 +339,5 @@ it('propose un brouillon de réponse depuis la fiche contact', function () {
     Livewire\Livewire::test(App\Livewire\Contacts\FicheDetail::class, ['contact' => $contact])
         ->call('redigerReponse')
         ->assertSet('reponseObjet', 'Re: votre message')
-        ->assertSee('Bonjour Durand');
+        ->assertSet('reponseCorps', 'Bonjour Durand, voici… Laurence');
 });
