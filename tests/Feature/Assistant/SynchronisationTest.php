@@ -64,6 +64,24 @@ it('ne crée pas de doublon pour le même message', function () {
     expect($r->emailsImportes)->toBe(0);
 });
 
+it('détaille les mails rattachés (qui / objet / sens)', function () {
+    Contact::factory()->create(['nom' => 'Durand', 'prenom' => 'Marie', 'email' => 'client@example.com']);
+
+    $r = sync([recu('d1', 'client@example.com', [BOITE], 'Demande de devis')]);
+
+    expect($r->imports)->toHaveCount(1);
+    expect($r->imports[0]['nom'])->toBe('Marie Durand');
+    expect($r->imports[0]['objet'])->toBe('Demande de devis');
+    expect($r->imports[0]['direction'])->toBe('entrant');
+});
+
+it('détaille les prospects à créer', function () {
+    $r = sync([recu('p1', 'inconnu@example.com', [BOITE], 'Bonjour')]);
+
+    expect($r->prospects)->toHaveCount(1);
+    expect($r->prospects[0]['adresse'])->toBe('inconnu@example.com');
+});
+
 it('crée une tâche « créer le prospect » pour un expéditeur inconnu', function () {
     $r = sync([recu('m4', 'inconnu@example.com', [BOITE], 'Demande d’info')]);
 

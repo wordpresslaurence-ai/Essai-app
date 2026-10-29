@@ -37,6 +37,9 @@ class Brief extends Component
 
     public ?string $echeanceRelance = null;
 
+    /** Détail de la dernière synchro (mails rattachés + prospects à créer). */
+    public array $detailSync = [];
+
     public function mount(): void
     {
         $this->echeanceReponse = now()->toDateString();
@@ -52,9 +55,14 @@ class Brief extends Component
         try {
             $resultat = app(SynchronisationEmails::class)->executer();
             session()->flash('message', $resultat->resume());
+            $this->detailSync = [
+                'imports' => $resultat->imports,
+                'prospects' => $resultat->prospects,
+            ];
             $this->cloturerTachesResolues();
         } catch (Throwable $e) {
             session()->flash('erreur', $e->getMessage());
+            $this->detailSync = [];
         }
     }
 

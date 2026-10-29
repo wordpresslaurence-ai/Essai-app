@@ -13,6 +13,37 @@
 
     @if (session('message'))
         <div class="lb-alert lb-alert-success mt-5">{{ session('message') }}</div>
+        @if (!empty($detailSync['imports']) || !empty($detailSync['prospects']))
+            <div class="lb-card mt-3" style="padding:16px 18px">
+                @if (!empty($detailSync['imports']))
+                    <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Mails rattachés</div>
+                    <div class="lb-people mt-2">
+                        @foreach ($detailSync['imports'] as $m)
+                            <div class="lb-prow" style="padding:9px 12px">
+                                <span class="lb-tag" style="font-size:10.5px;{{ $m['direction'] === 'sortant' ? 'background:var(--lav-tint,#efeafe);color:var(--lav)' : 'background:var(--mint-tint);color:var(--mint-deep)' }}">{{ $m['direction'] === 'sortant' ? '↗ Envoyé' : '↘ Reçu' }}</span>
+                                <div style="min-width:0;flex:1">
+                                    <div class="nm lb-truncate">{{ $m['nom'] }}</div>
+                                    <div class="mt lb-truncate">{{ $m['objet'] }}</div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+                @if (!empty($detailSync['prospects']))
+                    <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-top:12px">Prospects à créer</div>
+                    <div class="lb-people mt-2">
+                        @foreach ($detailSync['prospects'] as $p)
+                            <div class="lb-prow" style="padding:9px 12px">
+                                <div style="min-width:0;flex:1">
+                                    <div class="nm lb-truncate">{{ $p['adresse'] }}</div>
+                                    <div class="mt lb-truncate">{{ $p['objet'] }}</div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        @endif
     @endif
     @if (session('erreur'))
         <div class="lb-alert lb-alert-danger mt-5">{{ session('erreur') }}</div>

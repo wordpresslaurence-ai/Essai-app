@@ -110,7 +110,7 @@ class SynchronisationEmails
                     'boite_email_id' => $boite->id,
                     'traite' => $direction === Email::DIRECTION_SORTANT,
                 ]);
-                $resultat->emailsImportes++;
+                $resultat->ajouterImport($contact->nomComplet(), $message->objet, $direction);
 
                 continue;
             }
@@ -119,7 +119,7 @@ class SynchronisationEmails
             if ($direction === Email::DIRECTION_ENTRANT && $expediteur !== '') {
                 if (! in_array($expediteur, $adressesTacheesCeTour, true)
                     && $this->creerTacheProspect($expediteur, $message->objet)) {
-                    $resultat->tachesCreees++;
+                    $resultat->ajouterProspect($expediteur, $message->objet);
                     $adressesTacheesCeTour[] = $expediteur;
                 }
             }
