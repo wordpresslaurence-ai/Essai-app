@@ -75,6 +75,10 @@
                         <svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.2L19 10l-5.1 1.8L12 17l-1.9-5.2L5 10l5.1-1.8z"/></svg>
                         Assistant
                     </a>
+                    <a href="{{ route('mails.index') }}" class="{{ request()->routeIs('mails.*') ? 'active' : '' }}" wire:navigate>
+                        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+                        Mails
+                    </a>
                     <a href="{{ route('prospection.index') }}" class="{{ request()->routeIs('prospection.*') ? 'active' : '' }}" wire:navigate>
                         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
                         Prospection

@@ -4,11 +4,14 @@
             <h1 class="lb-h1">Brief du matin</h1>
             <p class="lb-muted" style="font-size:13px;margin-top:2px">Ce qu'il faut suivre aujourd'hui.</p>
         </div>
-        <button type="button" wire:click="synchroniser" class="lb-btn lb-btn-primary"
-                wire:loading.attr="disabled" wire:target="synchroniser">
-            <span wire:loading.remove wire:target="synchroniser">Synchroniser mes mails</span>
-            <span wire:loading wire:target="synchroniser">Synchronisation…</span>
-        </button>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('mails.index') }}" class="lb-accent" style="font-size:13px;font-weight:600;text-decoration:none" wire:navigate>Voir tous les mails →</a>
+            <button type="button" wire:click="synchroniser" class="lb-btn lb-btn-primary"
+                    wire:loading.attr="disabled" wire:target="synchroniser">
+                <span wire:loading.remove wire:target="synchroniser">Synchroniser mes mails</span>
+                <span wire:loading wire:target="synchroniser">Synchronisation…</span>
+            </button>
+        </div>
     </div>
 
     @if (session('message'))

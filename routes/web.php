@@ -45,6 +45,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Assistant (module 005)
     Route::get('assistant', \App\Livewire\Assistant\Brief::class)->name('assistant.brief');
+    Route::get('mails', \App\Livewire\Assistant\MailsRecents::class)->name('mails.index');
 
     // Réglages de l'assistant (module 005)
     Route::get('reglages', \App\Livewire\Reglages\Assistant::class)->name('reglages.assistant');
