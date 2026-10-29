@@ -165,3 +165,18 @@ it('applique l\'échéance choisie à la tâche créée', function () {
     $t = App\Models\Activite::where('contact_id', $marie->id)->where('titre', 'like', 'Répondre à %')->first();
     expect($t->echeance->toDateString())->toBe($date);
 });
+
+it('le digest « depuis hier » compte mails récents, prospects à créer et activités du jour', function () {
+    $c = App\Models\Contact::factory()->create(['email' => 'client@x.be']);
+    emailBrief($c, Email::DIRECTION_ENTRANT, Carbon::now()->subHours(3)->toDateTimeString()); // récent
+    emailBrief($c, Email::DIRECTION_ENTRANT, Carbon::now()->subDays(10)->toDateTimeString()); // trop vieux
+
+    App\Models\Activite::create(['titre' => 'Créer le prospect : inconnu@x.be', 'type' => App\Models\Activite::TYPE_TACHE]);
+    App\Models\Activite::create(['titre' => 'Rappeler', 'type' => App\Models\Activite::TYPE_TACHE, 'echeance' => now()->toDateString()]);
+
+    $digest = Livewire::test(Brief::class)->instance()->digest();
+
+    expect($digest['mailsRecents'])->toBe(1);
+    expect($digest['prospects'])->toBe(1);
+    expect($digest['activites'])->toBeGreaterThanOrEqual(1);
+});

@@ -14,6 +14,33 @@
         </div>
     </div>
 
+    {{-- Résumé « depuis hier » --}}
+    <div class="lb-card mt-5" style="padding:14px 18px">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Depuis hier</div>
+        <div class="flex flex-wrap" style="gap:26px;margin-top:10px">
+            <a href="{{ route('mails.index', ['sens' => 'entrant']) }}" wire:navigate style="text-decoration:none">
+                <div class="serif" style="font-size:26px;font-weight:600;color:var(--ink);line-height:1">{{ $digest['mailsRecents'] }}</div>
+                <div class="lb-muted" style="font-size:12px;margin-top:3px">mail(s) reçu(s)</div>
+            </a>
+            <div>
+                <div class="serif" style="font-size:26px;font-weight:600;color:{{ $digest['reponses'] ? 'var(--terra)' : 'var(--ink)' }};line-height:1">{{ $digest['reponses'] }}</div>
+                <div class="lb-muted" style="font-size:12px;margin-top:3px">à répondre</div>
+            </div>
+            <div>
+                <div class="serif" style="font-size:26px;font-weight:600;color:var(--ink);line-height:1">{{ $digest['relances'] }}</div>
+                <div class="lb-muted" style="font-size:12px;margin-top:3px">à relancer</div>
+            </div>
+            <a href="{{ route('activites.index') }}" wire:navigate style="text-decoration:none">
+                <div class="serif" style="font-size:26px;font-weight:600;color:var(--ink);line-height:1">{{ $digest['activites'] }}</div>
+                <div class="lb-muted" style="font-size:12px;margin-top:3px">activité(s) du jour</div>
+            </a>
+            <a href="{{ route('activites.index') }}" wire:navigate style="text-decoration:none">
+                <div class="serif" style="font-size:26px;font-weight:600;color:{{ $digest['prospects'] ? 'var(--accent)' : 'var(--ink)' }};line-height:1">{{ $digest['prospects'] }}</div>
+                <div class="lb-muted" style="font-size:12px;margin-top:3px">prospect(s) à créer</div>
+            </a>
+        </div>
+    </div>
+
     @if (session('message'))
         <div class="lb-alert lb-alert-success mt-5">{{ session('message') }}</div>
         @if (!empty($detailSync['imports']) || !empty($detailSync['prospects']))

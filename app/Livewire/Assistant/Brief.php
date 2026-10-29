@@ -4,6 +4,7 @@ namespace App\Livewire\Assistant;
 
 use App\Models\Activite;
 use App\Models\Contact;
+use App\Models\Email;
 use App\Models\Opportunite;
 use App\Models\Pole;
 use App\Services\Email\SynchronisationEmails;
@@ -193,6 +194,31 @@ class Brief extends Component
         return filled($this->poleFiltre) ? (int) $this->poleFiltre : null;
     }
 
+    /**
+     * Résumé « depuis hier » : chiffres clés pour l'ouverture du brief.
+     *
+     * @return array{mailsRecents:int, reponses:int, relances:int, prospects:int, activites:int}
+     */
+    public function digest(?CalculRelances $calc = null, int $stagnantes = 0): array
+    {
+        $calc ??= new CalculRelances(null, $this->poleIdFiltre());
+
+        return [
+            'mailsRecents' => Email::where('direction', Email::DIRECTION_ENTRANT)
+                ->where('date_email', '>=', now()->subDay()->startOfDay())
+                ->count(),
+            'reponses' => $calc->reponsesDues()->count(),
+            'relances' => $calc->aRelancer()->count() + $stagnantes,
+            'prospects' => Activite::whereNull('terminee_at')
+                ->where('titre', 'like', 'Créer le prospect : %')
+                ->count(),
+            'activites' => Activite::aFaire()
+                ->whereNotNull('echeance')
+                ->whereDate('echeance', '<=', now()->toDateString())
+                ->count(),
+        ];
+    }
+
     public function render(): View
     {
         $pole = $this->poleIdFiltre();
@@ -222,6 +248,7 @@ class Brief extends Component
         return view('livewire.assistant.brief', [
             'reponsesDues' => $calc->reponsesDues(),
             'aRelancer' => $calc->aRelancer(),
+            'digest' => $this->digest($calc, $stagnantes->count()),
             'dejaRepondre' => $dejaRepondre,
             'dejaRelancer' => $dejaRelancer,
             'poles' => Pole::orderBy('ordre')->orderBy('nom')->get(),
