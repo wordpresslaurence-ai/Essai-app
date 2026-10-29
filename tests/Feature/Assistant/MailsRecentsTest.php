@@ -18,6 +18,7 @@ function creerMail(Contact $c, string $direction, string $objet, string $date): 
     return Email::create([
         'contact_id' => $c->id, 'direction' => $direction, 'de' => 'x@y.be', 'a' => 'z@y.be',
         'objet' => $objet, 'extrait' => 'extrait', 'date_email' => $date, 'message_id' => uniqid(),
+        'boite' => 'test@homeharmony.be',
     ]);
 }
 
