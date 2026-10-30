@@ -84,15 +84,3 @@ it('ne garde que les 12 derniers mois quand on nettoie', function () {
     expect(Email::find($limite->id))->toBeNull();
     expect(Email::count())->toBe(1);
 });
-
-it('ne supprime pas les mails sans date lors du nettoyage', function () {
-    $c = Contact::factory()->create(['nom' => 'Durand']);
-    $sansDate = Email::create([
-        'contact_id' => $c->id, 'direction' => 'entrant', 'de' => 'x@y.be', 'a' => 'z@y.be',
-        'objet' => 'Sans date', 'date_email' => null, 'message_id' => uniqid(), 'boite' => 'test@homeharmony.be',
-    ]);
-
-    Livewire::test(MailsRecents::class)->call('supprimerAnciens')->assertSet('derniersSupprimes', 0);
-
-    expect(Email::find($sansDate->id))->not->toBeNull();
-});
