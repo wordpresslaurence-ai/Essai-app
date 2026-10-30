@@ -73,6 +73,8 @@ class AnalyseurDebrief
             }
         }
 
+        $prochaineAction = $this->valeur($champs, 'prochaine_action');
+
         return new ResultatDebrief(
             type: $this->normaliserType($this->valeur($champs, 'type')),
             resume: $this->valeur($champs, 'resume'),
@@ -82,10 +84,37 @@ class AnalyseurDebrief
             besoins: $this->valeur($champs, 'besoins'),
             objections: $this->valeur($champs, 'objections'),
             promis: $this->valeur($champs, 'promis'),
-            prochaineAction: $this->valeur($champs, 'prochaine_action'),
+            prochaineAction: $prochaineAction,
             echeance: $this->parserEcheance($this->valeur($champs, 'echeance')),
             texteComplet: $texteComplet,
+            prochainesActions: $this->decouperActions($prochaineAction),
         );
+    }
+
+    /**
+     * Découpe le bloc « PROCHAINE ACTION » en actions distinctes : une par ligne,
+     * numérotation / puces / gras markdown retirés. « 1. **Claudia :** faire X »
+     * devient « Claudia : faire X ».
+     *
+     * @return list<string>
+     */
+    private function decouperActions(?string $bloc): array
+    {
+        if ($bloc === null) {
+            return [];
+        }
+
+        $actions = [];
+        foreach (preg_split('/\r\n|\r|\n/', $bloc) as $ligne) {
+            $l = trim((string) $ligne);
+            $l = preg_replace('/^\s*(\d+[.)]|[-•*])\s*/u', '', $l); // numéro ou puce en tête
+            $l = trim(str_replace('**', '', (string) $l));          // gras markdown
+            if ($l !== '') {
+                $actions[] = $l;
+            }
+        }
+
+        return $actions;
     }
 
     /** Détecte « ÉTIQUETTE : valeur ». Renvoie [champ|null|'', valeur]. */

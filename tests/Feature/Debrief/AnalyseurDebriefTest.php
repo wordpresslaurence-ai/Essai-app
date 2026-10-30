@@ -65,3 +65,22 @@ it('ramène un type inconnu à « autre »', function () {
     $r = (new AnalyseurDebrief)->analyser('TYPE : réunion interne'."\n".'RÉSUMÉ : point hebdo');
     expect($r->type)->toBe('autre');
 });
+
+it('découpe « PROCHAINE ACTION » en plusieurs actions', function () {
+    $texte = <<<'TXT'
+PROCHAINE ACTION :
+1. **Claudia :** envoyer les textes.
+2. **Laurence :** modifier les tarifs.
+- Ensemble : confirmer les dates.
+ÉCHÉANCE : 2026-11-15
+TXT;
+
+    $r = (new AnalyseurDebrief)->analyser($texte);
+
+    expect($r->prochainesActions)->toBe([
+        'Claudia : envoyer les textes.',
+        'Laurence : modifier les tarifs.',
+        'Ensemble : confirmer les dates.',
+    ]);
+    expect($r->echeance?->format('Y-m-d'))->toBe('2026-11-15');
+});

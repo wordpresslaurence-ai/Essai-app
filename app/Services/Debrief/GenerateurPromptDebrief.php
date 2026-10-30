@@ -42,7 +42,7 @@ class GenerateurPromptDebrief
         $l[] = 'BESOINS / ATTENTES : ';
         $l[] = 'OBJECTIONS / FREINS : ';
         $l[] = 'PROMIS / DÉCIDÉ : ';
-        $l[] = 'PROCHAINE ACTION : ';
+        $l[] = 'PROCHAINE ACTION : (une action par ligne si plusieurs ; précise qui fait quoi)';
         $l[] = 'ÉCHÉANCE : (AAAA-MM-JJ ou "dans X jours")';
         $l[] = '=== FIN ===';
         $l[] = '';

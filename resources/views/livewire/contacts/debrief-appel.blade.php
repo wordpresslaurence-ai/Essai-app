@@ -67,25 +67,31 @@
                 Mettre à jour la capacité / le tarif sur la fiche
             </label>
 
-            {{-- Tâche de relance --}}
-            <label class="flex items-center gap-2 mt-5" style="font-size:13px;cursor:pointer;font-weight:600">
-                <input type="checkbox" wire:model.live="creerTache">
-                Créer une tâche de relance
-            </label>
-            @if ($creerTache)
-                <div class="flex flex-wrap gap-4 mt-3" style="align-items:flex-end">
-                    <div style="flex:2 1 260px;min-width:0">
-                        <label class="lb-eyebrow" style="display:block">Intitulé de la tâche</label>
-                        <input type="text" wire:model="tacheTitre" class="lb-field" style="margin-top:6px" placeholder="ex. Relancer pour la dispo du mardi">
-                        @error('tacheTitre') <div class="lb-alert lb-alert-danger mt-2">{{ $message }}</div> @enderror
+            {{-- Tâches de relance (une par action détectée) --}}
+            <div class="flex items-center justify-between gap-3 mt-6 flex-wrap">
+                <label class="lb-eyebrow" style="display:block">Tâches de relance à créer</label>
+                <button type="button" wire:click="ajouterTache" class="lb-btn lb-btn-ghost" style="padding:5px 11px;font-size:12px">+ Ajouter une tâche</button>
+            </div>
+            <p class="lb-muted" style="font-size:12px;margin-top:2px">Décoche celles que tu ne veux pas créer. Chaque action du débrief devient une tâche.</p>
+
+            @forelse ($taches as $i => $t)
+                <div class="flex flex-wrap gap-3 mt-3" style="align-items:flex-end" wire:key="tache-{{ $i }}">
+                    <label class="flex items-center" style="padding-bottom:11px">
+                        <input type="checkbox" wire:model="taches.{{ $i }}.creer">
+                    </label>
+                    <div style="flex:3 1 260px;min-width:0">
+                        <input type="text" wire:model="taches.{{ $i }}.titre" class="lb-field" placeholder="Intitulé de la tâche">
+                        @error('taches.'.$i.'.titre') <div class="lb-alert lb-alert-danger mt-2">{{ $message }}</div> @enderror
                     </div>
-                    <div style="flex:1 1 160px;min-width:0">
-                        <label class="lb-eyebrow" style="display:block">Échéance</label>
-                        <input type="date" wire:model="tacheEcheance" class="lb-field" style="margin-top:6px">
-                        @error('tacheEcheance') <div class="lb-alert lb-alert-danger mt-2">{{ $message }}</div> @enderror
+                    <div style="flex:1 1 150px;min-width:0">
+                        <input type="date" wire:model="taches.{{ $i }}.echeance" class="lb-field">
+                        @error('taches.'.$i.'.echeance') <div class="lb-alert lb-alert-danger mt-2">{{ $message }}</div> @enderror
                     </div>
+                    <button type="button" wire:click="retirerTache({{ $i }})" class="lb-iconbtn" title="Retirer" aria-label="Retirer cette tâche" style="margin-bottom:2px">✕</button>
                 </div>
-            @endif
+            @empty
+                <p class="lb-muted" style="font-size:12.5px;margin-top:6px">Aucune action détectée. Tu peux en ajouter une si besoin.</p>
+            @endforelse
 
             {{-- Rattachement opportunité --}}
             @if ($opportunites->isNotEmpty())

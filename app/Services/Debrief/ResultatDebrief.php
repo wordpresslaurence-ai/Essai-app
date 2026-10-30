@@ -23,6 +23,8 @@ class ResultatDebrief
         public readonly ?string $prochaineAction = null,
         public readonly ?Carbon $echeance = null,
         public readonly string $texteComplet = '',
+        /** @var list<string> Actions décomposées (une par ligne du bloc « PROCHAINE ACTION »). */
+        public readonly array $prochainesActions = [],
     ) {}
 
     /** Le débrief contient-il au moins une information exploitable ? */

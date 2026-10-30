@@ -48,8 +48,8 @@ it('analyse le débrief collé et pré-remplit l’aperçu', function () {
         ->assertSet('capacite', 40)
         ->assertSet('tarif', '180 €/jour')
         ->assertSet('majFiche', true)
-        ->assertSet('creerTache', true)
-        ->assertSet('tacheEcheance', '2026-11-10')
+        ->assertSet('taches.0.echeance', '2026-11-10')
+        ->assertSet('taches.0.creer', true)
         ->assertSet('erreur', null);
 });
 
@@ -87,7 +87,7 @@ it('ne touche pas la fiche si on décoche la mise à jour', function () {
         ->set('contenu', debriefColle())
         ->call('analyserDebrief')
         ->set('majFiche', false)
-        ->set('creerTache', false)
+        ->set('taches', [])
         ->call('enregistrer');
 
     $c->refresh();
@@ -118,4 +118,33 @@ it('refuse d’analyser un contenu vide', function () {
         ->call('analyserDebrief')
         ->assertSet('analyse', false)
         ->assertSet('erreur', 'Colle d’abord le débrief renvoyé par ChatGPT.');
+});
+
+it('crée une tâche par action quand le débrief en liste plusieurs', function () {
+    $c = Contact::factory()->create();
+
+    $debrief = <<<'TXT'
+=== DÉBRIEF D'APPEL ===
+RÉSUMÉ : Réunion de préparation du site.
+PROCHAINE ACTION :
+1. **Claudia :** envoyer les textes Word et les photos.
+2. **Laurence :** modifier le menu et les tarifs.
+3. **Laurence :** vérifier la cohérence des tarifs.
+4. **Ensemble :** confirmer les dates.
+ÉCHÉANCE : 2026-11-15
+=== FIN ===
+TXT;
+
+    $comp = Livewire::test(DebriefAppel::class, ['contact' => $c])
+        ->set('contenu', $debrief)
+        ->call('analyserDebrief');
+
+    expect($comp->get('taches'))->toHaveCount(4);
+
+    $comp->call('enregistrer');
+
+    $taches = Activite::where('contact_id', $c->id)->where('type', Activite::TYPE_TACHE)->get();
+    expect($taches)->toHaveCount(4);
+    expect($taches->pluck('titre')->all())->toContain('Claudia : envoyer les textes Word et les photos.');
+    expect($taches->first()->echeance?->format('Y-m-d'))->toBe('2026-11-15');
 });

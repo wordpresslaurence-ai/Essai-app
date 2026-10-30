@@ -202,8 +202,10 @@ est **clôturée automatiquement**.
   (`Services\Debrief\GenerateurPromptDebrief`) à coller dans ChatGPT avec la transcription ;
   on recolle le débrief **au format fixe** → `AnalyseurDebrief` l'analyse (100 % local) →
   **aperçu éditable** → après validation : une **note d'historique** (activité type `note`,
-  rattachable à l'opportunité), la **mise à jour capacité/tarif** de la fiche, et une **tâche de
-  relance** (type `tache` + échéance) — **tout est validé avant écriture**. Nouveaux **vrais
+  rattachable à l'opportunité), la **mise à jour capacité/tarif** de la fiche, et **une tâche de
+  relance par action** détectée (le bloc « PROCHAINE ACTION » est découpé ligne par ligne : 4
+  actions → 4 tâches proposées, chacune cochable/éditable avec son échéance) — **tout est validé
+  avant écriture**. Nouveaux **vrais
   champs** `capacite` + `tarif` sur `contacts` (éditables aussi dans le formulaire, affichés sur
   la fiche). Ces deux champs sont **aussi récupérés à l'import de prospection** : colonnes
   `capacite`/`tarif` ajoutées au brief et à l'import CSV (remplissage non destructif, capacité

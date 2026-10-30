@@ -46,11 +46,8 @@ class DebriefAppel extends Component
 
     public bool $majFiche = false;
 
-    public bool $creerTache = false;
-
-    public string $tacheTitre = '';
-
-    public ?string $tacheEcheance = null;
+    /** @var list<array{titre:string, echeance:?string, creer:bool}> Tâches de relance proposées. */
+    public array $taches = [];
 
     public ?int $opportuniteId = null;
 
@@ -88,10 +85,28 @@ class DebriefAppel extends Component
         $this->capacite = $r->capacite;
         $this->tarif = $r->tarif ?? '';
         $this->majFiche = $r->capacite !== null || ($r->tarif ?? '') !== '';
-        $this->tacheTitre = $r->prochaineAction !== null ? Str::limit($r->prochaineAction, 120, '') : '';
-        $this->tacheEcheance = $r->echeance?->format('Y-m-d');
-        $this->creerTache = $this->tacheTitre !== '';
+
+        // Une tâche de relance proposée par action (toutes cochées par défaut),
+        // avec l'échéance du débrief pré-remplie — modifiable ligne par ligne.
+        $echeance = $r->echeance?->format('Y-m-d');
+        $this->taches = [];
+        foreach ($r->prochainesActions as $action) {
+            $this->taches[] = ['titre' => Str::limit($action, 200, ''), 'echeance' => $echeance, 'creer' => true];
+        }
+
         $this->analyse = true;
+    }
+
+    /** Ajoute une ligne de tâche vide (saisie manuelle). */
+    public function ajouterTache(): void
+    {
+        $this->taches[] = ['titre' => '', 'echeance' => null, 'creer' => true];
+    }
+
+    public function retirerTache(int $index): void
+    {
+        unset($this->taches[$index]);
+        $this->taches = array_values($this->taches);
     }
 
     public function enregistrer()
@@ -100,8 +115,10 @@ class DebriefAppel extends Component
             'noteTexte' => ['required', 'string', 'min:3'],
             'capacite' => ['nullable', 'integer', 'min:1'],
             'tarif' => ['nullable', 'string', 'max:255'],
-            'tacheTitre' => ['required_if:creerTache,true', 'nullable', 'string', 'max:255'],
-            'tacheEcheance' => ['nullable', 'date'],
+            'taches' => ['array'],
+            'taches.*.titre' => ['nullable', 'string', 'max:255'],
+            'taches.*.echeance' => ['nullable', 'date'],
+            'taches.*.creer' => ['boolean'],
             'opportuniteId' => ['nullable', 'integer'],
         ]);
 
@@ -134,13 +151,16 @@ class DebriefAppel extends Component
                 }
             }
 
-            if ($this->creerTache && trim($this->tacheTitre) !== '') {
+            foreach ($this->taches as $t) {
+                if (empty($t['creer']) || trim((string) ($t['titre'] ?? '')) === '') {
+                    continue;
+                }
                 Activite::create([
-                    'titre' => trim($this->tacheTitre),
+                    'titre' => trim((string) $t['titre']),
                     'type' => Activite::TYPE_TACHE,
                     'contact_id' => $this->contact->id,
                     'opportunite_id' => $oppId,
-                    'echeance' => $this->tacheEcheance ? Carbon::parse($this->tacheEcheance)->startOfDay() : null,
+                    'echeance' => ! empty($t['echeance']) ? Carbon::parse($t['echeance'])->startOfDay() : null,
                 ]);
             }
         });
