@@ -135,7 +135,7 @@ Tous protégés par authentification. Routes dans `routes/web.php`.
 | **Pipeline** | `Pipeline\Tableau`, `Pipeline\Formulaire` | Opportunités vue kanban par étape. |
 | **Activités** | `Activites\Liste`, `Activites\Formulaire` | Tâches, appels, rendez-vous, rappels. |
 | **Leads** | (champs `source`/`temperature` sur `Contact`) | Qualification des contacts entrants. |
-| **Assistant IA** (brique 1) | `Assistant\Brief`, `Reglages\Assistant`, services `Email\*` et `IA\*` | Lecture des e-mails (IMAP), fil sur la fiche, bouton « Analyse & relances » (API Claude), brief du matin (réponses dues / à relancer / suggestions). Le brief crée des tâches « Répondre/Relancer » (bouton, anti-doublon, **échéance au choix**) et **clôture automatiquement** celles dont le motif a disparu. Specs : `specs/005-assistant-ia/`. |
+| **Assistant IA** (brique 1 + « super assistant ») | `Assistant\Brief`, `Assistant\MailsRecents`, `Reglages\Assistant`, services `Email\*` et `IA\*` | Lecture des e-mails (IMAP), fil sur la fiche, bouton « Analyse & relances » (API Claude), brief du matin (réponses dues / à relancer / suggestions) + **digest « depuis hier »**, écran **Mails récents**, **synchro détaillée** (qui + sujet), **proposer une réponse** et **prospect pré-rempli** (voir « Nouveautés récentes »). Le brief crée des tâches « Répondre/Relancer » (bouton, anti-doublon, **échéance au choix**) et **clôture automatiquement** celles dont le motif a disparu. Logique réponses dues / relances détaillée plus bas. Specs : `specs/005-assistant-ia/`. |
 | **Organisation** (brique 2) | `Organisation\Gestion` | Pôles & Catégories que Laurence crée/renomme/supprime elle-même. Champ Catégorie sur contacts et opportunités (le pôle est déduit), filtres Pôle → Catégorie sur Contacts et Pipeline, badge sur la fiche. Specs : `specs/006-poles-categories/`. |
 | **Sessions** (brique 8) | `Sessions\Liste`, `Sessions\Formulaire`, `Sessions\Fiche` | Sessions datées (promos de formation, journées) avec places, inscrits et **liste d'attente** (table `seances` — « sessions » réservé par Laravel — + `inscriptions`). Promotion auto du 1ᵉʳ en attente quand une place se libère ; filtres Pôle→Catégorie ; encart sur la fiche contact. Specs : `specs/008-sessions/`. |
 | **Prospection — mail** (brique 7) | `Reglages\Assistant` (offre & liens par catégorie + note générale), `Contacts\FicheDetail` (bouton), services `IA\*` | L'assistant rédige un brouillon de mail de prospection depuis la fiche contact. **Source principale : l'« offre & liens » de la catégorie du contact** (`offre` longText + `liens` json sur `categories` — accordéon dans Réglages, liens multiples ajoutables ; l'IA n'ouvre pas les URL) ; note générale (`pitch_prospection`) facultative. Le brouillon **suit l'offre de la catégorie** (plus figé sur « formation Prana Vidya »). Jamais envoyé ; une tâche « à envoyer » sert de trace. Specs : `specs/007-prospection/`. |
@@ -171,8 +171,51 @@ coût par recherche et de l'exécution en arrière-plan sur mutualisé.)
    e-mail dans un lot ne créent qu'un contact ; lien campagne-candidat-contact (`contact_id`,
    `importe_at`). **Récapitulatif avant écriture** (créations / fiches à compléter) + rapport après.
 
+### Suivi des e-mails : réponses dues & relances (comment ça marche)
+
+Service `App\Services\Relances\CalculRelances` — **100 % local, sans IA ni réseau**. Pour chaque
+contact, on regarde **le dernier e-mail échangé** :
+
+- **Dernier message entrant** (eux ont écrit en dernier) → **« Réponse due »** : c'est à Laurence
+  de répondre (prioritaire).
+- **Dernier message sortant** (Laurence a écrit en dernier) **et daté de plus de N jours** sans
+  réponse → **« À relancer »**. `N` = réglage **`relance_delai_jours`** (par défaut **5 jours**,
+  modifiable dans **Réglages → Assistant**, de 1 à 365).
+
+👉 Trois conditions pour qu'un contact remonte dans « À relancer » :
+1. **Le contact existe** dans le CRM (les e-mails ne se rattachent qu'aux contacts connus —
+   adresse principale **ou** secondaire).
+2. **La synchro a importé le mail envoyé** (l'assistant lit aussi les messages sortants de la
+   boîte Hostinger).
+3. **Le délai (5 j par défaut) est dépassé** sans réponse.
+
+Ces listes s'affichent dans l'écran **Assistant / Brief** (sections « Réponses dues » et « À
+relancer ») — **pas de notification push ni d'e-mail automatique** : on les voit en ouvrant
+l'assistant. Un bouton crée la tâche « Répondre/Relancer » (anti-doublon : un contact déjà pourvu
+d'une tâche de relance non terminée n'est pas reproposé), et une tâche dont le motif a disparu
+est **clôturée automatiquement**.
+
 ### Nouveautés récentes (octobre 2026)
 
+- **« Super assistant »** autour du Brief :
+  - **Synchro détaillée** — après une synchro, l'assistant dit **qui** a écrit et **le sujet**
+    (plus un simple « 1 mail importé »).
+  - **Mails récents** — écran listant **tous les e-mails synchronisés**, tous contacts confondus
+    (accessible depuis le lien dans l'assistant ; le **menu « Mails » a été retiré** de la barre
+    latérale, l'accès via l'assistant suffit).
+  - **Digest « depuis hier »** — résumé du Brief : mails récents, réponses dues,
+    relances + opportunités stagnantes, prospects à créer, activités du jour.
+  - **Proposer une réponse** — depuis la fiche contact, l'assistant rédige un **brouillon de
+    réponse** (API Claude) à partir du fil et du dernier mail reçu. Jamais envoyé.
+  - **Prospect pré-rempli** — quand quelqu'un d'inconnu écrit, l'assistant peut **deviner**
+    prénom / nom / entreprise / fonction / téléphone depuis la **signature** (« à la demande »,
+    sur un bouton) pour pré-remplir la future fiche.
+- **Activités — bouton « Marquer terminée »** directement dans le formulaire d'une tâche
+  (et « Rouvrir »).
+- **Prospection — choix de l'offre à présenter** : sur la fiche contact, au moment de rédiger un
+  mail de prospection, on **sélectionne la catégorie dont l'offre & les liens** servent de base
+  (ex. salle pour le cours Prana Vidya 3 jours **ou** pour la journée nettoyage des chakras).
+  Chaque offre est stockée sur sa catégorie (`offre` + `liens`).
 - **Contacts — plusieurs adresses e-mail par contact** : adresses secondaires (`adresses_email`)
   reconnues par la **synchro** (plus de faux « créer le prospect » quand quelqu'un écrit d'une 2ᵉ
   adresse) et par le **dédoublonnage** ; l'adresse principale reste `contacts.email`.
@@ -186,7 +229,8 @@ coût par recherche et de l'exécution en arrière-plan sur mutualisé.)
   les terminées.
 - **Prod** : `URL::forceScheme('https')` en production (évite les **405** sur `/livewire/update`
   dus à une redirection http→https) ; **`php artisan optimize:clear`** ajouté au script de
-  mise à jour.
+  mise à jour ; `fil_id` / `message_id` des e-mails **tronqués à 255** (évite l'erreur MySQL
+  « Data too long for column `fil_id` » sur les longs fils de discussion).
 
 ### Module Organisation / Pôles & Catégories (006) — notes
 - Deux niveaux : **Pôle** (Prana, Digital…) → **Catégorie** (Formation profs, Journée aura,
