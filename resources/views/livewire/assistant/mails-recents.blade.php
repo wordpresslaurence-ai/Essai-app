@@ -37,5 +37,5 @@
         @endforelse
     </div>
 
-    <div class="mt-5">{{ $mails->links() }}</div>
+    <div class="mt-5" style="overflow-x:auto">{{ $mails->links() }}</div>
 </div>
