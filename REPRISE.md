@@ -202,7 +202,10 @@ est **clôturée automatiquement**.
     (plus un simple « 1 mail importé »).
   - **Mails récents** — écran listant **tous les e-mails synchronisés**, tous contacts confondus
     (accessible depuis le lien dans l'assistant ; le **menu « Mails » a été retiré** de la barre
-    latérale, l'accès via l'assistant suffit).
+    latérale, l'accès via l'assistant suffit). **Bouton « Nettoyer (> 12 mois) »** : supprime à la
+    demande (avec confirmation) les mails de plus de 12 mois — ne garde que la dernière année.
+    Les contacts et les mails récents ne sont pas touchés. Aucun nettoyage automatique par ailleurs :
+    les mails sont conservés tant qu'on ne nettoie pas (ou qu'on ne supprime pas le contact).
   - **Digest « depuis hier »** — résumé du Brief : mails récents, réponses dues,
     relances + opportunités stagnantes, prospects à créer, activités du jour.
   - **Proposer une réponse** — depuis la fiche contact, l'assistant rédige un **brouillon de

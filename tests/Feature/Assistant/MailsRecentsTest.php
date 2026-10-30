@@ -55,3 +55,44 @@ it('recherche par objet', function () {
         ->assertSee('Devis atelier')
         ->assertDontSee('Autre sujet');
 });
+
+it('propose le bouton de nettoyage seulement s’il existe des mails de plus de 12 mois', function () {
+    $c = Contact::factory()->create(['nom' => 'Durand']);
+
+    // Aucun mail ancien : pas de bouton.
+    creerMail($c, 'entrant', 'Mail récent', now()->subMonths(2)->toDateTimeString());
+    Livewire::test(MailsRecents::class)->assertDontSee('Nettoyer');
+
+    // Un mail de plus de 12 mois : le bouton apparaît.
+    creerMail($c, 'entrant', 'Vieux mail', now()->subMonths(18)->toDateTimeString());
+    Livewire::test(MailsRecents::class)->assertSee('Nettoyer');
+});
+
+it('ne garde que les 12 derniers mois quand on nettoie', function () {
+    $c = Contact::factory()->create(['nom' => 'Durand']);
+    $recent = creerMail($c, 'entrant', 'Mail récent', now()->subMonths(2)->toDateTimeString());
+    $vieux = creerMail($c, 'entrant', 'Vieux mail', now()->subMonths(18)->toDateTimeString());
+    $limite = creerMail($c, 'sortant', 'Juste sous la limite', now()->subMonths(13)->toDateTimeString());
+
+    Livewire::test(MailsRecents::class)
+        ->call('supprimerAnciens')
+        ->assertSet('derniersSupprimes', 2)
+        ->assertSee('supprimé');
+
+    expect(Email::find($recent->id))->not->toBeNull();
+    expect(Email::find($vieux->id))->toBeNull();
+    expect(Email::find($limite->id))->toBeNull();
+    expect(Email::count())->toBe(1);
+});
+
+it('ne supprime pas les mails sans date lors du nettoyage', function () {
+    $c = Contact::factory()->create(['nom' => 'Durand']);
+    $sansDate = Email::create([
+        'contact_id' => $c->id, 'direction' => 'entrant', 'de' => 'x@y.be', 'a' => 'z@y.be',
+        'objet' => 'Sans date', 'date_email' => null, 'message_id' => uniqid(), 'boite' => 'test@homeharmony.be',
+    ]);
+
+    Livewire::test(MailsRecents::class)->call('supprimerAnciens')->assertSet('derniersSupprimes', 0);
+
+    expect(Email::find($sansDate->id))->not->toBeNull();
+});

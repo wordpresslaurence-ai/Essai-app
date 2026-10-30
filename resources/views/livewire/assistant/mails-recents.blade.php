@@ -1,7 +1,25 @@
 <div>
-    <div class="lb-eyebrow">Assistant</div>
-    <h1 class="lb-h1">Mails récents</h1>
-    <p class="lb-muted" style="font-size:13px;margin-top:2px">Tous les e-mails synchronisés, du plus récent au plus ancien.</p>
+    <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+            <div class="lb-eyebrow">Assistant</div>
+            <h1 class="lb-h1">Mails récents</h1>
+            <p class="lb-muted" style="font-size:13px;margin-top:2px">Tous les e-mails synchronisés, du plus récent au plus ancien.</p>
+        </div>
+        @if ($nbAnciens > 0)
+            <button type="button" class="lb-btn lb-btn-ghost" style="flex:none;color:var(--terra,#C0604F)"
+                    wire:click="supprimerAnciens"
+                    wire:confirm="Supprimer définitivement les {{ $nbAnciens }} mail(s) de plus de 12 mois ? Les contacts et les mails récents ne sont pas touchés.">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+                Nettoyer (&gt; 12 mois) · {{ $nbAnciens }}
+            </button>
+        @endif
+    </div>
+
+    @if ($derniersSupprimes !== null)
+        <div class="lb-tag mt-3" style="background:var(--mint-tint);color:var(--mint-deep)">
+            {{ $derniersSupprimes }} mail(s) de plus de 12 mois supprimé(s). Seuls les 12 derniers mois sont conservés.
+        </div>
+    @endif
 
     {{-- Filtres --}}
     <div class="flex flex-wrap items-center gap-2 mt-5">
