@@ -74,6 +74,7 @@ class MailsRecents extends Component
                     ->orWhereHas('contact', fn ($c) => $c->where('nom', 'like', $motif)->orWhere('prenom', 'like', $motif));
             }))
             ->orderByDesc('date_email')
+            ->orderByDesc('id')
             ->paginate(20);
 
         return view('livewire.assistant.mails-recents', [

@@ -450,7 +450,7 @@ class FicheDetail extends Component
             'categorie.pole',
             'opportunites' => fn ($q) => $q->orderByDesc('created_at'),
             'activites' => fn ($q) => $q->with('opportunite')->orderByRaw('echeance is null')->orderBy('echeance'),
-            'emails' => fn ($q) => $q->orderByDesc('date_email'),
+            'emails' => fn ($q) => $q->orderByDesc('date_email')->orderByDesc('id'),
             'inscriptions' => fn ($q) => $q->with('seance')->where('statut', '!=', 'annule')->latest(),
         ]);
 

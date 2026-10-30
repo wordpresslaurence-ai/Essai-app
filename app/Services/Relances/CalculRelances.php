@@ -69,7 +69,7 @@ class CalculRelances
                 'categorie',
                 fn ($c) => $c->where('pole_id', $this->poleId),
             ))
-            ->with(['emails' => fn ($q) => $q->orderByDesc('date_email')])
+            ->with(['emails' => fn ($q) => $q->orderByDesc('date_email')->orderByDesc('id')])
             ->get()
             ->map(fn (Contact $c) => ['contact' => $c, 'dernier' => $c->emails->first()])
             ->sortBy(fn ($l) => $l['dernier']->date_email)

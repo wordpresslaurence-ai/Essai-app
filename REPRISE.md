@@ -245,6 +245,12 @@ est **clôturée automatiquement**.
   dus à une redirection http→https) ; **`php artisan optimize:clear`** ajouté au script de
   mise à jour ; `fil_id` / `message_id` des e-mails **tronqués à 255** (évite l'erreur MySQL
   « Data too long for column `fil_id` » sur les longs fils de discussion).
+- **E-mails — dates normalisées en UTC** : les mails reçus et envoyés pouvaient avoir des fuseaux
+  différents ; comme la colonne datetime ne garde pas le décalage, l'ordre pouvait s'inverser
+  (une réponse envoyée apparaissait *avant* le mail reçu → l'assistant proposait de répondre à un
+  mail déjà traité). Désormais toute date est ramenée en **UTC** à la lecture, les mails déjà
+  importés sont **auto-corrigés** à la synchro suivante, et un **tri secondaire par id** départage
+  les mails de même horodatage (ma réponse l'emporte sur le reçu).
 
 ### Module Organisation / Pôles & Catégories (006) — notes
 - Deux niveaux : **Pôle** (Prana, Digital…) → **Catégorie** (Formation profs, Journée aura,

@@ -83,3 +83,16 @@ it('filtre les relances par pôle quand un pôle est fourni', function () {
     expect($filtre->reponsesDues())->toHaveCount(1);
     expect($filtre->reponsesDues()->first()['contact']->id)->toBe($cPrana->id);
 });
+
+it('ma réponse (sortant) l’emporte sur un reçu de même date (départage par id)', function () {
+    $c = Contact::factory()->create();
+    // Même horodatage exact : le reçu est inséré AVANT, ma réponse APRÈS.
+    $date = Carbon::now()->toDateTimeString();
+    dernierEmail($c, Email::DIRECTION_ENTRANT, $date); // le prestataire répond
+    dernierEmail($c, Email::DIRECTION_SORTANT, $date); // je réponds dans la foulée
+
+    $calc = new CalculRelances(5);
+    // Le dernier message est bien ma réponse => plus de « réponse due ».
+    expect($calc->reponsesDues())->toHaveCount(0);
+    expect($calc->aRelancer())->toHaveCount(0); // et l'envoi est récent
+});

@@ -174,3 +174,19 @@ it('tronque un identifiant de fil trop long (évite « data too long »)', funct
     expect($email)->not->toBeNull();
     expect(mb_strlen((string) $email->fil_id))->toBeLessThanOrEqual(255);
 });
+
+it('corrige la date d’un mail déjà importé si elle a changé (ancien bug de fuseau)', function () {
+    Contact::factory()->create(['email' => 'client@example.com']);
+    $msg = recu('m-tz', 'client@example.com', [BOITE]); // date 2026-06-01 10:00
+
+    sync([$msg]);
+
+    // On simule une date stockée erronée (décalage de fuseau de l'ancien bug).
+    Email::where('message_id', 'm-tz')->update(['date_email' => '2026-06-01 08:00:00']);
+    BoiteEmail::whereKey($this->boite->id)->update(['derniere_synchro_at' => null]);
+
+    sync([$msg]); // re-vu : doit remettre la bonne date
+
+    expect(Email::count())->toBe(1);
+    expect(Email::first()->date_email->format('Y-m-d H:i'))->toBe('2026-06-01 10:00');
+});

@@ -83,9 +83,29 @@ class ClientImap implements LecteurEmails
             destinataires: $this->toutesAdresses($entete->to ?? []),
             objet: isset($entete->subject) ? $this->decoder($entete->subject) : null,
             texte: $corps,
-            date: isset($entete->date) ? Carbon::parse($entete->date) : Carbon::now(),
+            date: $this->parserDate($entete->date ?? null),
             filId: $this->racineDuFil($entete, $messageId),
         );
+    }
+
+    /**
+     * Date de l'en-tête, TOUJOURS normalisée en UTC. Les mails peuvent arriver
+     * avec des fuseaux différents (reçu en +01:00, envoyé en UTC…) ; comme la
+     * colonne datetime ne garde pas le décalage, on doit tout ramener au même
+     * fuseau pour que l'ordre chronologique (et donc « réponse due » / « à
+     * relancer ») soit correct.
+     */
+    private function parserDate(?string $date): Carbon
+    {
+        if ($date === null || trim($date) === '') {
+            return Carbon::now('UTC');
+        }
+
+        try {
+            return Carbon::parse($date)->setTimezone('UTC');
+        } catch (\Throwable) {
+            return Carbon::now('UTC');
+        }
     }
 
     /**

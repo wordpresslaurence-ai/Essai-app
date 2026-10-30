@@ -71,7 +71,14 @@ class SynchronisationEmails
 
         foreach ($messages as $message) {
             // Déduplication globale (un même message présent dans deux boîtes = une fois).
-            if (Email::where('message_id', $message->messageId)->exists()) {
+            $existant = Email::where('message_id', $message->messageId)->first();
+            if ($existant !== null) {
+                // Auto-correction : si la date stockée diffère (ancien bug de fuseau
+                // horaire sur les mails envoyés), on la remet d'équerre au passage.
+                if ($message->date !== null
+                    && ($existant->date_email === null || ! $existant->date_email->equalTo($message->date))) {
+                    $existant->update(['date_email' => $message->date]);
+                }
                 $resultat->ignores++;
 
                 continue;
