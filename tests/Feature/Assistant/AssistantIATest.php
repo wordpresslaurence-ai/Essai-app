@@ -380,3 +380,24 @@ it('rédige la prospection sur l’offre choisie, pas celle du contact', functio
         return true;
     });
 });
+
+it('transmet le CORPS COMPLET du mail reçu à Claude, pas seulement l’aperçu', function () {
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test']);
+    $contact = Contact::factory()->create();
+    Email::create([
+        'contact_id' => $contact->id, 'direction' => Email::DIRECTION_ENTRANT,
+        'de' => 'd@x.be', 'a' => 'moi@x.be', 'objet' => 'Détails',
+        'extrait' => 'Aperçu court…',
+        'corps' => 'Détails complets de ma demande, absents de l’aperçu : repère unique ABC123XYZ.',
+        'date_email' => now(), 'message_id' => uniqid(), 'boite' => 'moi@x.be',
+    ]);
+
+    Http::fake(['api.anthropic.com/*' => Http::response([
+        'content' => [['type' => 'text', 'text' => json_encode(['objet' => 'Re:', 'corps' => 'ok Laurence'])]],
+    ], 200)]);
+
+    (new AssistantClaude())->redigerReponse($contact);
+
+    // Le marqueur unique n'existe que dans le corps complet, jamais dans l'aperçu.
+    Http::assertSent(fn ($request) => str_contains(json_encode($request->data(), JSON_UNESCAPED_UNICODE), 'ABC123XYZ'));
+});

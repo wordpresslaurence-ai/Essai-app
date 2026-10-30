@@ -536,11 +536,34 @@ class AssistantClaude implements AssistantIA
             return "Aucun e-mail échangé pour l'instant.";
         }
 
-        $lignes = ["Fil d'e-mails (du plus ancien au plus récent) :"];
+        // On borne le fil aux 15 derniers échanges pour maîtriser la taille.
+        $tronque = $emails->count() > 15;
+        if ($tronque) {
+            $emails = $emails->slice(-15)->values();
+        }
+
+        $lignes = ["Fil d'e-mails (du plus ancien au plus récent), CORPS COMPLET de chaque message :"];
+        if ($tronque) {
+            $lignes[] = '(seuls les 15 derniers e-mails sont repris)';
+        }
+
         foreach ($emails as $mail) {
             $sens = $mail->estEntrant() ? 'REÇU' : 'ENVOYÉ';
             $date = $mail->date_email?->format('d/m/Y') ?? '';
-            $lignes[] = "- [$sens $date] ".($mail->objet ?: '(sans objet)').' : '.($mail->extrait ?? '');
+            $objet = $mail->objet ?: '(sans objet)';
+
+            // Corps COMPLET (et non l'aperçu), tronqué par sécurité à 6000 caractères.
+            $corps = trim((string) ($mail->corps ?? ''));
+            if ($corps === '') {
+                $corps = trim((string) ($mail->extrait ?? ''));
+            }
+            if (mb_strlen($corps) > 6000) {
+                $corps = mb_substr($corps, 0, 6000)."\n[…message tronqué…]";
+            }
+
+            $lignes[] = '';
+            $lignes[] = "----- [$sens le $date] Objet : $objet -----";
+            $lignes[] = $corps !== '' ? $corps : '(corps vide)';
         }
 
         return implode("\n", $lignes);

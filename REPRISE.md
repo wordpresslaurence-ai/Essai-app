@@ -222,7 +222,9 @@ est **clôturée automatiquement**.
   - **Digest « depuis hier »** — résumé du Brief : mails récents, réponses dues,
     relances + opportunités stagnantes, prospects à créer, activités du jour.
   - **Proposer une réponse** — depuis la fiche contact, l'assistant rédige un **brouillon de
-    réponse** (API Claude) à partir du fil et du dernier mail reçu. Jamais envoyé.
+    réponse** (API Claude) à partir du fil et du dernier mail reçu. La transcription envoyée à
+    l'IA contient le **corps complet** de chaque mail (plus seulement l'aperçu), borné aux 15
+    derniers échanges et 6000 caractères par mail. Jamais envoyé.
   - **Prospect pré-rempli** — quand quelqu'un d'inconnu écrit, l'assistant peut **deviner**
     prénom / nom / entreprise / fonction / téléphone depuis la **signature** (« à la demande »,
     sur un bouton) pour pré-remplir la future fiche.
