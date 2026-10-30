@@ -19,7 +19,7 @@ interface AssistantIA
      * Rédige un brouillon de mail de prospection (objet + corps) vers un prof de
      * yoga, à partir du pitch des réglages et du contact. Ne l'envoie jamais.
      */
-    public function redigerProspection(Contact $contact, ?string $angle = null): ResultatProspection;
+    public function redigerProspection(Contact $contact, ?string $angle = null, ?int $categorieId = null): ResultatProspection;
 
     /**
      * Rédige un brouillon de RÉPONSE au dernier e-mail reçu du contact (objet +

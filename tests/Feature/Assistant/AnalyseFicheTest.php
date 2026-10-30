@@ -49,7 +49,7 @@ it('affiche une erreur propre si l’assistant échoue', function () {
                 throw new RuntimeException('Clé API manquante.');
             }
 
-            public function redigerProspection(Contact $contact, ?string $angle = null): ResultatProspection
+            public function redigerProspection(Contact $contact, ?string $angle = null, ?int $categorieId = null): ResultatProspection
             {
                 throw new RuntimeException('non utilisé');
             }

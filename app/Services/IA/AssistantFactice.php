@@ -36,7 +36,7 @@ class AssistantFactice implements AssistantIA
         );
     }
 
-    public function redigerProspection(Contact $contact, ?string $angle = null): ResultatProspection
+    public function redigerProspection(Contact $contact, ?string $angle = null, ?int $categorieId = null): ResultatProspection
     {
         return $this->prospection ?? new ResultatProspection(
             objet: 'Découvrir la formation Prana Vidya',

@@ -357,3 +357,26 @@ it('le client Claude devine un prospect depuis la signature (API simulée)', fun
     expect($infos['entreprise'])->toBe('Studio Zen');
     expect($infos['telephone'])->toBeNull();
 });
+
+it('rédige la prospection sur l’offre choisie, pas celle du contact', function () {
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test', 'pitch_prospection' => null]);
+
+    $pole = App\Models\Pole::create(['nom' => 'Prana']);
+    $catContact = App\Models\Categorie::create(['pole_id' => $pole->id, 'nom' => 'Recherche de salle', 'offre' => 'Je cherche une salle à louer.']);
+    $catOffre = App\Models\Categorie::create(['pole_id' => $pole->id, 'nom' => 'Journée nettoyage chakra', 'offre' => 'Journée de nettoyage des chakras.']);
+    $contact = Contact::factory()->create(['categorie_id' => $catContact->id]);
+
+    Http::fake(['api.anthropic.com/*' => Http::response([
+        'content' => [['type' => 'text', 'text' => json_encode(['objet' => 'O', 'corps' => 'C Laurence'])]],
+    ], 200)]);
+
+    (new AssistantClaude())->redigerProspection($contact, null, $catOffre->id);
+
+    Http::assertSent(function ($request) {
+        $charge = json_encode($request->data(), JSON_UNESCAPED_UNICODE);
+        expect($charge)->toContain('nettoyage des chakras');      // l'offre choisie
+        expect($charge)->not->toContain('Je cherche une salle');  // pas celle du contact
+
+        return true;
+    });
+});

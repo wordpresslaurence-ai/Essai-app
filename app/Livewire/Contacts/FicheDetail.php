@@ -35,9 +35,13 @@ class FicheDetail extends Component
 
     public ?string $reponseErreur = null;
 
+    /** Catégorie dont l'offre sera présentée en prospection (par défaut celle du contact). */
+    public ?string $offreCategorieId = null;
+
     public function mount(Contact $contact): void
     {
         $this->contact = $contact;
+        $this->offreCategorieId = $contact->categorie_id ? (string) $contact->categorie_id : null;
     }
 
     /** Lance l'« Analyse & relances » du contact via l'assistant et l'enregistre. */
@@ -370,7 +374,8 @@ class FicheDetail extends Component
         try {
             // Angle saisi à la volée, sinon l'« angle de premier contact » de la fiche.
             $angle = $this->angleProspection ?: $this->contact->angle_contact;
-            $r = app(AssistantIA::class)->redigerProspection($this->contact, $angle ?: null);
+            $categorieId = filled($this->offreCategorieId) ? (int) $this->offreCategorieId : null;
+            $r = app(AssistantIA::class)->redigerProspection($this->contact, $angle ?: null, $categorieId);
 
             $this->prospectionObjet = $r->objet;
             $this->prospectionCorps = $r->corps;
@@ -449,8 +454,17 @@ class FicheDetail extends Component
             'inscriptions' => fn ($q) => $q->with('seance')->where('statut', '!=', 'annule')->latest(),
         ]);
 
+        // Offres disponibles pour la prospection : catégories ayant une offre ou des liens.
+        $offres = \App\Models\Categorie::with('pole')
+            ->where(fn ($q) => $q->whereNotNull('offre')->orWhereNotNull('liens'))
+            ->get()
+            ->filter(fn ($c) => filled($c->offre) || ! empty($c->liens))
+            ->sortBy(fn ($c) => $c->libelleComplet())
+            ->values();
+
         return view('livewire.contacts.fiche-detail', [
             'derniereAnalyse' => $this->contact->analyses()->latest('faite_le')->first(),
+            'offresProspection' => $offres,
         ]);
     }
 }

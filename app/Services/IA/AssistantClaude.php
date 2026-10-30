@@ -130,12 +130,14 @@ class AssistantClaude implements AssistantIA
         return $out;
     }
 
-    public function redigerProspection(Contact $contact, ?string $angle = null): ResultatProspection
+    public function redigerProspection(Contact $contact, ?string $angle = null, ?int $categorieId = null): ResultatProspection
     {
         $p = Parametre::instance();
 
         $contact->loadMissing('categorie.pole');
-        $cat = $contact->categorie;
+        // L'offre présentée : la catégorie choisie (ex. prospection de salle pour
+        // telle offre), sinon celle du contact.
+        $cat = $categorieId ? \App\Models\Categorie::with('pole')->find($categorieId) : $contact->categorie;
         $aOffre = $cat && (filled($cat->offre) || ! empty($cat->liens));
 
         if (! $aOffre && blank($p->pitch_prospection)) {
@@ -161,7 +163,7 @@ class AssistantClaude implements AssistantIA
             (le mail complet, signé « Laurence »).
             TXT;
 
-        $utilisateur = $this->contexteProspection($contact, $p, $angle);
+        $utilisateur = $this->contexteProspection($contact, $p, $angle, $cat);
 
         $texte = $this->envoyer($p, $systeme, $utilisateur, 3000);
         $json = $this->decoderJson($texte);
@@ -461,9 +463,9 @@ class AssistantClaude implements AssistantIA
         return implode("\n", $lignes)."\n\n";
     }
 
-    private function contexteProspection(Contact $contact, Parametre $p, ?string $angle): string
+    private function contexteProspection(Contact $contact, Parametre $p, ?string $angle, ?\App\Models\Categorie $categorie = null): string
     {
-        $categorie = $contact->relationLoaded('categorie') ? $contact->categorie : $contact->categorie()->first();
+        $categorie ??= $contact->relationLoaded('categorie') ? $contact->categorie : $contact->categorie()->first();
 
         $lignes = [];
 

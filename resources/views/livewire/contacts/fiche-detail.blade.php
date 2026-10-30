@@ -370,6 +370,18 @@
             {{-- Prospection (assistant IA) --}}
             <div class="lb-card" style="padding:20px" x-data="{ copie: false, copieHtml: false }">
                 <h3 class="lb-h3" style="font-size:19px">Prospection</h3>
+
+                @if ($offresProspection->isNotEmpty())
+                    <label for="offreCategorieId" class="lb-label" style="font-weight:500;color:var(--text-muted);margin-top:10px">Offre à présenter</label>
+                    <select id="offreCategorieId" wire:model="offreCategorieId" class="lb-field" style="margin-top:4px;max-width:28rem">
+                        <option value="">— Selon la catégorie du contact —</option>
+                        @foreach ($offresProspection as $offre)
+                            <option value="{{ $offre->id }}">{{ $offre->libelleComplet() }}</option>
+                        @endforeach
+                    </select>
+                    <p class="lb-muted" style="font-size:11.5px;margin-top:4px">Pour une salle, choisis l'offre à proposer (ex. Prana Vidya Niveau 1, ou Journée nettoyage des chakras).</p>
+                @endif
+
                 <label for="angleProspection" class="lb-label" style="font-weight:500;color:var(--text-muted);margin-top:10px">Angle (facultatif)</label>
                 <div class="flex flex-wrap items-end gap-3" style="margin-top:4px">
                     <input id="angleProspection" type="text" wire:model="angleProspection" class="lb-field" style="flex:1;min-width:14rem"
