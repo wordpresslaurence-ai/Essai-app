@@ -105,6 +105,10 @@ class Formulaire extends Component
 
     public ?string $notes = null;
 
+    public ?int $capacite = null;
+
+    public ?string $tarif = null;
+
     /** @var array<int> Étiquettes cochées pour ce contact. */
     public array $etiquettesSelection = [];
 
@@ -129,6 +133,7 @@ class Formulaire extends Component
                 'interet_exprime', 'besoin_exprime', 'url_sources',
                 'experience_yoga', 'origine', 'origine_precision', 'url_profil', 'temperature',
                 'adresse_rue', 'adresse_code_postal', 'adresse_ville', 'adresse_pays', 'notes',
+                'capacite', 'tarif',
             ]));
             $this->date_verification = $contact->date_verification?->format('Y-m-d');
             $this->ne_plus_contacter = (bool) $contact->ne_plus_contacter;
@@ -254,6 +259,8 @@ class Formulaire extends Component
             'adresse_ville' => ['nullable', 'string', 'max:255'],
             'adresse_pays' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string'],
+            'capacite' => ['nullable', 'integer', 'min:1'],
+            'tarif' => ['nullable', 'string', 'max:255'],
         ];
     }
 

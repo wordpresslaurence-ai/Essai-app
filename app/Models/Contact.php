@@ -104,6 +104,8 @@ class Contact extends Model
         'email',
         'telephone',
         'notes',
+        'capacite',
+        'tarif',
         'prenom',
         'fonction',
         'entreprise_id',
@@ -150,6 +152,7 @@ class Contact extends Model
             'newsletter_exporte_le' => 'datetime',
             'date_verification' => 'date',
             'ne_plus_contacter' => 'boolean',
+            'capacite' => 'integer',
         ];
     }
 

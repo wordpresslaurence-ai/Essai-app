@@ -4,6 +4,9 @@
     @if (session('message'))
         <div class="lb-alert lb-alert-success mt-4">{{ session('message') }}</div>
     @endif
+    @if (session('debrief_ok'))
+        <div class="lb-alert lb-alert-success mt-4">{{ session('debrief_ok') }}</div>
+    @endif
     @if (session('erreur'))
         <div class="lb-alert lb-alert-danger mt-4">{{ session('erreur') }}</div>
     @endif
@@ -488,6 +491,7 @@
 
                 <div class="flex flex-wrap items-center justify-center gap-2 mt-4">
                     <a href="{{ route('contacts.modifier', $contact) }}" class="lb-btn lb-btn-primary" style="padding:8px 15px;font-size:12.5px" wire:navigate>Modifier</a>
+                    <a href="{{ route('contacts.debrief', $contact) }}" class="lb-btn lb-btn-ghost" style="padding:8px 15px;font-size:12.5px" wire:navigate>Débrief d'appel</a>
                     @if ($contact->estArchive())
                         <button type="button" wire:click="desarchiver" class="lb-btn lb-btn-ghost" style="padding:8px 15px;font-size:12.5px">Désarchiver</button>
                     @else
@@ -583,6 +587,12 @@
                     @endif
                     @if (filled($contact->langues))
                         <div><div class="k">Langues</div><div class="val">{{ $contact->langues }}</div></div>
+                    @endif
+                    @if ($contact->capacite)
+                        <div><div class="k">Capacité</div><div class="val">{{ $contact->capacite }} personnes</div></div>
+                    @endif
+                    @if (filled($contact->tarif))
+                        <div><div class="k">Tarif de location</div><div class="val">{{ $contact->tarif }}</div></div>
                     @endif
 
                     @if ($contact->notes)

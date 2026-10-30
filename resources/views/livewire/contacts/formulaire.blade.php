@@ -390,6 +390,19 @@
             @endif
         </fieldset>
 
+        {{-- Lieu / salle --}}
+        <div class="grid gap-4 mt-5" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+            <div>
+                <label for="capacite" class="lb-label">Capacité (personnes)</label>
+                <input id="capacite" type="number" min="1" wire:model="capacite" class="lb-field" placeholder="ex. 40">
+                @error('capacite') <div class="lb-alert lb-alert-danger mt-2">{{ $message }}</div> @enderror
+            </div>
+            <div>
+                <label for="tarif" class="lb-label">Tarif de location</label>
+                <input id="tarif" type="text" wire:model="tarif" class="lb-field" placeholder="ex. 180 €/jour">
+            </div>
+        </div>
+
         {{-- Notes --}}
         <div class="mt-5">
             <label for="notes" class="lb-label">Notes</label>

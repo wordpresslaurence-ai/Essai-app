@@ -197,6 +197,15 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **Débrief d'appel (transcriptions tl;dv, conversationnel 0 €)** : bouton **« Débrief d'appel »**
+  sur la fiche contact (`contacts.debrief`). Le CRM génère un **prompt pré-rempli**
+  (`Services\Debrief\GenerateurPromptDebrief`) à coller dans ChatGPT avec la transcription ;
+  on recolle le débrief **au format fixe** → `AnalyseurDebrief` l'analyse (100 % local) →
+  **aperçu éditable** → après validation : une **note d'historique** (activité type `note`,
+  rattachable à l'opportunité), la **mise à jour capacité/tarif** de la fiche, et une **tâche de
+  relance** (type `tache` + échéance) — **tout est validé avant écriture**. Nouveaux **vrais
+  champs** `capacite` + `tarif` sur `contacts` (éditables aussi dans le formulaire, affichés sur
+  la fiche).
 - **« Super assistant »** autour du Brief :
   - **Synchro détaillée** — après une synchro, l'assistant dit **qui** a écrit et **le sujet**
     (plus un simple « 1 mail importé »).

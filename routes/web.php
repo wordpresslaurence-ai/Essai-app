@@ -32,6 +32,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('contacts/newsletter', ExportNewsletter::class)->name('contacts.newsletter');
     Route::get('contacts/{contact}', FicheDetail::class)->name('contacts.fiche');
     Route::get('contacts/{contact}/modifier', Formulaire::class)->name('contacts.modifier');
+    Route::get('contacts/{contact}/debrief', \App\Livewire\Contacts\DebriefAppel::class)->name('contacts.debrief');
     Route::get('etiquettes', GestionEtiquettes::class)->name('etiquettes.index');
 
     // Module Organisation : Pôles & Catégories (module 006)
