@@ -151,11 +151,12 @@ it('importe la capacité (entier) et le tarif d’une salle', function () {
 
 it('complète capacité/tarif sur une fiche existante sans les écraser', function () {
     $contact = Contact::factory()->create([
-        'nom' => 'Salle B', 'capacite' => 30, 'tarif' => null,
+        'nom' => 'Salle B', 'email' => 'salleb@test.be', 'capacite' => 30, 'tarif' => null,
     ]);
 
+    // Même e-mail => le dédoublonnage relie le candidat à la fiche existante.
     $c = cand($this->recherche, [
-        'nom' => 'Salle B', 'capacite' => '50', 'tarif' => '200 €/jour',
+        'nom' => 'Salle B', 'email' => 'salleb@test.be', 'capacite' => '50', 'tarif' => '200 €/jour',
     ]);
 
     app(ImporteurCandidats::class)->importer($this->recherche, [$c->id]);
