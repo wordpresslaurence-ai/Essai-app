@@ -135,3 +135,32 @@ it('importe depuis le composant après confirmation', function () {
 
     expect(Contact::where('nom', 'Studio Zen')->exists())->toBeTrue();
 });
+
+it('importe la capacité (entier) et le tarif d’une salle', function () {
+    $c = cand($this->recherche, [
+        'nom' => 'Salle Feeling Better', 'type' => 'entreprise',
+        'capacite' => '40 personnes', 'tarif' => '180 €/jour',
+    ]);
+
+    app(ImporteurCandidats::class)->importer($this->recherche, [$c->id]);
+
+    $contact = Contact::where('nom', 'Salle Feeling Better')->firstOrFail();
+    expect($contact->capacite)->toBe(40);        // « 40 personnes » -> 40
+    expect($contact->tarif)->toBe('180 €/jour');
+});
+
+it('complète capacité/tarif sur une fiche existante sans les écraser', function () {
+    $contact = Contact::factory()->create([
+        'nom' => 'Salle B', 'capacite' => 30, 'tarif' => null,
+    ]);
+
+    $c = cand($this->recherche, [
+        'nom' => 'Salle B', 'capacite' => '50', 'tarif' => '200 €/jour',
+    ]);
+
+    app(ImporteurCandidats::class)->importer($this->recherche, [$c->id]);
+
+    $contact->refresh();
+    expect($contact->capacite)->toBe(30);          // déjà rempli -> préservé
+    expect($contact->tarif)->toBe('200 €/jour');   // vide -> complété
+});

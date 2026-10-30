@@ -21,7 +21,7 @@ class MappeurContact
         'url_sources', 'date_verification', 'discipline', 'discipline_precision',
         'experience_yoga', 'public_precision', 'formats_proposes', 'fait_observe',
         'angle_contact', 'role_commercial', 'priorite_prospection', 'interet_exprime',
-        'besoin_exprime', 'notes',
+        'besoin_exprime', 'tarif', 'notes',
     ];
 
     /**
@@ -62,6 +62,13 @@ class MappeurContact
         // Booléen « ne plus contacter ».
         if (filled($donnees['ne_plus_contacter'] ?? null)) {
             $colonnes['ne_plus_contacter'] = $this->versBooleen($donnees['ne_plus_contacter']);
+        }
+
+        // Capacité d'une salle : on ne garde que l'entier (« 40 personnes » → 40).
+        if (filled($donnees['capacite'] ?? null)) {
+            if (preg_match('/\d+/', str_replace(' ', '', (string) $donnees['capacite']), $m)) {
+                $colonnes['capacite'] = (int) $m[0];
+            }
         }
 
         // Date de vérification (ou ignorée si illisible).

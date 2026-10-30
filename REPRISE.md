@@ -205,7 +205,9 @@ est **clôturée automatiquement**.
   rattachable à l'opportunité), la **mise à jour capacité/tarif** de la fiche, et une **tâche de
   relance** (type `tache` + échéance) — **tout est validé avant écriture**. Nouveaux **vrais
   champs** `capacite` + `tarif` sur `contacts` (éditables aussi dans le formulaire, affichés sur
-  la fiche).
+  la fiche). Ces deux champs sont **aussi récupérés à l'import de prospection** : colonnes
+  `capacite`/`tarif` ajoutées au brief et à l'import CSV (remplissage non destructif, capacité
+  ramenée à l'entier).
 - **« Super assistant »** autour du Brief :
   - **Synchro détaillée** — après une synchro, l'assistant dit **qui** a écrit et **le sujet**
     (plus un simple « 1 mail importé »).

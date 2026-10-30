@@ -78,6 +78,8 @@ class ImportCsv extends Component
             'interet_exprime' => 'Intérêt exprimé',
             'besoin_exprime' => 'Besoin exprimé',
             'ne_plus_contacter' => 'Ne plus contacter (oui/non)',
+            'capacite' => 'Capacité (personnes)',
+            'tarif' => 'Tarif de location',
             'notes' => 'Notes',
             'etiquettes' => 'Étiquettes (séparées par , ou |)',
         ];

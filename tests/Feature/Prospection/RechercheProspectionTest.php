@@ -61,11 +61,11 @@ it('le brief reprend l’offre, le nombre et le contrat CSV exact', function () 
     expect($brief)->toContain('Journée aura et chakra');     // l'offre
     expect($brief)->toContain('nettoyage de l’aura');        // sa description figée
     expect($brief)->toContain('6 (objectif');                // le nombre demandé
-    expect($brief)->toContain(GenerateurBrief::ENTETES_CSV); // les 40 en-têtes exacts
+    expect($brief)->toContain(GenerateurBrief::ENTETES_CSV); // les en-têtes exacts
     expect($brief)->toContain('Prospect IA | À vérifier');   // l'étiquette imposée
 });
 
-it('les 40 en-têtes du brief correspondent exactement à l’import', function () {
+it('les en-têtes du brief correspondent exactement à l’import', function () {
     // Même source de vérité que ImportCsv::champsDisponibles().
     $attendus = array_keys((new App\Livewire\Contacts\ImportCsv)->champsDisponibles());
     expect(explode(';', GenerateurBrief::ENTETES_CSV))->toBe($attendus);

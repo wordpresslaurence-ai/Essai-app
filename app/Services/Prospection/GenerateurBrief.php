@@ -16,7 +16,7 @@ class GenerateurBrief
      * En-têtes EXACTS attendus par l'import (doivent rester alignés sur
      * ImportCsv::champsDisponibles()).
      */
-    public const ENTETES_CSV = 'nom;email;telephone;adresse_rue;adresse_code_postal;adresse_ville;region;adresse_pays;type;prenom;fonction;numero_entreprise;numero_tva;site_web;linkedin;instagram;facebook;langues;secteur;url_profil;categorie;temperature;origine;origine_precision;url_sources;date_verification;discipline;discipline_precision;experience_yoga;public_precision;formats_proposes;fait_observe;angle_contact;role_commercial;priorite_prospection;interet_exprime;besoin_exprime;ne_plus_contacter;notes;etiquettes';
+    public const ENTETES_CSV = 'nom;email;telephone;adresse_rue;adresse_code_postal;adresse_ville;region;adresse_pays;type;prenom;fonction;numero_entreprise;numero_tva;site_web;linkedin;instagram;facebook;langues;secteur;url_profil;categorie;temperature;origine;origine_precision;url_sources;date_verification;discipline;discipline_precision;experience_yoga;public_precision;formats_proposes;fait_observe;angle_contact;role_commercial;priorite_prospection;interet_exprime;besoin_exprime;ne_plus_contacter;capacite;tarif;notes;etiquettes';
 
     public function generer(RechercheProspection $r): string
     {
@@ -97,6 +97,8 @@ class GenerateurBrief
         $l[] = '• fait_observe : le fait vérifiable ; angle_contact : une accroche cohérente avec l\'offre (jamais envoyée)';
         $l[] = '• role_commercial : « Participant potentiel », « Partenaire potentiel » ou les deux séparés par « | »';
         $l[] = '• interet_exprime : « Inconnu » ; besoin_exprime : VIDE ; ne_plus_contacter : « non »';
+        $l[] = '• capacite : nombre de personnes accueillies (entier seul, ex. « 40 »), UNIQUEMENT pour une salle/lieu, si publié ; sinon VIDE';
+        $l[] = '• tarif : tarif de location de la salle avec la devise et l\'unité (ex. « 180 €/jour »), UNIQUEMENT pour une salle/lieu, si publié ; sinon VIDE';
         $l[] = '• date_verification : VIDE (Laurence vérifiera) ; categorie : VIDE (rangement manuel)';
         $l[] = '• etiquettes : toujours « Prospect IA | À vérifier », + éventuellement un thème';
         $l[] = '• Toute colonne sans information trouvée reste VIDE.';
