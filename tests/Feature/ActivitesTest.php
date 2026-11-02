@@ -205,12 +205,12 @@ it('rouvre une activité terminée depuis le formulaire', function () {
     expect($a->fresh()->estTerminee())->toBeFalse();
 });
 
-it('pré-remplit le contact quand on crée une activité depuis sa fiche (?contact=ID)', function () {
+it('pré-remplit et pré-sélectionne le contact quand on crée une activité depuis sa fiche (?contact=ID)', function () {
     $contact = Contact::factory()->create(['nom' => 'Durand']);
-    request()->merge(['contact' => $contact->id]);
 
-    Livewire::test(Formulaire::class)
-        ->assertSet('contact_id', (string) $contact->id);
+    $this->get(route('activites.creer', ['contact' => $contact->id]))
+        ->assertOk()
+        ->assertSeeHtml('value="'.$contact->id.'" selected="selected"');
 });
 
 it('le lien « + Ajouter » de la fiche passe le contact', function () {
@@ -218,4 +218,14 @@ it('le lien « + Ajouter » de la fiche passe le contact', function () {
 
     Livewire::test(FicheDetail::class, ['contact' => $contact])
         ->assertSee('activites/creer?contact='.$contact->id, false);
+});
+
+it('filtre la liste des contacts par recherche dans le formulaire', function () {
+    Contact::factory()->create(['nom' => 'Durand', 'prenom' => 'Marie', 'type' => 'personne']);
+    Contact::factory()->create(['nom' => 'Zorglub', 'prenom' => 'Zoe', 'type' => 'personne']);
+
+    Livewire::test(Formulaire::class)
+        ->set('rechercheContact', 'Durand')
+        ->assertSee('Durand')
+        ->assertDontSee('Zorglub');
 });

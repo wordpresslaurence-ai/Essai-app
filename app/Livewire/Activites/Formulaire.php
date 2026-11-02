@@ -27,6 +27,11 @@ class Formulaire extends Component
 
     public ?string $notes = null;
 
+    /** Filtres de recherche des listes déroulantes (si beaucoup d'entrées). */
+    public string $rechercheContact = '';
+
+    public string $rechercheOpportunite = '';
+
     public function mount(?Activite $activite = null): void
     {
         if ($activite && $activite->exists) {
@@ -109,10 +114,38 @@ class Formulaire extends Component
 
     public function render(): View
     {
+        // Listes filtrées par la recherche et limitées (perf) ; on garde toujours
+        // l'élément déjà sélectionné, même s'il sort du filtre.
+        $contacts = Contact::actifs()
+            ->when($this->rechercheContact !== '', fn ($q) => $q->recherche($this->rechercheContact))
+            ->orderBy('nom')->orderBy('prenom')
+            ->limit(50)
+            ->get(['id', 'nom', 'prenom', 'type']);
+
+        if ($this->contact_id && ! $contacts->contains('id', (int) $this->contact_id)) {
+            $selectionne = Contact::find($this->contact_id, ['id', 'nom', 'prenom', 'type']);
+            if ($selectionne) {
+                $contacts->prepend($selectionne);
+            }
+        }
+
+        $opportunites = Opportunite::query()
+            ->when($this->rechercheOpportunite !== '', fn ($q) => $q->where('titre', 'like', '%'.$this->rechercheOpportunite.'%'))
+            ->orderBy('titre')
+            ->limit(50)
+            ->get(['id', 'titre']);
+
+        if ($this->opportunite_id && ! $opportunites->contains('id', (int) $this->opportunite_id)) {
+            $selectionnee = Opportunite::find($this->opportunite_id, ['id', 'titre']);
+            if ($selectionnee) {
+                $opportunites->prepend($selectionnee);
+            }
+        }
+
         return view('livewire.activites.formulaire', [
             'libelles' => Activite::libellesTypes(),
-            'contacts' => Contact::actifs()->orderBy('nom')->get(['id', 'nom', 'prenom', 'type']),
-            'opportunites' => Opportunite::orderBy('titre')->get(['id', 'titre']),
+            'contacts' => $contacts,
+            'opportunites' => $opportunites,
         ]);
     }
 }
