@@ -205,12 +205,20 @@ it('rouvre une activité terminée depuis le formulaire', function () {
     expect($a->fresh()->estTerminee())->toBeFalse();
 });
 
-it('pré-remplit et pré-sélectionne le contact quand on crée une activité depuis sa fiche (?contact=ID)', function () {
+it('pré-remplit le contact quand on crée une activité depuis sa fiche (?contact=ID)', function () {
     $contact = Contact::factory()->create(['nom' => 'Durand']);
 
-    $this->get(route('activites.creer', ['contact' => $contact->id]))
-        ->assertOk()
-        ->assertSeeHtml('value="'.$contact->id.'" selected="selected"');
+    Livewire::withQueryParams(['contact' => $contact->id])
+        ->test(Formulaire::class)
+        ->assertSet('contact_id', (string) $contact->id);
+});
+
+it('pré-remplit l’opportunité quand on crée une activité depuis une opportunité (?opportunite=ID)', function () {
+    $opp = App\Models\Opportunite::factory()->create();
+
+    Livewire::withQueryParams(['opportunite' => $opp->id])
+        ->test(Formulaire::class)
+        ->assertSet('opportunite_id', (string) $opp->id);
 });
 
 it('le lien « + Ajouter » de la fiche passe le contact', function () {
