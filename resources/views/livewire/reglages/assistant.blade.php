@@ -142,4 +142,22 @@
             « Synchroniser » lit toutes les boîtes actives (voir « Gérer les boîtes e-mail »).
         </p>
     </form>
+
+    {{-- Sauvegarde des données --}}
+    <div class="lb-card mt-6" style="padding:18px;max-width:720px">
+        <h2 class="lb-h3" style="font-size:18px">Sauvegarde de mes données</h2>
+        <p class="lb-muted" style="font-size:12.5px;margin-top:4px">
+            Télécharge une copie de tes données (contacts, opportunités, activités, e-mails,
+            sessions, étiquettes) : un fichier ZIP avec un CSV par type de donnée + un JSON complet.
+            Les mots de passe et clés ne sont jamais inclus. Garde ce fichier chez toi (ordinateur +
+            cloud ou disque externe), par exemple avant chaque mise à jour.
+        </p>
+        <a href="{{ route('sauvegarde') }}" class="lb-btn lb-btn-primary" style="margin-top:12px;display:inline-flex">
+            Télécharger une sauvegarde
+        </a>
+        <p class="lb-muted" style="font-size:11.5px;margin-top:10px">
+            Pour une sauvegarde complète et restaurable de la base, utilise aussi l'export SQL
+            (phpMyAdmin) ou les sauvegardes automatiques de Hostinger.
+        </p>
+    </div>
 </div>

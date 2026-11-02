@@ -197,6 +197,13 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **Sauvegarde des données (bouton)** : Réglages → « Télécharger une sauvegarde » (`contacts/sauvegarde`,
+  route `sauvegarde`, `SauvegardeController`). Génère un **ZIP** (un CSV par table + un JSON complet)
+  des **données métier** (contacts, opportunités, activités, e-mails, sessions, étiquettes…).
+  **Aucun secret exporté** : ni `parametres` (clés API / mots de passe chiffrés), ni `users`, ni
+  `boites_email`. Ce n'est pas un dump SQL restaurable (phpMyAdmin / sauvegardes Hostinger restent
+  la référence), mais un filet pratique conservé par l'utilisatrice.
+
 - **Débrief d'appel (transcriptions tl;dv, conversationnel 0 €)** : bouton **« Débrief d'appel »**
   sur la fiche contact (`contacts.debrief`). Le CRM génère un **prompt pré-rempli**
   (`Services\Debrief\GenerateurPromptDebrief`) à coller dans ChatGPT avec la transcription ;
