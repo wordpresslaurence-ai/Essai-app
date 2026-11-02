@@ -204,3 +204,18 @@ it('rouvre une activité terminée depuis le formulaire', function () {
 
     expect($a->fresh()->estTerminee())->toBeFalse();
 });
+
+it('pré-remplit le contact quand on crée une activité depuis sa fiche (?contact=ID)', function () {
+    $contact = Contact::factory()->create(['nom' => 'Durand']);
+    request()->merge(['contact' => $contact->id]);
+
+    Livewire::test(Formulaire::class)
+        ->assertSet('contact_id', (string) $contact->id);
+});
+
+it('le lien « + Ajouter » de la fiche passe le contact', function () {
+    $contact = Contact::factory()->create();
+
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->assertSee('activites/creer?contact='.$contact->id, false);
+});

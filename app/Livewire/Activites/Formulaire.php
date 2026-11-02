@@ -37,6 +37,20 @@ class Formulaire extends Component
             $this->opportunite_id = $activite->opportunite_id ? (string) $activite->opportunite_id : null;
             $this->echeance = $activite->echeance?->format('Y-m-d\TH:i');
             $this->notes = $activite->notes;
+
+            return;
+        }
+
+        // Création depuis une fiche : pré-sélectionne le contact (?contact=ID)
+        // et, éventuellement, l'opportunité (?opportunite=ID).
+        $contactId = request()->integer('contact');
+        if ($contactId && Contact::whereKey($contactId)->exists()) {
+            $this->contact_id = (string) $contactId;
+        }
+
+        $opportuniteId = request()->integer('opportunite');
+        if ($opportuniteId && Opportunite::whereKey($opportuniteId)->exists()) {
+            $this->opportunite_id = (string) $opportuniteId;
         }
     }
 
