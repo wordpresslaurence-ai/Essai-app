@@ -261,12 +261,25 @@ class AssistantClaude implements AssistantIA
         $p = Parametre::instance();
 
         $systeme = <<<'TXT'
-            Tu es l'assistant de Laurence. À partir du contexte (chiffres et contacts à suivre),
-            propose jusqu'à 5 suggestions d'actions concrètes pour sa journée, en français,
-            une phrase chacune. Réponds UNIQUEMENT par un tableau JSON de chaînes.
+            Tu es l'assistant de Laurence (coach bien-être « Prana Vidya » + activité digitale).
+            À partir du CONTEXTE complet de sa journée (tâches à faire et EN RETARD, réponses dues,
+            contacts à relancer, opportunités qui STAGNENT, leads chauds sans suite, intéressés d'une
+            session passée, prospects à créer, sessions à venir avec des places), établis son PLAN DU
+            JOUR : jusqu'à 6 actions concrètes, CLASSÉES par priorité, la plus urgente d'abord.
+            Règles :
+            - Mets d'abord les RETARDS et les RISQUES (tâche en retard, deal qui stagne, lead chaud
+              qui refroidit).
+            - CROISE les signaux quand c'est pertinent : si une opportunité stagne ET que le contact
+              n'a pas répondu, fais-en UNE seule action prioritaire.
+            - Pour une session à venir avec des places, propose d'y inviter un intéressé pertinent.
+            - Chaque action = une phrase courte et actionnable, en français, qui NOMME la personne,
+              l'opportunité ou la session concernée.
+            - N'invente RIEN qui ne soit pas dans le contexte. S'il n'y a rien à faire, renvoie un
+              tableau vide.
+            Réponds UNIQUEMENT par un tableau JSON de chaînes (une action par chaîne).
             TXT;
 
-        $texte = $this->envoyer($p, $systeme, json_encode($contexte, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '{}', 600);
+        $texte = $this->envoyer($p, $systeme, json_encode($contexte, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '{}', 900);
         $json = $this->decoderJson($texte);
 
         if (array_is_list($json)) {

@@ -197,6 +197,12 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **Assistant — « plan du jour » enrichi** : les suggestions IA reçoivent désormais tout le tableau
+  de bord (tâches du jour **et en retard**, réponses dues, à relancer, **opportunités stagnantes**,
+  **leads chauds sans suite**, **intéressés d'une session passée**, prospects à créer, **sessions à
+  venir avec places**) au lieu de 2 listes. La consigne demande un **plan priorisé** qui croise les
+  signaux (ex. deal qui stagne + contact silencieux = une action prioritaire ; session avec places →
+  inviter un intéressé). Toujours **à la demande** (bouton) pour maîtriser le coût.
 - **Sauvegarde des données (bouton)** : Réglages → « Télécharger une sauvegarde » (`contacts/sauvegarde`,
   route `sauvegarde`, `SauvegardeController`). Génère un **ZIP** (un CSV par table + un JSON complet)
   des **données métier** (contacts, opportunités, activités, e-mails, sessions, étiquettes…).

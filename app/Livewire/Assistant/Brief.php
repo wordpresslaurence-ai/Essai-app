@@ -92,17 +92,27 @@ class Brief extends Component
             ->update(['terminee_at' => now()]);
     }
 
-    /** Demande à l'assistant des suggestions pour la journée (un seul appel). */
+    /** Demande à l'assistant un plan du jour (un seul appel, contexte complet). */
     public function genererSuggestions(): void
     {
         $this->reset('suggestionsErreur');
-        $calc = new CalculRelances(null, $this->poleIdFiltre());
+        $pole = $this->poleIdFiltre();
+        $calc = new CalculRelances(null, $pole);
+        $indecis = new CalculIndecis;
 
+        // On donne à l'IA tout le tableau de bord pour qu'elle priorise et croise
+        // les signaux (agenda + pipeline + leads + sessions), pas seulement 2 listes.
         $contexte = [
-            'reponses_dues' => $calc->reponsesDues()
-                ->map(fn ($l) => $l['contact']->nomComplet())->all(),
-            'a_relancer' => $calc->aRelancer()
-                ->map(fn ($l) => $l['contact']->nomComplet())->all(),
+            'date_du_jour' => now()->toDateString(),
+            'reponses_dues' => $calc->reponsesDues()->map(fn ($l) => $l['contact']->nomComplet())->all(),
+            'a_relancer' => $calc->aRelancer()->map(fn ($l) => $l['contact']->nomComplet())->all(),
+            'taches_du_jour_ou_en_retard' => $this->contexteTaches($pole),
+            'opportunites_stagnantes' => $this->contexteOpportunites($pole),
+            'leads_chauds_sans_suite' => $indecis->leadsChaudsSansSuite($pole)->map(fn ($c) => $c->nomComplet())->values()->all(),
+            'interesses_session_passee' => $indecis->interessesSessionPassee($pole)->map(fn ($c) => $c->nomComplet())->values()->all(),
+            'prospects_a_creer' => Activite::whereNull('terminee_at')
+                ->where('titre', 'like', 'Créer le prospect : %')->count(),
+            'sessions_a_venir_avec_places' => $this->contexteSessions($pole),
         ];
 
         try {
@@ -111,6 +121,80 @@ class Brief extends Component
         } catch (Throwable $e) {
             $this->suggestionsErreur = $e->getMessage();
         }
+    }
+
+    /**
+     * Tâches à faire dont l'échéance est aujourd'hui ou passée (les plus urgentes
+     * d'abord), éventuellement filtrées par pôle via le contact.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function contexteTaches(?int $pole): array
+    {
+        return Activite::aFaire()
+            ->whereNotNull('echeance')
+            ->whereDate('echeance', '<=', now()->toDateString())
+            ->with('contact')
+            ->when($pole, fn ($q) => $q->whereHas('contact.categorie', fn ($c) => $c->where('pole_id', $pole)))
+            ->orderBy('echeance')
+            ->limit(30)
+            ->get()
+            ->map(fn (Activite $a) => [
+                'titre' => $a->titre,
+                'type' => $a->libelleType(),
+                'echeance' => $a->echeance?->toDateString(),
+                'en_retard' => $a->enRetard(),
+                'contact' => $a->contact?->nomComplet(),
+            ])->all();
+    }
+
+    /**
+     * Opportunités qui stagnent (étape inchangée depuis longtemps).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function contexteOpportunites(?int $pole): array
+    {
+        return Opportunite::stagnantes()
+            ->with('contact')
+            ->when($pole, fn ($q) => $q->whereHas('categorie', fn ($c) => $c->where('pole_id', $pole)))
+            ->orderBy('etape_changee_le')
+            ->limit(20)
+            ->get()
+            ->map(function (Opportunite $o) {
+                $ref = $o->etape_changee_le ?? $o->updated_at;
+
+                return [
+                    'titre' => $o->titre,
+                    'contact' => $o->contact?->nomComplet(),
+                    'etape' => $o->libelleEtape(),
+                    'depuis_jours' => $ref ? (int) $ref->diffInDays(now()) : null,
+                ];
+            })->all();
+    }
+
+    /**
+     * Sessions à venir (datées) ayant encore des places ou une liste d'attente.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function contexteSessions(?int $pole): array
+    {
+        return \App\Models\Seance::aVenir()
+            ->whereNotNull('date_debut')
+            ->with(['inscriptions', 'categorie'])
+            ->when($pole, fn ($q) => $q->whereHas('categorie', fn ($c) => $c->where('pole_id', $pole)))
+            ->orderBy('date_debut')
+            ->limit(15)
+            ->get()
+            ->map(fn (\App\Models\Seance $s) => [
+                'titre' => $s->titre,
+                'date' => $s->date_debut?->toDateString(),
+                'places_libres' => $s->placesRestantes(),
+                'en_attente' => $s->enAttente()->count(),
+            ])
+            ->filter(fn ($s) => $s['places_libres'] === null || $s['places_libres'] > 0 || $s['en_attente'] > 0)
+            ->values()->all();
     }
 
     /** Préfixe de titre selon l'intention. */

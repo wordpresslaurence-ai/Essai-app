@@ -180,3 +180,57 @@ it('le digest « depuis hier » compte mails récents, prospects à créer et ac
     expect($digest['prospects'])->toBe(1);
     expect($digest['activites'])->toBeGreaterThanOrEqual(1);
 });
+
+it('transmet à l’assistant un contexte enrichi (tâches en retard, sessions…)', function () {
+    $capture = new stdClass;
+    $capture->contexte = null;
+
+    $this->app->bind(AssistantIA::class, fn () => new class($capture) implements AssistantIA
+    {
+        public function __construct(private stdClass $c) {}
+
+        public function analyser(Contact $contact): \App\Services\IA\ResultatAnalyse
+        {
+            throw new RuntimeException('non utilisé');
+        }
+
+        public function redigerProspection(Contact $contact, ?string $angle = null, ?int $categorieId = null): \App\Services\IA\ResultatProspection
+        {
+            throw new RuntimeException('non utilisé');
+        }
+
+        public function redigerReponse(Contact $contact): \App\Services\IA\ResultatProspection
+        {
+            throw new RuntimeException('non utilisé');
+        }
+
+        public function devinerProspect(string $adresse, ?string $corps): array
+        {
+            return [];
+        }
+
+        public function suggestions(array $contexte): array
+        {
+            $this->c->contexte = $contexte;
+
+            return ['ok'];
+        }
+    });
+
+    $c = Contact::factory()->create(['nom' => 'Durand']);
+    App\Models\Activite::create([
+        'titre' => 'Rappeler Durand', 'type' => 'tache',
+        'contact_id' => $c->id, 'echeance' => now()->subDays(2),
+    ]);
+    App\Models\Seance::create(['titre' => 'Journée aura', 'date_debut' => now()->addWeeks(2), 'capacite' => 10]);
+
+    Livewire::test(Brief::class)->call('genererSuggestions');
+
+    $ctx = $capture->contexte;
+    expect($ctx)->toHaveKeys([
+        'taches_du_jour_ou_en_retard', 'opportunites_stagnantes',
+        'sessions_a_venir_avec_places', 'leads_chauds_sans_suite', 'interesses_session_passee',
+    ]);
+    expect(collect($ctx['taches_du_jour_ou_en_retard'])->pluck('titre')->all())->toContain('Rappeler Durand');
+    expect(collect($ctx['sessions_a_venir_avec_places'])->pluck('titre')->all())->toContain('Journée aura');
+});
