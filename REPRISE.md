@@ -197,6 +197,8 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **Pipeline — tag catégorie** : chaque carte d'opportunité affiche un petit **tag de sa catégorie**
+  (avec la pastille de couleur), à côté du badge de rôle.
 - **Fiche contact — e-mails** : la liste n'affiche plus que les **6 plus récents** avec un bouton
   **« Voir tout (N) »** pour dérouler l'historique complet ; un **clic sur un encart ouvre une
   modale** montrant le **corps complet** du mail (objet, date, sens, texte intégral) + bouton

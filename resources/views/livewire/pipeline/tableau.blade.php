@@ -68,9 +68,14 @@
                                     @if ($op->contact)
                                         <div class="lb-muted" style="font-size:12px;margin-top:2px">{{ $op->contact->nomComplet() }}</div>
                                     @endif
-                                    @if ($op->libelleRole())
-                                        <span class="lb-badge lb-av-{{ \App\Models\Opportunite::couleurRole($op->role) }}" style="margin-top:5px;font-size:11px">{{ $op->libelleRole() }}</span>
-                                    @endif
+                                    <div class="flex flex-wrap items-center gap-1" style="margin-top:5px">
+                                        @if ($op->categorie)
+                                            <span class="lb-tag" style="background:var(--surface);font-size:11px"><span class="lb-dot" style="background:{{ $op->categorie->couleur ?: 'var(--mint)' }}"></span>{{ $op->categorie->nom }}</span>
+                                        @endif
+                                        @if ($op->libelleRole())
+                                            <span class="lb-badge lb-av-{{ \App\Models\Opportunite::couleurRole($op->role) }}" style="font-size:11px">{{ $op->libelleRole() }}</span>
+                                        @endif
+                                    </div>
                                     @if ($op->montant)
                                         <div class="serif" style="font-size:18px;font-weight:600;color:var(--accent);margin-top:5px;font-variant-numeric:tabular-nums">{{ number_format($op->montant, 0, ',', ' ') }} €</div>
                                     @endif

@@ -156,3 +156,17 @@ it('filtre le pipeline par rôle', function () {
         ->assertSee('DealPartenaire')
         ->assertDontSee('DealParticipant');
 });
+
+it('affiche un tag de catégorie sur la carte de l’opportunité', function () {
+    $pole = Pole::create(['nom' => 'Prana']);
+    $cat = Categorie::create(['pole_id' => $pole->id, 'nom' => 'Formation profs']);
+    $contact = Contact::factory()->create(['categorie_id' => $cat->id]);
+    Opportunite::create([
+        'titre' => 'Deal X', 'contact_id' => $contact->id,
+        'categorie_id' => $cat->id, 'etape' => Opportunite::ETAPE_NOUVEAU, 'montant' => 500,
+    ]);
+
+    Livewire::test(Tableau::class)
+        ->assertSee('Deal X')
+        ->assertSee('Formation profs');
+});

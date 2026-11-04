@@ -57,7 +57,7 @@ class Tableau extends Component
             $etapes[] = Opportunite::ETAPE_PERDU;
         }
 
-        $opportunites = Opportunite::with('contact')
+        $opportunites = Opportunite::with(['contact', 'categorie'])
             ->whereIn('etape', $etapes)
             ->when($this->categorie !== '', fn ($q) => $q->where('categorie_id', $this->categorie))
             ->when(
