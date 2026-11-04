@@ -74,6 +74,32 @@
         </div>
     </div>
 
+    {{-- Prochaines sessions --}}
+    @if ($prochainesSessions->isNotEmpty())
+        <div class="mt-8">
+            <div class="flex items-end justify-between">
+                <div>
+                    <h3 class="lb-h3">Prochaines sessions</h3>
+                    <div class="lb-muted" style="font-size:12.5px">Les séances datées à venir</div>
+                </div>
+                <a href="{{ route('sessions.index') }}" class="lb-accent" style="font-weight:600;font-size:13px;text-decoration:none" wire:navigate>Toutes →</a>
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 mt-3">
+                @foreach ($prochainesSessions as $s)
+                    <a href="{{ route('sessions.fiche', $s) }}" class="lb-card-sm" wire:navigate wire:key="ses-{{ $s->id }}" style="text-decoration:none;color:inherit;display:block">
+                        <div class="lb-accent" style="font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums">{{ $s->date_debut->translatedFormat('D d/m/Y') }}</div>
+                        <div class="nm lb-truncate" style="font-weight:600;margin-top:2px">{{ $s->titre }}</div>
+                        <div class="mt lb-truncate" style="font-size:12px;color:var(--text-muted)">
+                            @if ($s->categorie){{ $s->categorie->nom }}@endif
+                            @if ($s->placesRestantes() !== null) · {{ $s->placesRestantes() }} place(s)@endif
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     {{-- Nouveaux leads --}}
     @if ($leads->isNotEmpty())
         <div class="mt-8">

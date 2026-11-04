@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Activite;
 use App\Models\Contact;
 use App\Models\Opportunite;
+use App\Models\Seance;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -58,6 +59,12 @@ class TableauBord extends Component
                 ->with('contact')
                 ->orderBy('echeance')
                 ->take(3)
+                ->get(),
+            'prochainesSessions' => Seance::aVenir()
+                ->whereNotNull('date_debut')
+                ->with('categorie')
+                ->orderBy('date_debut')
+                ->take(6)
                 ->get(),
         ]);
     }
