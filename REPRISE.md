@@ -197,6 +197,11 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **Pipeline — tableau de bord** : au-dessus du kanban, un bandeau de chiffres clés (**pipeline en
+  cours**, **prévisionnel pondéré** par étape — Nouveau 10 % / Qualifié 30 % / Proposition 60 %,
+  **gagné ce mois**, **panier moyen** + taux de conversion) et un **tableau « Montant par
+  catégorie »** (nb, montant en cours, prévisionnel). Tout respecte les filtres Pôle/Catégorie/Rôle.
+  Probabilités dans `Opportunite::PROBABILITES` ; `montantPondere()`.
 - **Pipeline — tag catégorie** : chaque carte d'opportunité affiche un petit **tag de sa catégorie**
   (avec la pastille de couleur), à côté du badge de rôle.
 - **Fiche contact — e-mails** : la liste n'affiche plus que les **6 plus récents** avec un bouton

@@ -45,6 +45,65 @@
         </select>
     </div>
 
+    {{-- Tableau de bord --}}
+    <div class="flex flex-wrap gap-3 mt-5">
+        <div class="lb-card-sm" style="flex:1 1 160px;min-width:150px">
+            <div class="lb-eyebrow">Pipeline en cours</div>
+            <div class="serif" style="font-size:22px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums">{{ number_format($tableauBord['pipeline'], 0, ',', ' ') }} €</div>
+            <div class="lb-muted" style="font-size:11.5px">{{ $tableauBord['nb'] }} opportunité(s)</div>
+        </div>
+        <div class="lb-card-sm" style="flex:1 1 160px;min-width:150px">
+            <div class="lb-eyebrow">Prévisionnel pondéré</div>
+            <div class="serif" style="font-size:22px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums">{{ number_format($tableauBord['previsionnel'], 0, ',', ' ') }} €</div>
+            <div class="lb-muted" style="font-size:11.5px">pondéré par étape (10/30/60 %)</div>
+        </div>
+        <div class="lb-card-sm" style="flex:1 1 160px;min-width:150px">
+            <div class="lb-eyebrow">Gagné ce mois</div>
+            <div class="serif" style="font-size:22px;font-weight:600;color:var(--mint-deep);font-variant-numeric:tabular-nums">{{ number_format($tableauBord['gagne_mois'], 0, ',', ' ') }} €</div>
+        </div>
+        <div class="lb-card-sm" style="flex:1 1 160px;min-width:150px">
+            <div class="lb-eyebrow">Panier moyen</div>
+            <div class="serif" style="font-size:22px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums">{{ number_format($tableauBord['panier'], 0, ',', ' ') }} €</div>
+            @if ($tableauBord['conversion'] !== null)
+                <div class="lb-muted" style="font-size:11.5px">Conversion : {{ $tableauBord['conversion'] }} %</div>
+            @endif
+        </div>
+    </div>
+
+    @if ($tableauBord['par_categorie']->isNotEmpty())
+        <div class="lb-card mt-4" style="padding:16px">
+            <h3 class="lb-h3" style="font-size:16px;margin-bottom:10px">Montant par catégorie (en cours)</h3>
+            <div style="overflow-x:auto">
+                <table style="width:100%;border-collapse:collapse;font-size:13px">
+                    <thead>
+                        <tr style="text-align:left;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em">
+                            <th style="padding:6px 8px">Catégorie</th>
+                            <th style="padding:6px 8px;text-align:right">Nb</th>
+                            <th style="padding:6px 8px;text-align:right">En cours</th>
+                            <th style="padding:6px 8px;text-align:right">Prévisionnel</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($tableauBord['par_categorie'] as $ligne)
+                            <tr style="border-top:1px solid var(--border)">
+                                <td style="padding:7px 8px"><span class="lb-dot" style="background:{{ $ligne['couleur'] ?: 'var(--mint)' }}"></span> {{ $ligne['nom'] }}</td>
+                                <td style="padding:7px 8px;text-align:right;font-variant-numeric:tabular-nums">{{ $ligne['nb'] }}</td>
+                                <td style="padding:7px 8px;text-align:right;font-variant-numeric:tabular-nums">{{ number_format($ligne['montant'], 0, ',', ' ') }} €</td>
+                                <td style="padding:7px 8px;text-align:right;font-variant-numeric:tabular-nums;color:var(--accent)">{{ number_format($ligne['previsionnel'], 0, ',', ' ') }} €</td>
+                            </tr>
+                        @endforeach
+                        <tr style="border-top:2px solid var(--border);font-weight:600">
+                            <td style="padding:7px 8px">Total</td>
+                            <td style="padding:7px 8px;text-align:right;font-variant-numeric:tabular-nums">{{ $tableauBord['nb'] }}</td>
+                            <td style="padding:7px 8px;text-align:right;font-variant-numeric:tabular-nums">{{ number_format($tableauBord['pipeline'], 0, ',', ' ') }} €</td>
+                            <td style="padding:7px 8px;text-align:right;font-variant-numeric:tabular-nums;color:var(--accent)">{{ number_format($tableauBord['previsionnel'], 0, ',', ' ') }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
     {{-- Kanban --}}
     <div class="mt-5" style="overflow-x:auto">
         <div class="flex gap-4" style="min-width:min-content">

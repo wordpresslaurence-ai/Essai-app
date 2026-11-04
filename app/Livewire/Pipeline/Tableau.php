@@ -5,6 +5,7 @@ namespace App\Livewire\Pipeline;
 use App\Models\Opportunite;
 use App\Models\Pole;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -50,6 +51,66 @@ class Tableau extends Component
         session()->flash('message', 'Opportunité supprimée.');
     }
 
+    /** Requête de base appliquant les mêmes filtres que le kanban (hors étape). */
+    private function requeteFiltree(): Builder
+    {
+        return Opportunite::query()
+            ->when($this->categorie !== '', fn ($q) => $q->where('categorie_id', $this->categorie))
+            ->when(
+                $this->categorie === '' && $this->pole !== '',
+                fn ($q) => $q->whereHas('categorie', fn ($c) => $c->where('pole_id', $this->pole))
+            )
+            ->when($this->role !== '', fn ($q) => $q->where('role', $this->role));
+    }
+
+    /**
+     * Chiffres clés du pipeline + répartition par catégorie (respecte les filtres).
+     *
+     * @return array<string, mixed>
+     */
+    private function tableauDeBord(): array
+    {
+        $enCours = $this->requeteFiltree()
+            ->whereIn('etape', Opportunite::ETAPES_EN_COURS)
+            ->with('categorie')
+            ->get();
+
+        $nb = $enCours->count();
+        $pipeline = (float) $enCours->sum('montant');
+        $previsionnel = (float) $enCours->sum(fn (Opportunite $o) => $o->montantPondere());
+
+        $gagneMois = (float) $this->requeteFiltree()
+            ->where('etape', Opportunite::ETAPE_GAGNE)
+            ->whereNotNull('date_cloture')
+            ->whereBetween('date_cloture', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+            ->sum('montant');
+
+        $nbGagnes = $this->requeteFiltree()->where('etape', Opportunite::ETAPE_GAGNE)->count();
+        $nbPerdus = $this->requeteFiltree()->where('etape', Opportunite::ETAPE_PERDU)->count();
+
+        $parCategorie = $enCours
+            ->groupBy(fn (Opportunite $o) => $o->categorie?->nom ?? 'Sans catégorie')
+            ->map(fn ($grp, $nom) => [
+                'nom' => $nom,
+                'couleur' => optional($grp->first()->categorie)->couleur,
+                'nb' => $grp->count(),
+                'montant' => (float) $grp->sum('montant'),
+                'previsionnel' => (float) $grp->sum(fn (Opportunite $o) => $o->montantPondere()),
+            ])
+            ->sortByDesc('montant')
+            ->values();
+
+        return [
+            'nb' => $nb,
+            'pipeline' => $pipeline,
+            'previsionnel' => $previsionnel,
+            'panier' => $nb > 0 ? $pipeline / $nb : 0.0,
+            'gagne_mois' => $gagneMois,
+            'conversion' => ($nbGagnes + $nbPerdus) > 0 ? (int) round($nbGagnes / ($nbGagnes + $nbPerdus) * 100) : null,
+            'par_categorie' => $parCategorie,
+        ];
+    }
+
     public function render(): View
     {
         $etapes = Opportunite::etapesActives();
@@ -86,6 +147,7 @@ class Tableau extends Component
             'roles' => Opportunite::ROLES,
             'nbPerdus' => Opportunite::perdues()->count(),
             'poles' => Pole::with('categories')->orderBy('ordre')->orderBy('nom')->get(),
+            'tableauBord' => $this->tableauDeBord(),
         ]);
     }
 }

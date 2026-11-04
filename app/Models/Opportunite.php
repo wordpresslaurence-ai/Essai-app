@@ -30,6 +30,24 @@ class Opportunite extends Model
     /** Jours sans changement d'étape au-delà desquels une opportunité « stagne ». */
     public const JOURS_STAGNATION = 21;
 
+    /** Probabilité de conclusion par étape (pour le prévisionnel pondéré). */
+    public const PROBABILITES = [
+        self::ETAPE_NOUVEAU => 0.10,
+        self::ETAPE_QUALIFIE => 0.30,
+        self::ETAPE_PROPOSITION => 0.60,
+        self::ETAPE_GAGNE => 1.0,
+        self::ETAPE_PERDU => 0.0,
+    ];
+
+    /** Étapes « en cours » (ni gagnées ni perdues). */
+    public const ETAPES_EN_COURS = [self::ETAPE_NOUVEAU, self::ETAPE_QUALIFIE, self::ETAPE_PROPOSITION];
+
+    /** Montant pondéré par la probabilité de l'étape. */
+    public function montantPondere(): float
+    {
+        return (float) $this->montant * (self::PROBABILITES[$this->etape] ?? 0);
+    }
+
     /** Rôle du contact pour cette opportunité. */
     public const ROLES = [
         'participant' => 'Participant',

@@ -170,3 +170,22 @@ it('affiche un tag de catégorie sur la carte de l’opportunité', function () 
         ->assertSee('Deal X')
         ->assertSee('Formation profs');
 });
+
+it('affiche le tableau de bord du pipeline (chiffres clés + montant par catégorie)', function () {
+    $pole = Pole::create(['nom' => 'Prana']);
+    $cat = Categorie::create(['pole_id' => $pole->id, 'nom' => 'Formation profs']);
+
+    // En cours : proposition 900 (×60% = 540) + nouveau 1000 (×10% = 100)
+    Opportunite::create(['titre' => 'A', 'categorie_id' => $cat->id, 'etape' => Opportunite::ETAPE_PROPOSITION, 'montant' => 900]);
+    Opportunite::create(['titre' => 'B', 'categorie_id' => $cat->id, 'etape' => Opportunite::ETAPE_NOUVEAU, 'montant' => 1000]);
+    // Gagné ce mois
+    Opportunite::create(['titre' => 'C', 'categorie_id' => $cat->id, 'etape' => Opportunite::ETAPE_GAGNE, 'montant' => 700, 'date_cloture' => now()]);
+
+    Livewire::test(Tableau::class)
+        ->assertSee('Pipeline en cours')
+        ->assertSee('1 900')  // pipeline en cours = 900 + 1000
+        ->assertSee('640')    // prévisionnel pondéré = 540 + 100
+        ->assertSee('700')    // gagné ce mois
+        ->assertSee('Montant par catégorie')
+        ->assertSee('Formation profs');
+});
