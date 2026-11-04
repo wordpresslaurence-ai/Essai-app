@@ -196,18 +196,18 @@
                     @endif
                 </div>
                 <div class="lb-people mt-3">
-                    @forelse ($contact->emails as $mail)
+                    @forelse (($tousMails ? $contact->emails : $contact->emails->take(6)) as $mail)
                         <div class="lb-prow" wire:key="mail-{{ $mail->id }}">
                             @if ($mail->estEntrant())
                                 <span class="lb-tag" style="background:var(--lav-tint);color:var(--lav)">Reçu</span>
                             @else
                                 <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep)">Envoyé</span>
                             @endif
-                            <div style="min-width:0">
+                            <div style="min-width:0;flex:1;cursor:pointer" wire:click="ouvrirMail({{ $mail->id }})" title="Voir le mail complet">
                                 <div class="nm lb-truncate">{{ $mail->objet ?: '(sans objet)' }}</div>
                                 <div class="mt lb-truncate">{{ $mail->extrait }}</div>
                             </div>
-                            <span class="lb-muted" style="margin-left:auto;font-size:12px;white-space:nowrap">{{ $mail->date_email?->translatedFormat('d/m/Y') }}</span>
+                            <span class="lb-muted" style="font-size:12px;white-space:nowrap">{{ $mail->date_email?->translatedFormat('d/m/Y') }}</span>
                             <button type="button" wire:click="supprimerEmail({{ $mail->id }})"
                                     wire:confirm="Supprimer cet e-mail de la fiche ?"
                                     class="lb-iconbtn" style="width:30px;height:30px;color:var(--terra);flex:none;margin-left:8px" title="Supprimer" aria-label="Supprimer cet e-mail">×</button>
@@ -216,6 +216,43 @@
                         <div class="lb-placeholder">Aucun e-mail synchronisé.</div>
                     @endforelse
                 </div>
+
+                @if (! $tousMails && $contact->emails->count() > 6)
+                    <button type="button" wire:click="voirTousMails" class="lb-btn lb-btn-ghost" style="margin-top:10px;font-size:12.5px">
+                        Voir tout ({{ $contact->emails->count() }})
+                    </button>
+                @endif
+
+                {{-- Modale : mail complet --}}
+                @php $mailOuvert = $mailOuvertId ? $contact->emails->firstWhere('id', $mailOuvertId) : null; @endphp
+                @if ($mailOuvert)
+                    <div class="lb-modal-backdrop" x-on:click.self="$wire.fermerMail()" x-on:keydown.escape.window="$wire.fermerMail()">
+                        <div class="lb-modal" style="max-width:640px;max-height:82vh;overflow:auto" x-data="{ copie: false }">
+                            <div class="flex items-start justify-between gap-3">
+                                <div style="min-width:0">
+                                    @if ($mailOuvert->estEntrant())
+                                        <span class="lb-tag" style="background:var(--lav-tint);color:var(--lav)">↘ Reçu</span>
+                                    @else
+                                        <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep)">↗ Envoyé</span>
+                                    @endif
+                                    <h3 class="lb-h3" style="font-size:19px;margin-top:8px">{{ $mailOuvert->objet ?: '(sans objet)' }}</h3>
+                                    <p class="lb-muted" style="font-size:12.5px;margin-top:2px">
+                                        {{ $mailOuvert->date_email?->translatedFormat('d/m/Y à H:i') }} · {{ $mailOuvert->estEntrant() ? 'de' : 'à' }} {{ $mailOuvert->estEntrant() ? $mailOuvert->de : $mailOuvert->a }}
+                                    </p>
+                                </div>
+                                <button type="button" wire:click="fermerMail" class="lb-iconbtn" style="flex:none" aria-label="Fermer">×</button>
+                            </div>
+                            <div style="white-space:pre-wrap;word-break:break-word;margin-top:14px;font-size:13.5px;line-height:1.6;color:var(--text)">{{ $mailOuvert->corps ?: $mailOuvert->extrait ?: '(corps non enregistré)' }}</div>
+                            <div class="flex justify-end gap-2 mt-5">
+                                <button type="button" class="lb-btn lb-btn-ghost"
+                                        x-on:click="navigator.clipboard.writeText(@js($mailOuvert->corps ?: $mailOuvert->extrait ?: '')).then(() => { copie = true; setTimeout(() => copie = false, 2000) })">
+                                    <span x-show="!copie">Copier</span><span x-show="copie" x-cloak>✓ Copié</span>
+                                </button>
+                                <button type="button" wire:click="fermerMail" class="lb-btn lb-btn-primary">Fermer</button>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 @if ($reponseErreur)
                     <div class="lb-alert lb-alert-danger mt-3">{{ $reponseErreur }}</div>

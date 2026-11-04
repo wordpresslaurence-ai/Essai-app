@@ -197,6 +197,10 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **Fiche contact — e-mails** : la liste n'affiche plus que les **6 plus récents** avec un bouton
+  **« Voir tout (N) »** pour dérouler l'historique complet ; un **clic sur un encart ouvre une
+  modale** montrant le **corps complet** du mail (objet, date, sens, texte intégral) + bouton
+  « Copier ».
 - **Assistant — « plan du jour » enrichi** : les suggestions IA reçoivent désormais tout le tableau
   de bord (tâches du jour **et en retard**, réponses dues, à relancer, **opportunités stagnantes**,
   **leads chauds sans suite**, **intéressés d'une session passée**, prospects à créer, **sessions à

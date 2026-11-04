@@ -38,10 +38,33 @@ class FicheDetail extends Component
     /** Catégorie dont l'offre sera présentée en prospection (par défaut celle du contact). */
     public ?string $offreCategorieId = null;
 
+    /** Affiche tous les e-mails (sinon seulement les 6 plus récents). */
+    public bool $tousMails = false;
+
+    /** E-mail ouvert dans la modale « mail complet » (ou null). */
+    public ?int $mailOuvertId = null;
+
     public function mount(Contact $contact): void
     {
         $this->contact = $contact;
         $this->offreCategorieId = $contact->categorie_id ? (string) $contact->categorie_id : null;
+    }
+
+    /** Déplie la liste complète des e-mails de la fiche. */
+    public function voirTousMails(): void
+    {
+        $this->tousMails = true;
+    }
+
+    /** Ouvre un e-mail dans la modale (vérifie qu'il appartient au contact). */
+    public function ouvrirMail(int $emailId): void
+    {
+        $this->mailOuvertId = $this->contact->emails()->whereKey($emailId)->exists() ? $emailId : null;
+    }
+
+    public function fermerMail(): void
+    {
+        $this->mailOuvertId = null;
     }
 
     /** Lance l'« Analyse & relances » du contact via l'assistant et l'enregistre. */
@@ -352,6 +375,9 @@ class FicheDetail extends Component
     {
         $this->contact->emails()->whereKey($emailId)->delete();
         $this->contact->refresh();
+        if ($this->mailOuvertId === $emailId) {
+            $this->mailOuvertId = null;
+        }
         session()->flash('message', 'E-mail supprimé de la fiche.');
     }
 
@@ -360,6 +386,7 @@ class FicheDetail extends Component
     {
         $n = $this->contact->emails()->delete();
         $this->contact->refresh();
+        $this->mailOuvertId = null;
         session()->flash('message', $n.' e-mail(s) supprimé(s) de la fiche.');
     }
 

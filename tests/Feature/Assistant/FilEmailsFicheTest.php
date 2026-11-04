@@ -85,3 +85,50 @@ it('vide tout l’historique e-mails du contact', function () {
 
     expect(Email::where('contact_id', $contact->id)->count())->toBe(0);
 });
+
+it('limite l’affichage à 6 e-mails avec un bouton « Voir tout »', function () {
+    $contact = Contact::factory()->create();
+    for ($i = 1; $i <= 8; $i++) {
+        emailPour($contact, Email::DIRECTION_ENTRANT, 'Sujet'.str_pad((string) $i, 2, '0', STR_PAD_LEFT), '2026-05-'.str_pad((string) $i, 2, '0', STR_PAD_LEFT));
+    }
+
+    $c = Livewire::test(FicheDetail::class, ['contact' => $contact]);
+
+    // 6 plus récents visibles, 2 plus anciens masqués.
+    $c->assertSee('Sujet08')->assertSee('Sujet03')
+        ->assertDontSee('Sujet01')->assertDontSee('Sujet02')
+        ->assertSee('Voir tout (8)');
+
+    $c->call('voirTousMails')
+        ->assertSee('Sujet01')->assertSee('Sujet02');
+});
+
+it('ouvre un e-mail dans la modale avec son corps complet', function () {
+    $contact = Contact::factory()->create();
+    $mail = Email::create([
+        'contact_id' => $contact->id, 'direction' => Email::DIRECTION_ENTRANT,
+        'de' => 'client@example.com', 'a' => 'moi@example.com',
+        'objet' => 'Question', 'extrait' => 'aperçu court',
+        'corps' => 'Texte COMPLET du message, repère ZZZ999.',
+        'date_email' => now(), 'message_id' => uniqid('m', true), 'boite' => 'moi@example.com',
+    ]);
+
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->assertDontSee('ZZZ999')                 // aperçu seulement dans la liste
+        ->call('ouvrirMail', $mail->id)
+        ->assertSet('mailOuvertId', $mail->id)
+        ->assertSee('ZZZ999')                     // corps complet dans la modale
+        ->call('fermerMail')
+        ->assertSet('mailOuvertId', null);
+});
+
+it('n’ouvre pas dans la modale l’e-mail d’un autre contact', function () {
+    $contact = Contact::factory()->create();
+    $autre = Contact::factory()->create();
+    emailPour($autre, Email::DIRECTION_ENTRANT, 'Ailleurs', '2026-05-01');
+    $mailAutre = Email::where('objet', 'Ailleurs')->firstOrFail();
+
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->call('ouvrirMail', $mailAutre->id)
+        ->assertSet('mailOuvertId', null);
+});
