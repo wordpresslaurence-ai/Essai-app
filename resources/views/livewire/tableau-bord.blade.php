@@ -91,7 +91,7 @@
                         <div class="lb-accent" style="font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums">{{ $s->date_debut->translatedFormat('D d/m/Y') }}</div>
                         <div class="nm lb-truncate" style="font-weight:600;margin-top:2px">{{ $s->titre }}</div>
                         <div class="mt lb-truncate" style="font-size:12px;color:var(--text-muted)">
-                            @if ($s->categorie){{ $s->categorie->nom }}@endif
+                            @if (filled($s->lieu)){{ $s->lieu }}@endif
                             @if ($s->placesRestantes() !== null) · {{ $s->placesRestantes() }} place(s)@endif
                         </div>
                     </a>

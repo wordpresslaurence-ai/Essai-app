@@ -198,8 +198,8 @@ est **clôturée automatiquement**.
 ### Nouveautés récentes (octobre 2026)
 
 - **Tableau de bord (accueil) — prochaines sessions** : sous « Mes tâches du jour », un bloc
-  « Prochaines sessions » liste les séances datées à venir (3 par ligne), avec date, titre,
-  catégorie et places restantes ; clic → fiche de la séance.
+  « Prochaines sessions » liste les **6 prochaines** séances datées (3 par ligne), avec date, titre,
+  **lieu** et places restantes ; clic → fiche de la séance.
 - **Pipeline — tableau de bord** : au-dessus du kanban, un bandeau de chiffres clés (**pipeline en
   cours**, **prévisionnel pondéré** par étape — Nouveau 10 % / Qualifié 30 % / Proposition 60 %,
   **gagné ce mois**, **panier moyen** + taux de conversion) et un **tableau « Montant par

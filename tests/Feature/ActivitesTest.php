@@ -238,12 +238,13 @@ it('filtre la liste des contacts par recherche dans le formulaire', function () 
         ->assertDontSee('Zorglub');
 });
 
-it('affiche les prochaines sessions sur le tableau de bord', function () {
-    App\Models\Seance::create(['titre' => 'Journée aura', 'date_debut' => now()->addWeeks(2), 'capacite' => 10]);
+it('affiche les prochaines sessions (avec le lieu) sur le tableau de bord', function () {
+    App\Models\Seance::create(['titre' => 'Journée aura', 'lieu' => 'Salle Zen Namur', 'date_debut' => now()->addWeeks(2), 'capacite' => 10]);
     App\Models\Seance::create(['titre' => 'Séance passée', 'date_debut' => now()->subWeeks(2), 'capacite' => 10]);
 
     Livewire::test(TableauBord::class)
         ->assertSee('Prochaines sessions')
         ->assertSee('Journée aura')
-        ->assertDontSee('Séance passée'); // seules les séances à venir
+        ->assertSee('Salle Zen Namur')          // le lieu, pas la catégorie
+        ->assertDontSee('Séance passée');        // seules les séances à venir
 });
