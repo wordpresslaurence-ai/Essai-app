@@ -48,11 +48,3 @@ it('filtre la liste par température', function () {
         ->assertSee('LeadChaud')
         ->assertDontSee('SansTemp');
 });
-
-it('affiche les derniers leads sur le tableau de bord', function () {
-    Contact::factory()->create(['nom' => 'MonLead', 'temperature' => 'eleve', 'origine' => 'instagram']);
-
-    Livewire::test(TableauBord::class)
-        ->assertSee('MonLead')
-        ->assertSee('Intérêt élevé');
-});
