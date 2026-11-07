@@ -20,7 +20,15 @@
     {{-- Titre --}}
     <div class="mt-3">
         <div class="lb-eyebrow">Fiche contact</div>
-        <h1 class="lb-h1">{{ $contact->nomComplet() }}</h1>
+        <div class="flex items-center gap-3 flex-wrap">
+            <h1 class="lb-h1" style="margin:0">{{ $contact->nomComplet() }}</h1>
+            <button type="button" wire:click="basculerALaUne"
+                    title="{{ $contact->a_la_une ? 'Retirer de la une' : 'Mettre à la une' }}"
+                    aria-pressed="{{ $contact->a_la_une ? 'true' : 'false' }}" aria-label="Contact à la une"
+                    style="background:none;border:0;cursor:pointer;font-size:26px;line-height:1;padding:0;color:{{ $contact->a_la_une ? 'var(--gold)' : 'var(--text-muted)' }}">
+                {{ $contact->a_la_une ? '★' : '☆' }}
+            </button>
+        </div>
     </div>
 
     {{-- Chiffres clés --}}

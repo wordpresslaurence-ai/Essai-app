@@ -54,7 +54,7 @@ class TableauBord extends Component
                 ->take(3)
                 ->get(),
             'apercuPipeline' => $apercuPipeline,
-            'leads' => Contact::leads()->actifs()->with('entreprise')->latest()->take(4)->get(),
+            'contactsALaUne' => Contact::aLaUne()->actifs()->with('entreprise')->latest('updated_at')->take(6)->get(),
             'tachesDuJour' => Activite::duJourOuEnRetard()
                 ->with('contact')
                 ->orderBy('echeance')

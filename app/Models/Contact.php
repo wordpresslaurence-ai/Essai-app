@@ -143,6 +143,7 @@ class Contact extends Model
         'adresse_pays',
         'archived_at',
         'newsletter_exporte_le',
+        'a_la_une',
     ];
 
     protected function casts(): array
@@ -153,6 +154,7 @@ class Contact extends Model
             'date_verification' => 'date',
             'ne_plus_contacter' => 'boolean',
             'capacite' => 'integer',
+            'a_la_une' => 'boolean',
         ];
     }
 
@@ -265,6 +267,12 @@ class Contact extends Model
     public function scopeLeads(Builder $query): void
     {
         $query->whereNotNull('temperature');
+    }
+
+    /** Contacts « à la une » (mis en avant). @param  Builder<Contact>  $query */
+    public function scopeALaUne(Builder $query): void
+    {
+        $query->where('a_la_une', true);
     }
 
     /**

@@ -100,31 +100,28 @@
         </div>
     @endif
 
-    {{-- Nouveaux leads --}}
-    @if ($leads->isNotEmpty())
+    {{-- Contacts à la une --}}
+    @if ($contactsALaUne->isNotEmpty())
         <div class="mt-8">
             <div class="flex items-end justify-between">
                 <div>
-                    <h3 class="lb-h3">Nouveaux leads</h3>
-                    <div class="lb-muted" style="font-size:12.5px">Prospects récents et leur origine</div>
+                    <h3 class="lb-h3">★ Contacts à la une</h3>
+                    <div class="lb-muted" style="font-size:12.5px">Les contacts que tu as mis en avant (étoile sur la fiche)</div>
                 </div>
-                <a href="{{ route('contacts.index', ['temperature' => 'leads']) }}" class="lb-accent" style="font-weight:600;font-size:13px;text-decoration:none" wire:navigate>Voir tout →</a>
+                <a href="{{ route('contacts.index') }}" class="lb-accent" style="font-weight:600;font-size:13px;text-decoration:none" wire:navigate>Tous les contacts →</a>
             </div>
             <div class="grid gap-4 sm:grid-cols-2 mt-3">
-                @foreach ($leads as $lead)
-                    <a href="{{ route('contacts.fiche', $lead) }}" class="lb-card flex gap-3" wire:navigate wire:key="lead-{{ $lead->id }}" style="text-decoration:none;align-items:flex-start">
-                        <span class="lb-av lb-av-44 lb-av-{{ $lead->couleurAvatar() }} {{ $lead->estEntreprise() ? 'sq' : '' }}">{{ $lead->initiales() }}</span>
+                @foreach ($contactsALaUne as $contact)
+                    <a href="{{ route('contacts.fiche', $contact) }}" class="lb-card flex gap-3" wire:navigate wire:key="une-{{ $contact->id }}" style="text-decoration:none;align-items:flex-start">
+                        <span class="lb-av lb-av-44 lb-av-{{ $contact->couleurAvatar() }} {{ $contact->estEntreprise() ? 'sq' : '' }}">{{ $contact->initiales() }}</span>
                         <div style="min-width:0;flex:1">
-                            <div class="nm lb-truncate" style="font-weight:600;color:var(--ink)">{{ $lead->nomComplet() }}</div>
-                            <div class="lb-muted lb-truncate" style="font-size:12.5px">{{ $lead->estEntreprise() ? ($lead->secteur ?: 'Entreprise') : ($lead->fonction ?: 'Personne') }}@if ($lead->entreprise) · {{ $lead->entreprise->nom }}@endif</div>
-                            <div class="flex flex-wrap items-center gap-2 mt-2">
-                                @if ($info = $lead->temperatureInfo())
-                                    <span class="lb-badge lb-av-{{ $info[1] === 'muted' ? 'gold' : $info[1] }}">{{ $lead->temperature === 'chaud' ? '🔥 ' : '' }}{{ $info[0] }}</span>
-                                @endif
-                                @if ($lead->libelleOrigine())
-                                    <span class="lb-tag" style="background:var(--surface)">📍 {{ $lead->libelleOrigine() }}</span>
-                                @endif
+                            <div class="nm lb-truncate" style="font-weight:600;color:var(--ink)">
+                                <span style="color:var(--gold)">★</span> {{ $contact->nomComplet() }}
                             </div>
+                            <div class="lb-muted lb-truncate" style="font-size:12.5px">{{ $contact->estEntreprise() ? ($contact->secteur ?: 'Entreprise') : ($contact->fonction ?: 'Personne') }}@if ($contact->entreprise) · {{ $contact->entreprise->nom }}@endif</div>
+                            @if ($info = $contact->temperatureInfo())
+                                <div class="mt-2"><span class="lb-badge lb-av-{{ $info[1] === 'muted' ? 'gold' : $info[1] }}">{{ $contact->temperature === 'chaud' ? '🔥 ' : '' }}{{ $info[0] }}</span></div>
+                            @endif
                         </div>
                     </a>
                 @endforeach

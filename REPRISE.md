@@ -197,6 +197,9 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **Contacts « à la une »** : une **étoile** sur la fiche contact (`a_la_une`, bascule
+  `basculerALaUne()`) met le contact en avant ; le tableau de bord d'accueil remplace
+  « Nouveaux leads » par un bloc **« ★ Contacts à la une »** (les contacts étoilés).
 - **Tableau de bord (accueil) — prochaines sessions** : sous « Mes tâches du jour », un bloc
   « Prochaines sessions » liste les **6 prochaines** séances datées (3 par ligne), avec date, titre,
   **lieu** et places restantes ; clic → fiche de la séance.
