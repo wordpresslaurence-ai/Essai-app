@@ -22,6 +22,9 @@ class CalculRelances
     /** Pôle sur lequel restreindre les contacts (null = tous les pôles). */
     private ?int $poleId;
 
+    /** Mémoïsation : le calcul (lourd) n'est fait qu'une fois par instance. */
+    private ?Collection $lignesCache = null;
+
     public function __construct(?int $delaiJours = null, ?int $poleId = null)
     {
         $this->delaiJours = $delaiJours ?? Parametre::instance()->relance_delai_jours ?? 5;
@@ -63,7 +66,9 @@ class CalculRelances
      */
     private function lignes(): Collection
     {
-        return Contact::query()
+        // Mémoïsé : appelé plusieurs fois par rendu du Brief (réponses dues, à
+        // relancer, digest…). On garde le chargement COMPLET des fils d'e-mails.
+        return $this->lignesCache ??= Contact::query()
             ->has('emails')
             ->when($this->poleId, fn ($q) => $q->whereHas(
                 'categorie',
