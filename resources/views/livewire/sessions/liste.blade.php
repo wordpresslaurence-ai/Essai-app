@@ -80,4 +80,6 @@
             <div class="lb-placeholder">Aucune session {{ $onglet === 'passees' ? 'passée' : 'à venir' }} pour l'instant.</div>
         @endforelse
     </div>
+
+    <div class="mt-4">{{ $seances->links() }}</div>
 </div>

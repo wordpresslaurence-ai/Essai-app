@@ -248,3 +248,12 @@ it('affiche les prochaines sessions (avec le lieu) sur le tableau de bord', func
         ->assertSee('Salle Zen Namur')          // le lieu, pas la catégorie
         ->assertDontSee('Séance passée');        // seules les séances à venir
 });
+
+it('pagine la liste des activités (25 par page)', function () {
+    App\Models\Activite::factory()->count(30)->create(['echeance' => now(), 'terminee_at' => null]);
+
+    $activites = Livewire::test(Liste::class)->viewData('activites');
+
+    expect($activites->total())->toBe(30);   // toutes comptées
+    expect($activites->count())->toBe(25);    // mais 25 affichées par page
+});

@@ -8,6 +8,7 @@ use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 /**
  * Liste des sessions (séances) : places prises/restantes, liste d'attente,
@@ -16,6 +17,8 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Liste extends Component
 {
+    use WithPagination;
+
     /** Onglet : 'avenir' (défaut) ou 'passees'. */
     #[Url]
     public string $onglet = 'avenir';
@@ -31,6 +34,17 @@ class Liste extends Component
     public function updatedPole(): void
     {
         $this->categorie = '';
+        $this->resetPage();
+    }
+
+    public function updatedCategorie(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedOnglet(): void
+    {
+        $this->resetPage();
     }
 
     public function render(): View
@@ -46,7 +60,7 @@ class Liste extends Component
             )
             ->orderByRaw('date_debut is null')
             ->orderBy('date_debut', $this->onglet === 'passees' ? 'desc' : 'asc')
-            ->get();
+            ->paginate(20);
 
         return view('livewire.sessions.liste', [
             'seances' => $seances,

@@ -151,6 +151,8 @@
             <div class="lb-placeholder">Aucune activité {{ $filtre === 'a_faire' ? 'à faire' : ($filtre === 'terminees' ? 'terminée' : '') }}.</div>
         @endforelse
     </div>
+
+    <div class="mt-4">{{ $activites->links() }}</div>
     @else
         @include('livewire.activites._calendrier')
     @endif

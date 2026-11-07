@@ -59,3 +59,14 @@ it('exige une connexion pour voir les sessions', function () {
     auth()->logout();
     $this->get(route('sessions.index'))->assertRedirect(route('login'));
 });
+
+it('pagine la liste des sessions (20 par page)', function () {
+    for ($i = 1; $i <= 25; $i++) {
+        Seance::create(['titre' => 'Séance '.$i, 'date_debut' => now()->addDays($i)]);
+    }
+
+    $seances = Livewire::test(Liste::class)->viewData('seances');
+
+    expect($seances->total())->toBe(25);
+    expect($seances->count())->toBe(20);
+});

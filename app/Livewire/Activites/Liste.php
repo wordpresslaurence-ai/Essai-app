@@ -11,10 +11,13 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
 class Liste extends Component
 {
+    use WithPagination;
+
     /** Filtre : a_faire (défaut), terminees, toutes. */
     #[Url]
     public string $filtre = 'a_faire';
@@ -47,17 +50,20 @@ class Liste extends Component
     {
         $this->categorie = '';
         $this->selection = [];
+        $this->resetPage();
     }
 
     /** Changer de filtre ou de catégorie vide la sélection (évite une sélection fantôme). */
     public function updatedFiltre(): void
     {
         $this->selection = [];
+        $this->resetPage();
     }
 
     public function updatedCategorie(): void
     {
         $this->selection = [];
+        $this->resetPage();
     }
 
     /** Coche ou décoche toutes les activités actuellement affichées. */
@@ -168,7 +174,7 @@ class Liste extends Component
         $activites = (clone $base)
             ->orderByRaw('echeance is null')
             ->orderBy('echeance')
-            ->get();
+            ->paginate(25);
 
         return view('livewire.activites.liste', [
             'activites' => $activites,
