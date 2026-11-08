@@ -197,6 +197,10 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **Sessions — contact du lieu** : en plus du lieu en texte libre, une séance peut être rattachée à
+  un **contact (salle)** via `seances.lieu_contact_id` (relation `lieuContact`). Le formulaire a un
+  sélecteur de contact avec recherche ; la **fiche de session affiche le nom + la ville**
+  (`adresse_ville`) du contact, cliquable vers sa fiche.
 - **Durcissements sécurité / perf** : en-têtes HTTP de sécurité sur toutes les réponses web
   (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy`) via
   `app/Http/Middleware/EntetesSecurite`. Champs « système » (`a_la_une`, `archived_at`,

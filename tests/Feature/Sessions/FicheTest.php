@@ -79,3 +79,12 @@ it('refuse d\'inscrire sans contact', function () {
         ->call('inscrire')
         ->assertHasErrors(['contactAInscrire']);
 });
+
+it('affiche le nom et la ville du contact du lieu sur la fiche', function () {
+    $salle = Contact::factory()->create(['nom' => 'Salle Zen', 'adresse_ville' => 'Namur']);
+    $seance = Seance::create(['titre' => 'Stage', 'lieu_contact_id' => $salle->id]);
+
+    Livewire::test(Fiche::class, ['seance' => $seance])
+        ->assertSee('Salle Zen')
+        ->assertSee('Namur');
+});

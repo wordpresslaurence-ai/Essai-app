@@ -60,3 +60,15 @@ it('supprime une session', function () {
 
     expect(Seance::find($seance->id))->toBeNull();
 });
+
+it('rattache un contact de lieu (salle) à la session', function () {
+    $salle = App\Models\Contact::factory()->create(['nom' => 'Salle Zen', 'adresse_ville' => 'Namur']);
+
+    Livewire::test(Formulaire::class)
+        ->set('titre', 'Stage mars')
+        ->set('lieu_contact_id', (string) $salle->id)
+        ->call('enregistrer');
+
+    $seance = Seance::where('titre', 'Stage mars')->firstOrFail();
+    expect($seance->lieu_contact_id)->toBe($salle->id);
+});

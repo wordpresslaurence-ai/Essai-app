@@ -16,7 +16,7 @@ class Seance extends Model
 {
     protected $table = 'seances';
 
-    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'capacite', 'notes'];
+    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'lieu_contact_id', 'capacite', 'notes'];
 
     protected function casts(): array
     {
@@ -31,6 +31,12 @@ class Seance extends Model
     public function categorie(): BelongsTo
     {
         return $this->belongsTo(Categorie::class);
+    }
+
+    /** Contact (salle/lieu) rattaché à la séance. */
+    public function lieuContact(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class, 'lieu_contact_id');
     }
 
     public function inscriptions(): HasMany

@@ -42,10 +42,23 @@
                 @error('date_debut') <p class="lb-error">{{ $message }}</p> @enderror
             </div>
             <div>
-                <label for="lieu" class="lb-label">Lieu</label>
-                <input id="lieu" type="text" wire:model="lieu" class="lb-field" placeholder="ex. Namur">
+                <label for="lieu" class="lb-label">Lieu (texte libre)</label>
+                <input id="lieu" type="text" wire:model="lieu" class="lb-field" placeholder="ex. Salle A, 1er étage">
                 @error('lieu') <p class="lb-error">{{ $message }}</p> @enderror
             </div>
+        </div>
+
+        <div class="mt-5">
+            <label for="lieu_contact_id" class="lb-label">Contact du lieu (salle) — optionnel</label>
+            <input type="search" wire:model.live.debounce.300ms="rechercheContact" class="lb-field"
+                   placeholder="Rechercher un contact…" style="margin-bottom:6px">
+            <select id="lieu_contact_id" wire:model="lieu_contact_id" class="lb-field">
+                <option value="">— Aucun —</option>
+                @foreach ($contacts as $c)
+                    <option value="{{ $c->id }}" @selected((string) $lieu_contact_id === (string) $c->id)>{{ $c->nomComplet() }}@if (filled($c->adresse_ville)) · {{ $c->adresse_ville }}@endif</option>
+                @endforeach
+            </select>
+            <p class="lb-muted" style="font-size:12px;margin-top:4px">Son nom et sa ville s'afficheront sur la fiche de la session.</p>
         </div>
 
         <div class="mt-5">

@@ -18,6 +18,11 @@
                 @if ($seance->lieu)
                     <span>📍 {{ $seance->lieu }}</span>
                 @endif
+                @if ($seance->lieuContact)
+                    <span>🏛️
+                        <a href="{{ route('contacts.fiche', $seance->lieuContact) }}" wire:navigate style="color:var(--accent);font-weight:600;text-decoration:none">{{ $seance->lieuContact->nomComplet() }}</a>@if (filled($seance->lieuContact->adresse_ville)) · {{ $seance->lieuContact->adresse_ville }}@endif
+                    </span>
+                @endif
             </div>
         </div>
         <a href="{{ route('sessions.modifier', $seance) }}" class="lb-btn lb-btn-primary" wire:navigate>Modifier</a>

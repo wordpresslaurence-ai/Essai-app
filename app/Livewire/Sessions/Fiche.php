@@ -75,7 +75,7 @@ class Fiche extends Component
 
     public function render(): View
     {
-        $this->seance->load(['categorie.pole', 'inscriptions.contact']);
+        $this->seance->load(['categorie.pole', 'inscriptions.contact', 'lieuContact']);
 
         $actifs = $this->seance->inscriptions
             ->whereIn('statut', [Inscription::STATUT_CONFIRME, Inscription::STATUT_ATTENTE])
