@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Derrière l'hébergeur (proxy HTTPS type Railway/Render/Hostinger),
         // faire confiance aux en-têtes de proxy pour générer des URL https correctes.
         $middleware->trustProxies(at: '*');
+
+        // En-têtes de sécurité sur toutes les réponses web.
+        $middleware->web(append: [\App\Http\Middleware\EntetesSecurite::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

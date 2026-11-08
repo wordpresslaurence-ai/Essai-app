@@ -197,6 +197,13 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **Durcissements sécurité / perf** : en-têtes HTTP de sécurité sur toutes les réponses web
+  (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy`) via
+  `app/Http/Middleware/EntetesSecurite`. Champs « système » (`a_la_une`, `archived_at`,
+  `newsletter_exporte_le`) **retirés de `fillable`** (posés par `forceFill` dans leurs méthodes).
+  Mémoïsation de `CalculRelances`, index BD additifs, pagination Activités (25) / Sessions (20).
+  ⚠️ **Déploiement** : vérifier sur Hostinger que **`APP_ENV=production`** et **`APP_DEBUG=false`**
+  dans `.env` (sinon des détails d'erreur pourraient s'afficher). Commande : `grep -E 'APP_ENV|APP_DEBUG' .env`.
 - **Contacts « à la une »** : une **étoile** sur la fiche contact (`a_la_une`, bascule
   `basculerALaUne()`) met le contact en avant ; le tableau de bord d'accueil remplace
   « Nouveaux leads » par un bloc **« ★ Contacts à la une »** (les contacts étoilés).

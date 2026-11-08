@@ -70,7 +70,7 @@ class FicheDetail extends Component
     /** Met le contact « à la une » (ou l'en retire) — affiché sur le tableau de bord. */
     public function basculerALaUne(): void
     {
-        $this->contact->update(['a_la_une' => ! $this->contact->a_la_une]);
+        $this->contact->forceFill(['a_la_une' => ! $this->contact->a_la_une])->save();
         session()->flash('message', $this->contact->a_la_une ? 'Contact mis à la une.' : 'Contact retiré de la une.');
     }
 

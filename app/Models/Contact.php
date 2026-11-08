@@ -141,9 +141,9 @@ class Contact extends Model
         'adresse_code_postal',
         'adresse_ville',
         'adresse_pays',
-        'archived_at',
-        'newsletter_exporte_le',
-        'a_la_une',
+        // Champs « système » volontairement HORS fillable (jamais remplis depuis
+        // une entrée utilisateur) : archived_at, newsletter_exporte_le, a_la_une.
+        // Ils sont posés explicitement par leurs méthodes dédiées (forceFill).
     ];
 
     protected function casts(): array
@@ -347,12 +347,12 @@ class Contact extends Model
 
     public function archiver(): void
     {
-        $this->update(['archived_at' => now()]);
+        $this->forceFill(['archived_at' => now()])->save();
     }
 
     public function desarchiver(): void
     {
-        $this->update(['archived_at' => null]);
+        $this->forceFill(['archived_at' => null])->save();
     }
 
     /** Nom d'affichage : « Prénom Nom » pour une personne, la raison sociale sinon. */
