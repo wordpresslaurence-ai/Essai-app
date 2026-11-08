@@ -70,3 +70,12 @@ it('pagine la liste des sessions (20 par page)', function () {
     expect($seances->total())->toBe(25);
     expect($seances->count())->toBe(20);
 });
+
+it('affiche le contact du lieu (nom + ville) sur la carte de session', function () {
+    $salle = App\Models\Contact::factory()->create(['nom' => 'Salle Zen', 'adresse_ville' => 'Namur']);
+    Seance::create(['titre' => 'Stage', 'date_debut' => now()->addWeek(), 'lieu_contact_id' => $salle->id]);
+
+    Livewire::test(Liste::class)
+        ->assertSee('Salle Zen')
+        ->assertSee('Namur');
+});

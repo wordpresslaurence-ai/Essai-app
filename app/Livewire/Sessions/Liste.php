@@ -49,7 +49,7 @@ class Liste extends Component
 
     public function render(): View
     {
-        $seances = Seance::with('categorie.pole')
+        $seances = Seance::with(['categorie.pole', 'lieuContact'])
             ->withCount(['inscriptions as confirmes_count' => fn ($q) => $q->where('statut', 'confirme')])
             ->withCount(['inscriptions as attente_count' => fn ($q) => $q->where('statut', 'attente')])
             ->when($this->onglet === 'passees', fn ($q) => $q->passees(), fn ($q) => $q->aVenir())

@@ -257,3 +257,12 @@ it('pagine la liste des activités (25 par page)', function () {
     expect($activites->total())->toBe(30);   // toutes comptées
     expect($activites->count())->toBe(25);    // mais 25 affichées par page
 });
+
+it('affiche le contact du lieu (nom + ville) dans les prochaines sessions du tableau de bord', function () {
+    $salle = App\Models\Contact::factory()->create(['nom' => 'Salle Zen', 'adresse_ville' => 'Namur']);
+    App\Models\Seance::create(['titre' => 'Stage', 'date_debut' => now()->addWeek(), 'lieu_contact_id' => $salle->id]);
+
+    Livewire::test(TableauBord::class)
+        ->assertSee('Salle Zen')
+        ->assertSee('Namur');
+});

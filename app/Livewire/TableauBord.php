@@ -62,6 +62,7 @@ class TableauBord extends Component
                 ->get(),
             'prochainesSessions' => Seance::aVenir()
                 ->whereNotNull('date_debut')
+                ->with('lieuContact')
                 ->orderBy('date_debut')
                 ->take(6)
                 ->get(),

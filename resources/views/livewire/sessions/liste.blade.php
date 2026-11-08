@@ -61,7 +61,9 @@
                     @if ($seance->date_debut)
                         <span>📅 {{ $seance->date_debut->translatedFormat('d/m/Y') }}{{ $seance->date_debut->format('H:i') !== '00:00' ? ' · '.$seance->date_debut->format('H:i') : '' }}</span>
                     @endif
-                    @if ($seance->lieu)
+                    @if ($seance->lieuContact)
+                        <span class="lb-truncate">🏛️ {{ $seance->lieuContact->nomComplet() }}@if (filled($seance->lieuContact->adresse_ville)) · {{ $seance->lieuContact->adresse_ville }}@endif</span>
+                    @elseif ($seance->lieu)
                         <span class="lb-truncate">📍 {{ $seance->lieu }}</span>
                     @endif
                 </div>
