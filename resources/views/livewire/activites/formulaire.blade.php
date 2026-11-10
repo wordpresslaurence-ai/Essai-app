@@ -19,7 +19,7 @@
             </div>
             <div>
                 <label for="echeance" class="lb-label">Échéance</label>
-                <input id="echeance" type="datetime-local" wire:model="echeance" class="lb-field">
+                <input id="echeance" type="datetime-local" step="900" wire:model="echeance" class="lb-field">
                 @error('echeance') <p class="lb-error">{{ $message }}</p> @enderror
             </div>
             <div>
