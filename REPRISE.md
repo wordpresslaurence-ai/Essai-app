@@ -197,6 +197,13 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **Fiche contact — coordonnées bancaires** : deux vrais champs `contacts.iban` (40) et
+  `contacts.bic` (15), **nullable**, éditables dans le formulaire (section « Coordonnées
+  bancaires », valable personnes **et** entreprises) et affichés sur la fiche s'ils sont remplis.
+  À l'enregistrement, l'IBAN et le BIC sont **normalisés** (espaces retirés, mis en majuscules).
+  Stockés **en clair** (pas de chiffrement : un IBAN est semi-public et on évite tout risque de
+  perte liée à l'`APP_KEY`). RGPD : donnée personnelle ordinaire, finalité légitime (régler /
+  rembourser une salle, un partenaire) — informer la personne, supprimer quand inutile.
 - **Sessions — contact du lieu** : en plus du lieu en texte libre, une séance peut être rattachée à
   un **contact (salle)** via `seances.lieu_contact_id` (relation `lieuContact`). Le formulaire a un
   sélecteur de contact avec recherche ; la **fiche de session affiche le nom + la ville**

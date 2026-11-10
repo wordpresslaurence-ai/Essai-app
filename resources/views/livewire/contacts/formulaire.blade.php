@@ -403,6 +403,26 @@
             </div>
         </div>
 
+        {{-- Coordonnées bancaires --}}
+        <fieldset class="mt-6">
+            <legend class="lb-label" style="margin-bottom:10px">Coordonnées bancaires (facultatif)</legend>
+            <div class="grid gap-4" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+                <div>
+                    <label for="iban" class="lb-label" style="font-weight:500;color:var(--text-muted)">IBAN</label>
+                    <input id="iban" type="text" wire:model="iban" class="lb-field" placeholder="ex. BE68 5390 0754 7034" autocomplete="off">
+                    @error('iban') <div class="lb-alert lb-alert-danger mt-2">{{ $message }}</div> @enderror
+                </div>
+                <div>
+                    <label for="bic" class="lb-label" style="font-weight:500;color:var(--text-muted)">BIC / SWIFT</label>
+                    <input id="bic" type="text" wire:model="bic" class="lb-field" placeholder="ex. GKCCBEBB" autocomplete="off">
+                    @error('bic') <div class="lb-alert lb-alert-danger mt-2">{{ $message }}</div> @enderror
+                </div>
+            </div>
+            <p class="lb-muted" style="font-size:12.5px;margin-top:8px">
+                Pour régler ou rembourser une salle, un partenaire… Les espaces sont retirés automatiquement.
+            </p>
+        </fieldset>
+
         {{-- Notes --}}
         <div class="mt-5">
             <label for="notes" class="lb-label">Notes</label>

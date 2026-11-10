@@ -109,6 +109,10 @@ class Formulaire extends Component
 
     public ?string $tarif = null;
 
+    public ?string $iban = null;
+
+    public ?string $bic = null;
+
     /** @var array<int> Étiquettes cochées pour ce contact. */
     public array $etiquettesSelection = [];
 
@@ -133,7 +137,7 @@ class Formulaire extends Component
                 'interet_exprime', 'besoin_exprime', 'url_sources',
                 'experience_yoga', 'origine', 'origine_precision', 'url_profil', 'temperature',
                 'adresse_rue', 'adresse_code_postal', 'adresse_ville', 'adresse_pays', 'notes',
-                'capacite', 'tarif',
+                'capacite', 'tarif', 'iban', 'bic',
             ]));
             $this->date_verification = $contact->date_verification?->format('Y-m-d');
             $this->ne_plus_contacter = (bool) $contact->ne_plus_contacter;
@@ -261,6 +265,8 @@ class Formulaire extends Component
             'notes' => ['nullable', 'string'],
             'capacite' => ['nullable', 'integer', 'min:1'],
             'tarif' => ['nullable', 'string', 'max:255'],
+            'iban' => ['nullable', 'string', 'max:40'],
+            'bic' => ['nullable', 'string', 'max:15'],
         ];
     }
 
@@ -320,6 +326,14 @@ class Formulaire extends Component
             $donnees['numero_tva'] = null;
             $donnees['secteur'] = null;
         }
+
+        // Coordonnées bancaires : on normalise (sans espaces, en majuscules).
+        $donnees['iban'] = filled($this->iban)
+            ? mb_strtoupper(preg_replace('/\s+/', '', $this->iban))
+            : null;
+        $donnees['bic'] = filled($this->bic)
+            ? mb_strtoupper(preg_replace('/\s+/', '', $this->bic))
+            : null;
 
         if ($this->contact) {
             $this->contact->update($donnees);

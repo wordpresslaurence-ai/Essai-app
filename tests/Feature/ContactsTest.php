@@ -277,6 +277,37 @@ it('enregistre et affiche le lien du compte / profil', function () {
         ->assertSee('facebook.com/marie.durand');
 });
 
+it('enregistre l’IBAN et le BIC (normalisés) et les affiche sur la fiche', function () {
+    Livewire::test(Formulaire::class)
+        ->set('type', Contact::TYPE_PERSONNE)
+        ->set('nom', 'Durand')
+        ->set('iban', 'be68 5390 0754 7034')
+        ->set('bic', 'gkcc bebb')
+        ->call('enregistrer')
+        ->assertHasNoErrors();
+
+    $contact = Contact::where('nom', 'Durand')->firstOrFail();
+    expect($contact->iban)->toBe('BE68539007547034'); // sans espaces, en majuscules
+    expect($contact->bic)->toBe('GKCCBEBB');
+
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->assertSee('BE68539007547034')
+        ->assertSee('GKCCBEBB');
+});
+
+it('vide l’IBAN et le BIC quand les champs sont laissés vides', function () {
+    $contact = Contact::factory()->create(['iban' => 'BE68539007547034', 'bic' => 'GKCCBEBB']);
+
+    Livewire::test(Formulaire::class, ['contact' => $contact])
+        ->set('iban', '')
+        ->set('bic', '')
+        ->call('enregistrer')
+        ->assertHasNoErrors();
+
+    expect($contact->fresh()->iban)->toBeNull();
+    expect($contact->fresh()->bic)->toBeNull();
+});
+
 it('pré-remplit et devine une fiche depuis une tâche « Créer le prospect »', function () {
     $tache = App\Models\Activite::create([
         'titre' => 'Créer le prospect : jean@studio.be',

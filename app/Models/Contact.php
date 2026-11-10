@@ -106,6 +106,8 @@ class Contact extends Model
         'notes',
         'capacite',
         'tarif',
+        'iban',
+        'bic',
         'prenom',
         'fonction',
         'entreprise_id',

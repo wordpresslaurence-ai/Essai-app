@@ -639,6 +639,12 @@
                     @if (filled($contact->tarif))
                         <div><div class="k">Tarif de location</div><div class="val">{{ $contact->tarif }}</div></div>
                     @endif
+                    @if (filled($contact->iban))
+                        <div><div class="k">IBAN</div><div class="val" style="font-variant-numeric:tabular-nums">{{ $contact->iban }}</div></div>
+                    @endif
+                    @if (filled($contact->bic))
+                        <div><div class="k">BIC / SWIFT</div><div class="val">{{ $contact->bic }}</div></div>
+                    @endif
 
                     @if ($contact->notes)
                         <div>
