@@ -71,6 +71,9 @@
                     <button type="button" wire:click="basculerDetail({{ $r->id }})" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px">
                         {{ $detailId === $r->id ? 'Masquer' : 'Détail' }}
                     </button>
+                    <button type="button" wire:click="supprimer({{ $r->id }})"
+                            wire:confirm="Supprimer cette réservation ? L'inscription ou le rendez-vous qu'elle a créé sera retiré. Le contact est conservé."
+                            class="lb-btn lb-btn-danger" style="padding:7px 13px;font-size:12.5px">Supprimer</button>
                 </div>
                 @if ($detailId === $r->id)
                     <pre class="lb-card" style="padding:14px;margin:4px 0 12px;font-size:12px;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere">{{ $r->contenu }}</pre>

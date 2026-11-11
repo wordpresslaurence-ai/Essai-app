@@ -157,3 +157,25 @@ it('crée puis remplace l’adresse depuis les réglages, et affiche le journal'
     auth()->logout();
     $this->get(route('reglages.reservations'))->assertRedirect(route('login'));
 });
+
+it('supprime une réservation et ce qu’elle avait créé, en gardant le contact', function () {
+    $this->actingAs(User::factory()->create());
+    $seance = Seance::create(['titre' => 'Séance découverte', 'date_debut' => '2026-12-13 10:30:00']);
+
+    $this->postJson(adresseWebhook(), reservationSite())->assertOk();                                  // inscription
+    $this->postJson(adresseWebhook(), reservationSite(['start_time' => '2026-12-20 09:30:00'], 'Appel visio'))->assertOk(); // rendez-vous
+
+    $contact = Contact::firstOrFail();
+    $autre = Activite::create(['titre' => 'Tâche à moi', 'type' => Activite::TYPE_TACHE, 'contact_id' => $contact->id]);
+    expect(Activite::where('contact_id', $contact->id)->count())->toBe(3);
+
+    $composant = Livewire::test(ReservationsSite::class);
+    foreach (ReservationRecue::pluck('id') as $id) {
+        $composant->call('supprimer', $id);
+    }
+
+    expect(ReservationRecue::count())->toBe(0);
+    expect($seance->inscriptions()->count())->toBe(0);
+    expect(Activite::where('contact_id', $contact->id)->pluck('id')->all())->toBe([$autre->id]); // la tâche manuelle reste
+    expect(Contact::find($contact->id))->not->toBeNull();
+});
