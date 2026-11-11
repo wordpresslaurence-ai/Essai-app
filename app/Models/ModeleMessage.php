@@ -14,6 +14,10 @@ class ModeleMessage extends Model
 
     public const CANAL_MESSAGE = 'message';
 
+    public const NOM_SUIVI_PRESENT = 'Suivi — après la séance';
+
+    public const NOM_SUIVI_ABSENT = 'Suivi — absent à la séance';
+
     public const CANAUX = [
         self::CANAL_EMAIL => 'E-mail',
         self::CANAL_MESSAGE => 'Message court (WhatsApp, message privé)',
@@ -32,6 +36,9 @@ class ModeleMessage extends Model
         'lien' => 'Lien d’inscription de la session',
         'lien_groupe' => 'Lien du groupe ou de la communauté WhatsApp de la session',
         'moi' => 'Ton nom (celui de ton compte)',
+        'prochaine_date' => 'Date de la prochaine session du même type (suivi des absents)',
+        'prochaine_heure' => 'Heure de cette prochaine session',
+        'prochain_lien' => 'Lien d’inscription de cette prochaine session',
     ];
 
     protected $table = 'modeles_message';
@@ -53,9 +60,9 @@ class ModeleMessage extends Model
      *
      * @return array{objet: string, corps: string}
      */
-    public function rendre(Contact $contact, Seance $seance, ?string $moi = null): array
+    public function rendre(Contact $contact, Seance $seance, ?string $moi = null, ?Seance $prochaine = null): array
     {
-        $valeurs = self::valeurs($contact, $seance, $moi);
+        $valeurs = self::valeurs($contact, $seance, $moi, $prochaine);
 
         return [
             'objet' => self::remplacer((string) $this->objet, $valeurs),
@@ -68,14 +75,10 @@ class ModeleMessage extends Model
      *
      * @return array<string, string>
      */
-    public static function valeurs(Contact $contact, Seance $seance, ?string $moi = null): array
+    public static function valeurs(Contact $contact, Seance $seance, ?string $moi = null, ?Seance $prochaine = null): array
     {
         $date = $seance->date_debut;
-
-        $heure = '';
-        if ($date && $date->format('H:i') !== '00:00') {
-            $heure = $date->format('G').' h'.($date->format('i') !== '00' ? ' '.$date->format('i') : '');
-        }
+        $heure = self::heureLisible($date);
 
         $lieu = (string) $seance->lieu;
         if ($seance->lieuContact) {
@@ -95,7 +98,42 @@ class ModeleMessage extends Model
             'lien' => (string) $seance->lien_inscription,
             'lien_groupe' => (string) $seance->lien_groupe,
             'moi' => (string) $moi,
+            'prochaine_date' => $prochaine?->date_debut ? $prochaine->date_debut->translatedFormat('l j F Y') : '',
+            'prochaine_heure' => self::heureLisible($prochaine?->date_debut),
+            'prochain_lien' => (string) $prochaine?->lien_inscription,
         ];
+    }
+
+    /** « 10 h 30 », « 10 h », ou chaîne vide si l'heure n'est pas précisée (minuit). */
+    private static function heureLisible(?\Illuminate\Support\Carbon $date): string
+    {
+        if (! $date || $date->format('H:i') === '00:00') {
+            return '';
+        }
+
+        return $date->format('G').' h'.($date->format('i') !== '00' ? ' '.$date->format('i') : '');
+    }
+
+    /**
+     * Modèle utilisé pour le suivi après une séance : celui des absents (nom
+     * contenant « absent ») ou celui des présents (nom commençant par « Suivi »).
+     * À défaut de modèle enregistré, le texte de départ sert de secours.
+     */
+    public static function pourSuivi(bool $absent): self
+    {
+        $modeles = self::orderBy('nom')->get();
+
+        $trouve = $absent
+            ? $modeles->first(fn (self $m) => mb_stripos($m->nom, 'absent') !== false)
+            : $modeles->first(fn (self $m) => mb_stripos($m->nom, 'suivi') === 0 && mb_stripos($m->nom, 'absent') === false);
+
+        if ($trouve) {
+            return $trouve;
+        }
+
+        $nom = $absent ? self::NOM_SUIVI_ABSENT : self::NOM_SUIVI_PRESENT;
+
+        return new self(collect(self::modelesDeDepart())->firstWhere('nom', $nom));
     }
 
     /**
@@ -151,6 +189,25 @@ class ModeleMessage extends Model
                     ."[Deux phrases pour présenter la formation et à qui elle s’adresse.]\n\n"
                     ."Pour la faire découvrir, je propose « {session} », {date} à {heure} ({lieu}). Accepteriez-vous de transmettre l’invitation aux professeurs de votre équipe ?\n\n"
                     ."Le lien de réservation : {lien}\n\n"
+                    ."Bien à vous,\n{moi}",
+            ],
+            [
+                'nom' => self::NOM_SUIVI_PRESENT,
+                'canal' => self::CANAL_EMAIL,
+                'objet' => 'Merci pour {session}',
+                'corps' => "Bonjour {prenom},\n\n"
+                    ."Merci d’avoir participé à « {session} ». [Une phrase personnelle : une question posée, un retour partagé.]\n\n"
+                    ."[Deux phrases sur la suite possible : la formation, ses dates, le lien pour s’inscrire.]\n\n"
+                    ."Et si vous préférez en parler de vive voix, répondez à ce message et nous fixons un appel.\n\n"
+                    ."Bien à vous,\n{moi}",
+            ],
+            [
+                'nom' => self::NOM_SUIVI_ABSENT,
+                'canal' => self::CANAL_EMAIL,
+                'objet' => '{session} : une autre date ?',
+                'corps' => "Bonjour {prenom},\n\n"
+                    ."Vous n’avez pas pu nous rejoindre pour « {session} », et j’espère que tout va bien.\n\n"
+                    ."La prochaine séance a lieu {prochaine_date} à {prochaine_heure}. Si vous souhaitez y participer : {prochain_lien}\n\n"
                     ."Bien à vous,\n{moi}",
             ],
             [

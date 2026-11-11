@@ -197,6 +197,22 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **Suivi après séance & parcours formation (brique 014)** :
+  - `Services\Sessions\SuiviApresSeance::creerTaches()` crée, dès le lendemain d'une séance (et
+    jusqu'à 14 jours après), **une tâche par participant confirmé** avec le message prêt dans les
+    notes. Pas de tâche planifiée sur l'hébergement : l'appel (idempotent, `inscriptions.suivi_cree_le`)
+    est fait à l'ouverture du tableau de bord, de l'Assistant et de la page de suivi.
+  - Page `sessions/{seance}/suivi` (`Sessions\Suivi`) : noter **présent / absent**
+    (`inscriptions.presence`), préparer le message (modèle dont le nom commence par « Suivi », ou
+    contient « absent » ; texte de secours intégré), « C'est envoyé » → `suivi_envoye_le`, trace en
+    activité, tâche clôturée. Les absents reçoivent la **prochaine date** (`{prochaine_date}`,
+    `{prochaine_heure}`, `{prochain_lien}`) : prochaine session de même rôle, sinon même catégorie,
+    sinon même titre.
+  - `seances.role_parcours` (`decouverte` | `formation`) et page `sessions/parcours`
+    (`Sessions\Parcours`) : entonnoir invités → inscrits → présents → appels (activités RDV) →
+    inscrits à la formation, places par stage, détail par séance découverte.
+  - Campagne d'invitations : le bouton « Mail de prospection » ouvre d'abord le panneau (angle),
+    la rédaction par l'assistant ne part qu'au clic.
 - **« Conversation terminée »** : bouton « ✓ Terminée » sur chaque ligne « réponse due » / « à
   relancer » du Brief (`Brief::terminerConversation`). Pose `contacts.suivi_pause_le` (hors
   `fillable`) : `CalculRelances` ignore alors le contact et ses tâches « Répondre/Relancer » se

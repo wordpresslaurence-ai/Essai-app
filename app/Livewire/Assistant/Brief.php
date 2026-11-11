@@ -46,6 +46,9 @@ class Brief extends Component
         $this->echeanceReponse = now()->toDateString();
         $this->echeanceRelance = now()->toDateString();
 
+        // Suivi après séance : une tâche par participant dès le lendemain.
+        app(\App\Services\Sessions\SuiviApresSeance::class)->creerTaches(auth()->user()?->name);
+
         // Les tâches « Répondre »/« Relancer » dont le motif a disparu se clôturent seules.
         $this->cloturerTachesResolues();
     }

@@ -94,11 +94,12 @@
                     @endif
 
                     <div class="flex flex-wrap items-center gap-2" style="margin-left:auto">
-                        <button type="button" wire:click="preparer({{ $inv->id }})" class="lb-btn lb-btn-primary" style="padding:7px 13px;font-size:12.5px"
-                                wire:loading.attr="disabled" wire:target="preparer({{ $inv->id }})">
-                            <span wire:loading.remove wire:target="preparer({{ $inv->id }})">{{ $inv->statut === \App\Models\Invitation::STATUT_A_INVITER ? '✍️ Rédiger un mail de prospection' : 'Relancer' }}</span>
-                            <span wire:loading wire:target="preparer({{ $inv->id }})">Rédaction…</span>
-                        </button>
+                        @if ($inv->statut === \App\Models\Invitation::STATUT_A_INVITER)
+                            {{-- Ouvre le panneau sans rédiger : on peut d'abord préciser l'angle. --}}
+                            <button type="button" wire:click="preparer({{ $inv->id }}, false)" class="lb-btn lb-btn-primary" style="padding:7px 13px;font-size:12.5px">✍️ Mail de prospection</button>
+                        @else
+                            <button type="button" wire:click="preparer({{ $inv->id }})" class="lb-btn lb-btn-primary" style="padding:7px 13px;font-size:12.5px">Relancer</button>
+                        @endif
                         <select aria-label="Statut de l'invitation" class="lb-field" style="width:auto;padding:6px 10px;font-size:12.5px"
                                 wire:change="changerStatut({{ $inv->id }}, $event.target.value)">
                             @foreach (\App\Models\Invitation::STATUTS as $cle => $infos)
@@ -125,13 +126,13 @@
                             </p>
                         @else
                             @if ($mode === 'prospection')
-                                <label for="angle" class="lb-label" style="font-weight:500;color:var(--text-muted)">Angle (facultatif)</label>
+                                <label for="angle" class="lb-label" style="font-weight:500;color:var(--text-muted)">Angle (facultatif) — précise-le avant de lancer la rédaction</label>
                                 <div class="flex flex-wrap items-center gap-2">
                                     <input id="angle" type="text" wire:model="angle" class="lb-field" style="flex:1;min-width:14rem"
                                            placeholder="ex. j'ai vu qu'elle propose du yoga nidra">
                                     <button type="button" wire:click="redigerProspection" class="lb-btn lb-btn-primary" style="white-space:nowrap"
                                             wire:loading.attr="disabled" wire:target="redigerProspection">
-                                        <span wire:loading.remove wire:target="redigerProspection">✍️ {{ filled($brouillonCorps) ? 'Rédiger à nouveau' : 'Rédiger un mail de prospection' }}</span>
+                                        <span wire:loading.remove wire:target="redigerProspection">✍️ {{ filled($brouillonCorps) ? 'Rédiger à nouveau' : 'Rédiger le mail' }}</span>
                                         <span wire:loading wire:target="redigerProspection">Rédaction…</span>
                                     </button>
                                 </div>

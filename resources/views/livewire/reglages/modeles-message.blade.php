@@ -84,7 +84,7 @@
             </div>
         @empty
             <div class="lb-placeholder">
-                Aucun modèle pour l'instant. Le bouton « Ajouter les modèles de départ » t'en propose quatre à adapter.
+                Aucun modèle pour l'instant. Le bouton « Ajouter les modèles de départ » t'en propose plusieurs à adapter.
             </div>
         @endforelse
     </div>

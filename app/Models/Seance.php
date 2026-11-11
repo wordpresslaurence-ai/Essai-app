@@ -16,7 +16,17 @@ class Seance extends Model
 {
     protected $table = 'seances';
 
-    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'lieu_contact_id', 'lien_inscription', 'lien_groupe', 'capacite', 'notes'];
+    public const ROLE_DECOUVERTE = 'decouverte';
+
+    public const ROLE_FORMATION = 'formation';
+
+    /** Rôle d'une session dans le parcours formation. */
+    public const ROLES_PARCOURS = [
+        self::ROLE_DECOUVERTE => 'Séance découverte',
+        self::ROLE_FORMATION => 'Formation (stage)',
+    ];
+
+    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'lieu_contact_id', 'lien_inscription', 'lien_groupe', 'role_parcours', 'capacite', 'notes'];
 
     protected function casts(): array
     {

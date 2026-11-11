@@ -16,7 +16,24 @@ class Inscription extends Model
 
     public const STATUT_ANNULE = 'annule';
 
-    protected $fillable = ['seance_id', 'contact_id', 'statut', 'notes'];
+    public const PRESENT = 'present';
+
+    public const ABSENT = 'absent';
+
+    protected $fillable = ['seance_id', 'contact_id', 'statut', 'notes', 'presence', 'suivi_cree_le', 'suivi_envoye_le'];
+
+    protected function casts(): array
+    {
+        return [
+            'suivi_cree_le' => 'datetime',
+            'suivi_envoye_le' => 'datetime',
+        ];
+    }
+
+    public function estAbsent(): bool
+    {
+        return $this->presence === self::ABSENT;
+    }
 
     public function seance(): BelongsTo
     {

@@ -46,10 +46,12 @@ Route::middleware(['auth'])->group(function () {
 
     // Module Sessions & listes d'attente (module 008)
     Route::get('sessions', \App\Livewire\Sessions\Liste::class)->name('sessions.index');
+    Route::get('sessions/parcours', \App\Livewire\Sessions\Parcours::class)->name('sessions.parcours');
     Route::get('sessions/creer', \App\Livewire\Sessions\Formulaire::class)->name('sessions.creer');
     Route::get('sessions/{seance}', \App\Livewire\Sessions\Fiche::class)->name('sessions.fiche');
     Route::get('sessions/{seance}/modifier', \App\Livewire\Sessions\Formulaire::class)->name('sessions.modifier');
     // Campagne d'invitations à une session (module 012)
+    Route::get('sessions/{seance}/suivi', \App\Livewire\Sessions\Suivi::class)->name('sessions.suivi');
     Route::get('sessions/{seance}/message', \App\Livewire\Sessions\MessageInscrits::class)->name('sessions.message');
     Route::get('sessions/{seance}/invitations', \App\Livewire\Sessions\Invitations::class)->name('sessions.invitations');
 

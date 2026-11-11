@@ -34,6 +34,9 @@ class Formulaire extends Component
     /** Lien d'invitation au groupe / à la communauté WhatsApp. */
     public ?string $lien_groupe = null;
 
+    /** Rôle dans le parcours formation : decouverte | formation | (vide). */
+    public ?string $role_parcours = null;
+
     public ?string $capacite = null;
 
     public ?string $notes = null;
@@ -49,6 +52,7 @@ class Formulaire extends Component
             $this->lieu_contact_id = $seance->lieu_contact_id ? (string) $seance->lieu_contact_id : null;
             $this->lien_inscription = $seance->lien_inscription;
             $this->lien_groupe = $seance->lien_groupe;
+            $this->role_parcours = $seance->role_parcours;
             $this->capacite = $seance->capacite !== null ? (string) $seance->capacite : null;
             $this->notes = $seance->notes;
         }
@@ -64,6 +68,7 @@ class Formulaire extends Component
             'lieu_contact_id' => ['nullable', 'exists:contacts,id'],
             'lien_inscription' => ['nullable', 'url', 'max:500'],
             'lien_groupe' => ['nullable', 'url', 'max:500'],
+            'role_parcours' => ['nullable', \Illuminate\Validation\Rule::in(array_keys(Seance::ROLES_PARCOURS))],
             'capacite' => ['nullable', 'integer', 'min:0', 'max:100000'],
             'notes' => ['nullable', 'string'],
         ];
@@ -76,6 +81,7 @@ class Formulaire extends Component
 
         $this->lien_inscription = filled($this->lien_inscription) ? trim($this->lien_inscription) : null;
         $this->lien_groupe = filled($this->lien_groupe) ? trim($this->lien_groupe) : null;
+        $this->role_parcours = filled($this->role_parcours) ? $this->role_parcours : null;
 
         $donnees = $this->validate();
         $donnees['capacite'] = $donnees['capacite'] !== null && $donnees['capacite'] !== ''

@@ -62,6 +62,18 @@
         </div>
 
         <div class="mt-5">
+            <label for="role_parcours" class="lb-label">Rôle dans le parcours formation — optionnel</label>
+            <select id="role_parcours" wire:model="role_parcours" class="lb-field">
+                <option value="">— Aucun —</option>
+                @foreach (\App\Models\Seance::ROLES_PARCOURS as $cle => $libelle)
+                    <option value="{{ $cle }}">{{ $libelle }}</option>
+                @endforeach
+            </select>
+            @error('role_parcours') <p class="lb-error">{{ $message }}</p> @enderror
+            <p class="lb-muted" style="font-size:12px;margin-top:4px">Sert au tableau « Parcours formation » et à proposer la prochaine date aux absents.</p>
+        </div>
+
+        <div class="mt-5">
             <label for="lien_inscription" class="lb-label">Lien d'inscription — optionnel</label>
             <input id="lien_inscription" type="url" wire:model="lien_inscription" class="lb-field" placeholder="https://…">
             @error('lien_inscription') <p class="lb-error">{{ $message }}</p> @enderror

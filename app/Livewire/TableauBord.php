@@ -13,6 +13,12 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class TableauBord extends Component
 {
+    /** Les tâches de suivi des séances passées récentes sont créées au passage. */
+    public function mount(): void
+    {
+        app(\App\Services\Sessions\SuiviApresSeance::class)->creerTaches(auth()->user()?->name);
+    }
+
     /** Coche une tâche du jour comme terminée. */
     public function terminerActivite(int $id): void
     {

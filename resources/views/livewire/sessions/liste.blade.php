@@ -4,7 +4,10 @@
             <div class="lb-eyebrow">Formations &amp; journées</div>
             <h1 class="lb-h1">Sessions</h1>
         </div>
-        <a href="{{ route('sessions.creer') }}" class="lb-btn lb-btn-primary" wire:navigate>+ Nouvelle session</a>
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ route('sessions.parcours') }}" class="lb-btn lb-btn-ghost" wire:navigate>Parcours formation</a>
+            <a href="{{ route('sessions.creer') }}" class="lb-btn lb-btn-primary" wire:navigate>+ Nouvelle session</a>
+        </div>
     </div>
 
     @if (session('message'))
