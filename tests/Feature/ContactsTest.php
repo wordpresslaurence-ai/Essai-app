@@ -329,3 +329,19 @@ it('pré-remplit et devine une fiche depuis une tâche « Créer le prospect »'
     expect(Contact::where('nom', 'Testeur')->exists())->toBeTrue();
     expect($tache->fresh()->estTerminee())->toBeTrue(); // tâche clôturée à la création
 });
+
+it('propose l’envoi par WhatsApp du mail de prospection quand le contact a un numéro', function () {
+    app()->instance(App\Services\IA\AssistantIA::class, new App\Services\IA\AssistantFactice);
+    $avec = Contact::factory()->create(['telephone' => '0470 12 34 56', 'adresse_pays' => 'BE']);
+    $sans = Contact::factory()->create(['telephone' => null]);
+
+    Livewire::test(FicheDetail::class, ['contact' => $avec])
+        ->call('redigerProspection')
+        ->assertSee('Envoyer par WhatsApp')
+        ->assertSee('32470123456');
+
+    Livewire::test(FicheDetail::class, ['contact' => $sans])
+        ->call('redigerProspection')
+        ->assertDontSee('Envoyer par WhatsApp')
+        ->assertSee('ajoute un numéro de téléphone');
+});

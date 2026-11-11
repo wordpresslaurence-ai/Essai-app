@@ -463,12 +463,18 @@
                                     <span x-show="!copieHtml">🔗 Copier avec liens cliquables</span>
                                     <span x-show="copieHtml" x-cloak>Copié ✓</span>
                                 </button>
+                                @if ($numeroWhatsapp = $contact->numeroWhatsapp())
+                                    <button type="button" class="lb-accent" style="font-size:12px;font-weight:600;background:none;border:0;cursor:pointer"
+                                            x-on:click="window.open('https://wa.me/' + @js($numeroWhatsapp) + '?text=' + encodeURIComponent($refs.corps.value), '_blank')">
+                                        💬 Envoyer par WhatsApp
+                                    </button>
+                                @endif
                             </span>
                         </div>
                         <textarea wire:model="prospectionCorps" x-ref="corps" rows="9" class="lb-field" style="margin-top:6px"></textarea>
 
                         <p class="lb-muted" style="font-size:11.5px;margin-top:10px">
-                            Relis, ajuste, puis copie — tu l'envoies depuis ta boîte mail. « Liens cliquables » colle le mail mis en forme (libellés cliquables, URL longue masquée). Une tâche « à envoyer » a été ajoutée à ce contact pour garder la trace.
+                            Relis, ajuste, puis copie — tu l'envoies depuis ta boîte mail{{ $contact->numeroWhatsapp() ? ', ou par WhatsApp (le texte s’ouvre dans la conversation, sans l’objet, et rien ne part sans ton accord)' : '' }}.@if (! $contact->numeroWhatsapp()) Pour l'envoi par WhatsApp, ajoute un numéro de téléphone à la fiche. @endif « Liens cliquables » colle le mail mis en forme (libellés cliquables, URL longue masquée). Une tâche « à envoyer » a été ajoutée à ce contact pour garder la trace.
                         </p>
                     </div>
                 @else
