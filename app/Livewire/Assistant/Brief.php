@@ -77,7 +77,13 @@ class Brief extends Component
         $calc = new CalculRelances;
 
         $dues = $calc->reponsesDues()->map(fn ($l) => $l['contact']->id)->all();
-        $relances = $calc->aRelancer()->map(fn ($l) => $l['contact']->id)->all();
+        // Une relance reste justifiée pour un e-mail sans réponse, mais aussi pour un
+        // « indécis » (lead chaud sans suite, intéressé d'une session passée).
+        $indecis = new CalculIndecis;
+        $relances = $calc->aRelancer()->map(fn ($l) => $l['contact']->id)
+            ->merge($indecis->leadsChaudsSansSuite()->pluck('id'))
+            ->merge($indecis->interessesSessionPassee()->pluck('id'))
+            ->unique()->values()->all();
 
         Activite::whereNull('terminee_at')
             ->whereNotNull('contact_id')
@@ -93,8 +99,8 @@ class Brief extends Component
     }
 
     /**
-     * « Conversation terminée » : sort le contact des listes « réponse due » et
-     * « à relancer » et clôture ses tâches correspondantes. Le suivi reprend seul
+     * « Conversation terminée » : sort le contact des listes « réponse due »,
+     * « à relancer » et « indécis », et clôture ses tâches correspondantes. Le suivi reprend seul
      * dès qu'un e-mail est reçu de lui ou envoyé vers lui.
      */
     public function terminerConversation(int $contactId): void

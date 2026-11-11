@@ -36,6 +36,7 @@ class CalculIndecis
 
         return Contact::query()
             ->actifs()
+            ->whereNull('suivi_pause_le') // « conversation terminée » : hors listes
             ->whereIn('temperature', ['chaud', 'eleve'])
             ->where('created_at', '<', $limite)
             ->whereDoesntHave('inscriptions', fn (Builder $q) => $q->where('statut', Inscription::STATUT_CONFIRME))
@@ -57,6 +58,7 @@ class CalculIndecis
     {
         return Contact::query()
             ->actifs()
+            ->whereNull('suivi_pause_le') // « conversation terminée » : hors listes
             ->whereHas('inscriptions', fn (Builder $q) => $q
                 ->whereIn('statut', [Inscription::STATUT_ATTENTE, Inscription::STATUT_ANNULE])
                 ->whereHas('seance', fn (Builder $s) => $s->passees()))

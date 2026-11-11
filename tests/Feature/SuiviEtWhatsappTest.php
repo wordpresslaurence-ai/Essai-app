@@ -74,6 +74,30 @@ it('sort aussi un contact de la liste « réponse due »', function () {
     expect($restants)->toBe([$autre->id]);
 });
 
+it('sort aussi un lead chaud et un intéressé de session passée des indécis', function () {
+    $lead = Contact::factory()->create(['temperature' => 'chaud', 'created_at' => now()->subDays(30)]);
+    $interesse = Contact::factory()->create();
+    $passee = Seance::create(['titre' => 'Passée', 'date_debut' => now()->subWeek(), 'capacite' => 1]);
+    $passee->inscrire(Contact::factory()->create()); // prend la place
+    $passee->inscrire($interesse);                   // liste d'attente
+
+    $indecis = new App\Services\Relances\CalculIndecis(5);
+    expect($indecis->leadsChaudsSansSuite()->pluck('id')->all())->toBe([$lead->id]);
+    expect($indecis->interessesSessionPassee()->pluck('id')->all())->toBe([$interesse->id]);
+
+    // Une relance créée pour un indécis n'est plus clôturée à l'ouverture du Brief…
+    $tache = Activite::create(['titre' => 'Relancer '.$lead->nomComplet(), 'type' => Activite::TYPE_TACHE, 'contact_id' => $lead->id]);
+    $brief = Livewire::test(Brief::class);
+    expect($tache->fresh()->estTerminee())->toBeFalse();
+
+    // …mais elle l'est quand on termine la conversation.
+    $brief->call('terminerConversation', $lead->id)->call('terminerConversation', $interesse->id);
+
+    expect($tache->fresh()->estTerminee())->toBeTrue();
+    expect($indecis->leadsChaudsSansSuite())->toHaveCount(0);
+    expect($indecis->interessesSessionPassee())->toHaveCount(0);
+});
+
 it('affiche la pause sur la fiche et permet de reprendre le suivi', function () {
     $contact = Contact::factory()->create();
     $contact->mettreSuiviEnPause();

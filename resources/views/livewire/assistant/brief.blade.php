@@ -209,13 +209,17 @@
                     <div class="nm lb-truncate">{{ $c->nomComplet() }}</div>
                     <div class="mt lb-truncate">Intéressé·e mais sans suite depuis un moment</div>
                 </a>
-                <div style="margin-left:auto;flex:none">
+                <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex:none">
                     @if (in_array($c->id, $dejaRelancer))
                         <span class="lb-muted" style="font-size:12px;white-space:nowrap">✓ Activité</span>
                     @else
                         <button type="button" wire:click="creerActivite({{ $c->id }}, 'relancer')"
                                 class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">+ Relance</button>
                     @endif
+                    <button type="button" wire:click="terminerConversation({{ $c->id }})"
+                            wire:confirm="Conversation terminée avec ce contact ? Il sortira de cette liste jusqu'au prochain e-mail échangé."
+                            title="Conversation terminée : ne plus proposer de relance jusqu'au prochain e-mail"
+                            class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">✓ Terminée</button>
                 </div>
             </div>
         @empty
@@ -228,13 +232,17 @@
                     <div class="nm lb-truncate">{{ $c->nomComplet() }}</div>
                     <div class="mt lb-truncate">Intéressé·e à une session passée, sans place à venir</div>
                 </a>
-                <div style="margin-left:auto;flex:none">
+                <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex:none">
                     @if (in_array($c->id, $dejaRelancer))
                         <span class="lb-muted" style="font-size:12px;white-space:nowrap">✓ Activité</span>
                     @else
                         <button type="button" wire:click="creerActivite({{ $c->id }}, 'relancer')"
                                 class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">+ Relance</button>
                     @endif
+                    <button type="button" wire:click="terminerConversation({{ $c->id }})"
+                            wire:confirm="Conversation terminée avec ce contact ? Il sortira de cette liste jusqu'au prochain e-mail échangé."
+                            title="Conversation terminée : ne plus proposer de relance jusqu'au prochain e-mail"
+                            class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">✓ Terminée</button>
                 </div>
             </div>
         @endforeach
