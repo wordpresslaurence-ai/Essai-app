@@ -197,6 +197,15 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **Réservations du site → CRM (brique 013)** : adresse secrète `POST webhooks/reservations/{jeton}`
+  (`WebhookReservationController`, hors connexion, sans CSRF, limitée à 60 appels/min) à coller
+  dans un webhook **FluentBooking**. `Services\Reservations\TraitementReservation` lit le corps de
+  façon tolérante (`booking.*` ou champs à plat), retrouve le contact par e-mail (principal ou
+  secondaire) ou le crée (origine « site »), puis **l'inscrit à la session du même jour** (créneau
+  UTC converti en heure de Bruxelles ; `?seance=ID` pour imposer la session) ou, sans session ce
+  jour-là, crée une **activité rendez-vous**. Une annulation annule l'inscription. Chaque appel est
+  gardé dans `reservations_recues` (100 dernières) et visible dans Réglages → Réservations du site,
+  où l'on crée / remplace le jeton (`parametres.webhook_jeton`, jamais exporté).
 - **Campagne d'invitations à une session (brique 012)** : bouton **« Inviter »** sur la fiche
   d'une session → `sessions/{seance}/invitations` (`Sessions\Invitations`). On choisit les contacts
   (recherche, type, étiquette, pôle/catégorie, pays ; exclus : archivés, « ne plus contacter »,

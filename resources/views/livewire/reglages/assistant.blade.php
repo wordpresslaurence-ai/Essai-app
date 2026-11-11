@@ -41,6 +41,19 @@
         </div>
     </div>
 
+    {{-- Réservations du site (brique 013) --}}
+    <div class="lb-card mt-5" style="padding:18px;max-width:720px">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <div class="lb-label" style="margin-bottom:2px">Réservations du site</div>
+                <p class="lb-muted" style="font-size:12.5px;margin:0">
+                    Fais arriver dans le CRM les inscriptions et rendez-vous pris sur ton site.
+                </p>
+            </div>
+            <a href="{{ route('reglages.reservations') }}" class="lb-btn lb-btn-ghost" wire:navigate>Configurer →</a>
+        </div>
+    </div>
+
     <form wire:submit="enregistrer" class="mt-5" style="max-width:720px">
 
         {{-- Assistant IA --}}

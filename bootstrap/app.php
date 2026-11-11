@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // En-têtes de sécurité sur toutes les réponses web.
         $middleware->web(append: [\App\Http\Middleware\EntetesSecurite::class]);
+
+        // Réception des réservations du site : appel de serveur à serveur, protégé
+        // par un jeton secret dans l'adresse (pas de session, donc pas de jeton CSRF).
+        $middleware->validateCsrfTokens(except: ['webhooks/*']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

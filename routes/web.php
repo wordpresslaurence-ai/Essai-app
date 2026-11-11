@@ -25,6 +25,12 @@ Route::view('profile', 'profile')
     ->name('profile');
 
 // Module Contacts (protégé par l'authentification)
+// Réception des réservations du site (module 013) : appel de serveur à serveur,
+// sans connexion, protégé par le jeton secret de l'adresse.
+Route::post('webhooks/reservations/{jeton}', \App\Http\Controllers\WebhookReservationController::class)
+    ->middleware('throttle:60,1')
+    ->name('webhooks.reservations');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('contacts', Liste::class)->name('contacts.index');
     Route::get('contacts/creer', Formulaire::class)->name('contacts.creer');
@@ -55,6 +61,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Réglages : boîtes e-mail multiples (module 009)
     Route::get('reglages/boites', \App\Livewire\Reglages\BoitesEmail::class)->name('reglages.boites');
+
+    // Réglages : réservations reçues du site (module 013)
+    Route::get('reglages/reservations', \App\Livewire\Reglages\ReservationsSite::class)->name('reglages.reservations');
 
     // Réglages : modèles de messages (module 012)
     Route::get('reglages/modeles', \App\Livewire\Reglages\ModelesMessage::class)->name('reglages.modeles');

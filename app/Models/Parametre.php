@@ -23,6 +23,7 @@ class Parametre extends Model
         'lien_journee_aura',
         'pitch_prospection',
         'derniere_synchro_at',
+        'webhook_jeton',
     ];
 
     /** Valeurs par défaut au niveau du modèle (reflétées dès la création). */
