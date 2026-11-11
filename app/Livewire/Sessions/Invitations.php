@@ -10,10 +10,12 @@ use App\Models\Invitation;
 use App\Models\ModeleMessage;
 use App\Models\Pole;
 use App\Models\Seance;
+use App\Services\IA\AssistantIA;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Throwable;
 
 /**
  * Campagne d'invitations à une session (brique 012) : choisir les contacts,
@@ -59,6 +61,14 @@ class Invitations extends Component
     public string $brouillonObjet = '';
 
     public string $brouillonCorps = '';
+
+    /** prospection (premier message, rédigé par l'assistant) | relance (modèle commun) */
+    public string $mode = 'prospection';
+
+    /** Angle facultatif donné à l'assistant pour le mail de prospection. */
+    public string $angle = '';
+
+    public ?string $brouillonErreur = null;
 
     public function mount(Seance $seance): void
     {
@@ -156,26 +166,77 @@ class Invitations extends Component
         return $this->seance->invitations()->with('contact.entreprise')->find($id);
     }
 
-    public function preparer(int $id): void
+    /**
+     * Ouvre le brouillon d'une invitation. Premier message : mail de prospection
+     * rédigé par l'assistant. Déjà invité : relance tirée du modèle commun.
+     */
+    public function preparer(int $id, bool $rediger = true): void
     {
         $invitation = $this->invitation($id);
         if (! $invitation) {
             return;
         }
 
+        $this->reset(['brouillonObjet', 'brouillonCorps', 'brouillonErreur']);
         $this->ouverteId = $invitation->id;
 
-        // Modèle proposé : celui déjà choisi dans cet écran, sinon le dernier
-        // utilisé pour cette invitation, sinon le premier de la liste.
-        if (! $this->modeleId || ! ModeleMessage::whereKey($this->modeleId)->exists()) {
-            $this->modeleId = (string) ($invitation->modele_message_id
-                ?: ModeleMessage::orderBy('nom')->value('id')) ?: null;
+        if ($invitation->statut === Invitation::STATUT_A_INVITER) {
+            $this->mode = 'prospection';
+            if ($rediger) {
+                $this->redigerProspection();
+            }
+
+            return;
         }
+
+        $this->mode = 'relance';
+
+        // Modèle commun de relance : celui dont le nom commence par « Relance »,
+        // sinon le dernier utilisé pour cette invitation, sinon le premier.
+        $this->modeleId = (string) (ModeleMessage::where('nom', 'like', 'Relance%')->orderBy('nom')->value('id')
+            ?: $invitation->modele_message_id
+            ?: ModeleMessage::orderBy('nom')->value('id')) ?: null;
 
         $this->rendreBrouillon();
     }
 
-    /** Recalcule le brouillon à partir du modèle choisi et de l'invitation ouverte. */
+    /**
+     * Fait rédiger par l'assistant un mail de prospection pour le contact ouvert,
+     * centré sur l'offre de la catégorie de la session et invitant à cette session.
+     */
+    public function redigerProspection(): void
+    {
+        $invitation = $this->ouverteId ? $this->invitation($this->ouverteId) : null;
+        if (! $invitation) {
+            return;
+        }
+
+        $this->reset(['brouillonObjet', 'brouillonCorps', 'brouillonErreur']);
+
+        $valeurs = ModeleMessage::valeurs($invitation->contact, $this->seance);
+        $consigne = 'But du mail : inviter cette personne à « '.$this->seance->titre.' »'
+            .($valeurs['date'] !== '' ? ', '.$valeurs['date'] : '')
+            .($valeurs['heure'] !== '' ? ' à '.$valeurs['heure'] : '')
+            .($valeurs['lieu'] !== '' ? ' ('.$valeurs['lieu'].')' : '').'.'
+            .($valeurs['lien'] !== '' ? ' Lien pour réserver, à donner tel quel : '.$valeurs['lien'].'.' : '');
+
+        $angle = trim($this->angle) !== '' ? trim($this->angle) : (string) $invitation->contact->angle_contact;
+
+        try {
+            $r = app(AssistantIA::class)->redigerProspection(
+                $invitation->contact,
+                trim($consigne.($angle !== '' ? ' Angle : '.$angle : '')),
+                $this->seance->categorie_id ?: null,
+            );
+
+            $this->brouillonObjet = $r->objet;
+            $this->brouillonCorps = $r->corps;
+        } catch (Throwable $e) {
+            $this->brouillonErreur = $e->getMessage();
+        }
+    }
+
+    /** Recalcule la relance à partir du modèle choisi et de l'invitation ouverte. */
     protected function rendreBrouillon(): void
     {
         $this->brouillonObjet = '';
@@ -195,7 +256,7 @@ class Invitations extends Component
 
     public function fermer(): void
     {
-        $this->reset(['ouverteId', 'brouillonObjet', 'brouillonCorps']);
+        $this->reset(['ouverteId', 'brouillonObjet', 'brouillonCorps', 'brouillonErreur']);
     }
 
     /**
@@ -211,7 +272,7 @@ class Invitations extends Component
 
         $estRelance = $invitation->statut !== Invitation::STATUT_A_INVITER;
 
-        $maj = ['modele_message_id' => $this->modeleId ?: null];
+        $maj = ['modele_message_id' => $estRelance ? ($this->modeleId ?: null) : null];
         if ($invitation->statut === Invitation::STATUT_A_INVITER) {
             $maj += ['statut' => Invitation::STATUT_INVITEE, 'invitee_le' => now()];
         } elseif (in_array($invitation->statut, [Invitation::STATUT_INVITEE, Invitation::STATUT_RELANCEE], true)) {
@@ -236,7 +297,8 @@ class Invitations extends Component
             ->value('id');
 
         if ($suivante && ! $estRelance) {
-            $this->preparer($suivante);
+            // Ouvre la personne suivante sans lancer l'assistant : la rédaction se fait au clic.
+            $this->preparer($suivante, rediger: false);
         } else {
             $this->fermer();
         }

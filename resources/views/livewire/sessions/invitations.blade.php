@@ -21,7 +21,7 @@
     {{-- Avertissements utiles avant de commencer --}}
     @if ($modeles->isEmpty())
         <div class="lb-alert mt-4" style="background:var(--gold-tint);color:var(--ink)">
-            Tu n'as pas encore de modèle de message.
+            Tu n'as pas encore de modèle de relance.
             <a href="{{ route('reglages.modeles') }}" class="lb-accent" style="font-weight:600" wire:navigate>Créer mes modèles →</a>
         </div>
     @endif
@@ -94,8 +94,10 @@
                     @endif
 
                     <div class="flex flex-wrap items-center gap-2" style="margin-left:auto">
-                        <button type="button" wire:click="preparer({{ $inv->id }})" class="lb-btn lb-btn-primary" style="padding:7px 13px;font-size:12.5px">
-                            {{ $inv->statut === \App\Models\Invitation::STATUT_A_INVITER ? 'Préparer le message' : 'Relancer' }}
+                        <button type="button" wire:click="preparer({{ $inv->id }})" class="lb-btn lb-btn-primary" style="padding:7px 13px;font-size:12.5px"
+                                wire:loading.attr="disabled" wire:target="preparer({{ $inv->id }})">
+                            <span wire:loading.remove wire:target="preparer({{ $inv->id }})">{{ $inv->statut === \App\Models\Invitation::STATUT_A_INVITER ? '✍️ Rédiger un mail de prospection' : 'Relancer' }}</span>
+                            <span wire:loading wire:target="preparer({{ $inv->id }})">Rédaction…</span>
                         </button>
                         <select aria-label="Statut de l'invitation" class="lb-field" style="width:auto;padding:6px 10px;font-size:12.5px"
                                 wire:change="changerStatut({{ $inv->id }}, $event.target.value)">
@@ -115,23 +117,42 @@
                 @if ($ouverteId === $inv->id)
                     @php $whatsapp = $c->numeroWhatsapp(); @endphp
                     <div class="lb-card" style="padding:18px;margin:4px 0 14px" x-data="{ copie: false }">
-                        @if ($modeles->isEmpty())
+                        @php $estEmail = $mode === 'prospection' || $modeleOuvert?->estEmail(); @endphp
+                        @if ($mode === 'relance' && $modeles->isEmpty())
                             <p class="lb-muted" style="font-size:13.5px">
-                                Crée d'abord un modèle de message.
+                                Crée d'abord ton modèle de relance (un modèle dont le nom commence par « Relance »).
                                 <a href="{{ route('reglages.modeles') }}" class="lb-accent" style="font-weight:600" wire:navigate>Créer mes modèles →</a>
                             </p>
                         @else
-                            <div class="grid gap-4 sm:grid-cols-2">
-                                <div>
-                                    <label for="modeleId" class="lb-label">Modèle</label>
-                                    <select id="modeleId" wire:model.live="modeleId" class="lb-field">
-                                        @foreach ($modeles as $m)
-                                            <option value="{{ $m->id }}">{{ $m->nom }}</option>
-                                        @endforeach
-                                    </select>
+                            @if ($mode === 'prospection')
+                                <label for="angle" class="lb-label" style="font-weight:500;color:var(--text-muted)">Angle (facultatif)</label>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <input id="angle" type="text" wire:model="angle" class="lb-field" style="flex:1;min-width:14rem"
+                                           placeholder="ex. j'ai vu qu'elle propose du yoga nidra">
+                                    <button type="button" wire:click="redigerProspection" class="lb-btn lb-btn-primary" style="white-space:nowrap"
+                                            wire:loading.attr="disabled" wire:target="redigerProspection">
+                                        <span wire:loading.remove wire:target="redigerProspection">✍️ {{ filled($brouillonCorps) ? 'Rédiger à nouveau' : 'Rédiger un mail de prospection' }}</span>
+                                        <span wire:loading wire:target="redigerProspection">Rédaction…</span>
+                                    </button>
                                 </div>
-                                @if ($modeleOuvert?->estEmail())
+                                @if ($brouillonErreur)
+                                    <div class="lb-alert lb-alert-danger mt-3">{{ $brouillonErreur }}</div>
+                                @endif
+                            @endif
+
+                            <div class="grid gap-4 sm:grid-cols-2 {{ $mode === 'prospection' ? 'mt-4' : '' }}">
+                                @if ($mode === 'relance')
                                     <div>
+                                        <label for="modeleId" class="lb-label">Modèle de relance</label>
+                                        <select id="modeleId" wire:model.live="modeleId" class="lb-field">
+                                            @foreach ($modeles as $m)
+                                                <option value="{{ $m->id }}">{{ $m->nom }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
+                                @if ($estEmail)
+                                    <div class="{{ $mode === 'prospection' ? 'sm:col-span-2' : '' }}">
                                         <label for="brouillonObjet" class="lb-label">Objet</label>
                                         <input id="brouillonObjet" type="text" x-ref="objet" wire:model="brouillonObjet" class="lb-field">
                                     </div>
@@ -153,7 +174,7 @@
                                         x-on:click="navigator.clipboard.writeText($refs.corps.value).then(() => { copie = true; setTimeout(() => copie = false, 2000) })">
                                     <span x-show="!copie">Copier le message</span><span x-show="copie" x-cloak>Copié ✓</span>
                                 </button>
-                                @if ($modeleOuvert?->estEmail() && filled($c->email))
+                                @if ($estEmail && filled($c->email))
                                     <button type="button" class="lb-btn lb-btn-ghost"
                                             x-on:click="window.location.href = 'mailto:' + @js($c->email) + '?subject=' + encodeURIComponent($refs.objet ? $refs.objet.value : '') + '&body=' + encodeURIComponent($refs.corps.value)">
                                         Ouvrir ma messagerie
@@ -170,7 +191,7 @@
                                 <button type="button" wire:click="marquerEnvoyee" class="lb-btn lb-btn-primary">C'est envoyé</button>
                             </div>
                             <p class="lb-muted" style="font-size:12px;margin-top:8px">
-                                Le CRM n'envoie rien : tu envoies toi-même, puis « C'est envoyé » note la date et garde le texte sur la fiche du contact.
+                                {{ $mode === 'prospection' ? 'L’assistant rédige à partir de l’offre de la catégorie de la session.' : '' }} Le CRM n'envoie rien : tu envoies toi-même, puis « C'est envoyé » note la date et garde le texte sur la fiche du contact.
                             </p>
                         @endif
                     </div>

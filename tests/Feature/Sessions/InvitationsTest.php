@@ -10,6 +10,9 @@ use App\Models\Invitation;
 use App\Models\ModeleMessage;
 use App\Models\Seance;
 use App\Models\User;
+use App\Services\IA\AssistantFactice;
+use App\Services\IA\AssistantIA;
+use App\Services\IA\ResultatProspection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -17,6 +20,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create(['name' => 'Laurence Test']));
+    app()->instance(AssistantIA::class, new AssistantFactice);
 });
 
 function seanceDecouverte(array $attributs = []): Seance
@@ -174,15 +178,54 @@ it('coche tous les contacts affichés puis les décoche', function () {
         ->assertCount('selection', 0);
 });
 
-it('prépare un brouillon personnalisé pour un contact', function () {
+it('fait rédiger le premier message par l’assistant, avec la session en consigne', function () {
     $seance = seanceDecouverte();
     $contact = Contact::factory()->create(['prenom' => 'Marie', 'nom' => 'Durand']);
     $invitation = Invitation::create(['seance_id' => $seance->id, 'contact_id' => $contact->id]);
-    modeleInvitation();
+
+    $composant = Livewire::test(Invitations::class, ['seance' => $seance])
+        ->set('angle', 'elle enseigne le yoga nidra')
+        ->call('preparer', $invitation->id)
+        ->assertSet('mode', 'prospection')
+        ->assertSet('brouillonObjet', 'Découvrir la formation Prana Vidya')
+        ->assertSet('brouillonErreur', null);
+
+    expect($composant->get('brouillonCorps'))
+        ->toContain('Marie Durand')
+        ->toContain('Séance découverte')              // la session est transmise
+        ->toContain('https://exemple.be/reserver')     // ainsi que le lien
+        ->toContain('elle enseigne le yoga nidra');    // et l'angle saisi
+});
+
+it('affiche l’erreur de l’assistant sans planter', function () {
+    $seance = seanceDecouverte();
+    $invitation = Invitation::create(['seance_id' => $seance->id, 'contact_id' => Contact::factory()->create()->id]);
+    app()->bind(AssistantIA::class, fn () => new class extends AssistantFactice
+    {
+        public function redigerProspection(Contact $contact, ?string $angle = null, ?int $categorieId = null): ResultatProspection
+        {
+            throw new RuntimeException('Offre manquante.');
+        }
+    });
+
+    Livewire::test(Invitations::class, ['seance' => $seance])
+        ->call('preparer', $invitation->id)
+        ->assertSet('brouillonErreur', 'Offre manquante.')
+        ->assertSet('brouillonCorps', '')
+        ->assertSee('Offre manquante.');
+});
+
+it('prépare la relance à partir du modèle commun « Relance »', function () {
+    $seance = seanceDecouverte();
+    $contact = Contact::factory()->create(['prenom' => 'Marie', 'nom' => 'Durand']);
+    $invitation = Invitation::create(['seance_id' => $seance->id, 'contact_id' => $contact->id, 'statut' => Invitation::STATUT_INVITEE, 'invitee_le' => now()]);
+    modeleInvitation(['nom' => 'Autre modèle', 'corps' => 'Pas celui-ci']);
+    modeleInvitation(['nom' => 'Relance — une seule fois']);
 
     Livewire::test(Invitations::class, ['seance' => $seance])
         ->call('preparer', $invitation->id)
         ->assertSet('ouverteId', $invitation->id)
+        ->assertSet('mode', 'relance')
         ->assertSet('brouillonObjet', 'Séance découverte')
         ->assertSet('brouillonCorps', 'Bonjour Marie, rendez-vous à 10 h 30 (en ligne). Réserver : https://exemple.be/reserver — Laurence Test');
 });
@@ -190,7 +233,7 @@ it('prépare un brouillon personnalisé pour un contact', function () {
 it('recalcule le brouillon quand on change de modèle', function () {
     $seance = seanceDecouverte();
     $contact = Contact::factory()->create(['prenom' => 'Marie']);
-    $invitation = Invitation::create(['seance_id' => $seance->id, 'contact_id' => $contact->id]);
+    $invitation = Invitation::create(['seance_id' => $seance->id, 'contact_id' => $contact->id, 'statut' => Invitation::STATUT_INVITEE, 'invitee_le' => now()]);
     modeleInvitation(['nom' => 'A']);
     $court = modeleInvitation(['nom' => 'B', 'canal' => ModeleMessage::CANAL_MESSAGE, 'objet' => null, 'corps' => 'Coucou {prenom}']);
 
@@ -207,18 +250,17 @@ it('note l’envoi : statut invité, trace sur la fiche, puis ouvre la personne 
     $paul = Contact::factory()->create(['prenom' => 'Paul']);
     $premiere = Invitation::create(['seance_id' => $seance->id, 'contact_id' => $marie->id]);
     $seconde = Invitation::create(['seance_id' => $seance->id, 'contact_id' => $paul->id]);
-    $modele = modeleInvitation();
 
     Livewire::test(Invitations::class, ['seance' => $seance])
         ->call('preparer', $premiere->id)
         ->set('brouillonCorps', 'Texte retouché à la main')
         ->call('marquerEnvoyee')
-        ->assertSet('ouverteId', $seconde->id); // enchaîne sur Paul
+        ->assertSet('ouverteId', $seconde->id)   // enchaîne sur Paul…
+        ->assertSet('brouillonCorps', '');        // …sans lancer l'assistant tout seul
 
     $premiere->refresh();
     expect($premiere->statut)->toBe(Invitation::STATUT_INVITEE);
     expect($premiere->invitee_le)->not->toBeNull();
-    expect($premiere->modele_message_id)->toBe($modele->id);
 
     $trace = Activite::where('contact_id', $marie->id)->firstOrFail();
     expect($trace->titre)->toBe('Invitation envoyée : Séance découverte');
@@ -245,6 +287,7 @@ it('note une relance sur une invitation déjà envoyée', function () {
 
     $invitation->refresh();
     expect($invitation->statut)->toBe(Invitation::STATUT_RELANCEE);
+    expect($invitation->modele_message_id)->toBe(ModeleMessage::value('id'));
     expect($invitation->relancee_le)->not->toBeNull();
     expect($invitation->estARelancer())->toBeFalse();
     expect(Activite::where('contact_id', $contact->id)->value('titre'))->toBe('Relance envoyée : Séance découverte');
