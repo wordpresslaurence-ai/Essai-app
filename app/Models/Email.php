@@ -38,6 +38,21 @@ class Email extends Model
         ];
     }
 
+    /**
+     * Un nouvel e-mail (reçu ou envoyé) rouvre la conversation : le suivi des
+     * relances du contact, s'il était en pause, reprend automatiquement.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Email $email) {
+            if ($email->contact_id) {
+                Contact::whereKey($email->contact_id)
+                    ->whereNotNull('suivi_pause_le')
+                    ->update(['suivi_pause_le' => null]);
+            }
+        });
+    }
+
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);

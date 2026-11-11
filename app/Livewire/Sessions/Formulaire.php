@@ -31,6 +31,9 @@ class Formulaire extends Component
     /** Lien d'inscription public (repris dans les invitations). */
     public ?string $lien_inscription = null;
 
+    /** Lien d'invitation au groupe / à la communauté WhatsApp. */
+    public ?string $lien_groupe = null;
+
     public ?string $capacite = null;
 
     public ?string $notes = null;
@@ -45,6 +48,7 @@ class Formulaire extends Component
             $this->lieu = $seance->lieu;
             $this->lieu_contact_id = $seance->lieu_contact_id ? (string) $seance->lieu_contact_id : null;
             $this->lien_inscription = $seance->lien_inscription;
+            $this->lien_groupe = $seance->lien_groupe;
             $this->capacite = $seance->capacite !== null ? (string) $seance->capacite : null;
             $this->notes = $seance->notes;
         }
@@ -59,6 +63,7 @@ class Formulaire extends Component
             'lieu' => ['nullable', 'string', 'max:255'],
             'lieu_contact_id' => ['nullable', 'exists:contacts,id'],
             'lien_inscription' => ['nullable', 'url', 'max:500'],
+            'lien_groupe' => ['nullable', 'url', 'max:500'],
             'capacite' => ['nullable', 'integer', 'min:0', 'max:100000'],
             'notes' => ['nullable', 'string'],
         ];
@@ -70,6 +75,7 @@ class Formulaire extends Component
         $this->lieu_contact_id = filled($this->lieu_contact_id) ? $this->lieu_contact_id : null;
 
         $this->lien_inscription = filled($this->lien_inscription) ? trim($this->lien_inscription) : null;
+        $this->lien_groupe = filled($this->lien_groupe) ? trim($this->lien_groupe) : null;
 
         $donnees = $this->validate();
         $donnees['capacite'] = $donnees['capacite'] !== null && $donnees['capacite'] !== ''

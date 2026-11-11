@@ -157,6 +157,7 @@ class Contact extends Model
             'ne_plus_contacter' => 'boolean',
             'capacite' => 'integer',
             'a_la_une' => 'boolean',
+            'suivi_pause_le' => 'datetime',
         ];
     }
 
@@ -385,6 +386,25 @@ class Contact extends Model
         }
 
         return strlen($chiffres) >= 9 ? $chiffres : null;
+    }
+
+    /**
+     * « Conversation terminée » : le contact sort des listes « réponse due » et
+     * « à relancer ». Le suivi reprend seul au prochain e-mail échangé (voir Email).
+     */
+    public function mettreSuiviEnPause(): void
+    {
+        $this->forceFill(['suivi_pause_le' => now()])->save();
+    }
+
+    public function reprendreSuivi(): void
+    {
+        $this->forceFill(['suivi_pause_le' => null])->save();
+    }
+
+    public function suiviEnPause(): bool
+    {
+        return $this->suivi_pause_le !== null;
     }
 
     /** Nom d'affichage : « Prénom Nom » pour une personne, la raison sociale sinon. */

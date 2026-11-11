@@ -27,6 +27,9 @@ class Activite extends Model
 
     public const TYPE_NOTE = 'note';
 
+    /** Début du titre des notes d'échange WhatsApp (reprises par l'assistant). */
+    public const TITRE_WHATSAPP = 'Échange WhatsApp';
+
     protected $fillable = [
         'titre',
         'type',

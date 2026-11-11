@@ -19,6 +19,11 @@ class FicheDetail extends Component
 
     public ?string $analyseErreur = null;
 
+    // Échange WhatsApp collé à la main
+    public bool $whatsappOuvert = false;
+
+    public string $whatsappTexte = '';
+
     // Prospection
     public string $angleProspection = '';
 
@@ -65,6 +70,43 @@ class FicheDetail extends Component
     public function fermerMail(): void
     {
         $this->mailOuvertId = null;
+    }
+
+    /** Met en pause ou reprend le suivi des relances (« conversation terminée »). */
+    public function basculerSuivi(): void
+    {
+        if ($this->contact->suiviEnPause()) {
+            $this->contact->reprendreSuivi();
+            session()->flash('message', 'Suivi des relances repris.');
+        } else {
+            $this->contact->mettreSuiviEnPause();
+            session()->flash('message', 'Conversation terminée : plus de relance tant qu’aucun nouvel e-mail n’est échangé.');
+        }
+    }
+
+    /**
+     * Garde dans l'historique un échange WhatsApp collé à la main (le CRM ne lit
+     * pas WhatsApp). L'assistant en tient compte dans ses analyses et réponses.
+     */
+    public function noterWhatsapp(): void
+    {
+        $donnees = $this->validate([
+            'whatsappTexte' => ['required', 'string', 'max:20000'],
+        ], [
+            'whatsappTexte.required' => 'Colle la conversation ou résume l’échange.',
+        ]);
+
+        Activite::create([
+            'titre' => Activite::TITRE_WHATSAPP.' du '.now()->format('d/m/Y'),
+            'type' => Activite::TYPE_NOTE,
+            'contact_id' => $this->contact->id,
+            'terminee_at' => now(),
+            'notes' => trim($donnees['whatsappTexte']),
+        ]);
+
+        $this->reset('whatsappTexte', 'whatsappOuvert');
+        $this->contact->refresh();
+        session()->flash('message', 'Échange WhatsApp noté dans l’historique.');
     }
 
     /** Met le contact « à la une » (ou l'en retire) — affiché sur le tableau de bord. */

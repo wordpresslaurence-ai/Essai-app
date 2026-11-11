@@ -92,6 +92,24 @@ class Brief extends Component
             ->update(['terminee_at' => now()]);
     }
 
+    /**
+     * « Conversation terminée » : sort le contact des listes « réponse due » et
+     * « à relancer » et clôture ses tâches correspondantes. Le suivi reprend seul
+     * dès qu'un e-mail est reçu de lui ou envoyé vers lui.
+     */
+    public function terminerConversation(int $contactId): void
+    {
+        $contact = Contact::find($contactId);
+        if (! $contact) {
+            return;
+        }
+
+        $contact->mettreSuiviEnPause();
+        $this->cloturerTachesResolues();
+
+        session()->flash('message', 'Conversation avec '.$contact->nomComplet().' terminée : plus de relance tant qu’aucun nouvel e-mail n’est échangé.');
+    }
+
     /** Demande à l'assistant un plan du jour (un seul appel, contexte complet). */
     public function genererSuggestions(): void
     {

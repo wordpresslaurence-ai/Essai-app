@@ -118,6 +118,10 @@
                         <button type="button" wire:click="creerActivite({{ $ligne['contact']->id }}, 'repondre')"
                                 class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">+ Activité</button>
                     @endif
+                    <button type="button" wire:click="terminerConversation({{ $ligne['contact']->id }})"
+                            wire:confirm="Conversation terminée avec ce contact ? Il sortira de cette liste jusqu'au prochain e-mail échangé."
+                            title="Conversation terminée : ne plus proposer de relance jusqu'au prochain e-mail"
+                            class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">✓ Terminée</button>
                 </div>
             </div>
         @empty
@@ -151,6 +155,10 @@
                         <button type="button" wire:click="creerActivite({{ $ligne['contact']->id }}, 'relancer')"
                                 class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">+ Activité</button>
                     @endif
+                    <button type="button" wire:click="terminerConversation({{ $ligne['contact']->id }})"
+                            wire:confirm="Conversation terminée avec ce contact ? Il sortira de cette liste jusqu'au prochain e-mail échangé."
+                            title="Conversation terminée : ne plus proposer de relance jusqu'au prochain e-mail"
+                            class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">✓ Terminée</button>
                 </div>
             </div>
         @empty

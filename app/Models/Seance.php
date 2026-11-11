@@ -16,7 +16,7 @@ class Seance extends Model
 {
     protected $table = 'seances';
 
-    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'lieu_contact_id', 'lien_inscription', 'capacite', 'notes'];
+    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'lieu_contact_id', 'lien_inscription', 'lien_groupe', 'capacite', 'notes'];
 
     protected function casts(): array
     {

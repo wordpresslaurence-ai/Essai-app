@@ -29,6 +29,13 @@
                 {{ $contact->a_la_une ? '★' : '☆' }}
             </button>
         </div>
+        @if ($contact->suiviEnPause())
+            <div class="flex items-center gap-2 flex-wrap" style="margin-top:8px">
+                <span class="lb-tag" style="background:var(--gold-tint);color:var(--accent)">Conversation terminée depuis le {{ $contact->suivi_pause_le->format('d/m/Y') }}</span>
+                <span class="lb-muted" style="font-size:12px">Pas de relance proposée jusqu'au prochain e-mail.</span>
+                <button type="button" wire:click="basculerSuivi" class="lb-accent" style="font-size:12px;font-weight:600;background:none;border:0;cursor:pointer">Reprendre le suivi</button>
+            </div>
+        @endif
     </div>
 
     {{-- Chiffres clés --}}
@@ -65,8 +72,23 @@
             <div class="lb-card" style="padding:20px">
                 <div class="flex items-center justify-between">
                     <h3 class="lb-h3" style="font-size:19px">Activités</h3>
-                    <a href="{{ route('activites.creer', ['contact' => $contact->id]) }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>+ Ajouter</a>
+                    <span style="display:inline-flex;gap:14px;align-items:center">
+                        <button type="button" wire:click="$toggle('whatsappOuvert')" class="lb-accent" style="font-size:12.5px;font-weight:600;background:none;border:0;cursor:pointer">💬 Noter un échange WhatsApp</button>
+                        <a href="{{ route('activites.creer', ['contact' => $contact->id]) }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>+ Ajouter</a>
+                    </span>
                 </div>
+                @if ($whatsappOuvert)
+                    <form wire:submit="noterWhatsapp" style="margin-top:12px">
+                        <label for="whatsappTexte" class="lb-label" style="font-weight:500;color:var(--text-muted)">Colle la conversation, ou résume-la</label>
+                        <textarea id="whatsappTexte" rows="6" wire:model="whatsappTexte" class="lb-field" placeholder="Dans WhatsApp : ouvre la discussion → ⋮ → Plus → Exporter la discussion, ou copie simplement les messages."></textarea>
+                        @error('whatsappTexte') <p class="lb-error">{{ $message }}</p> @enderror
+                        <div class="flex items-center justify-end gap-3" style="margin-top:8px">
+                            <button type="button" wire:click="$set('whatsappOuvert', false)" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px">Annuler</button>
+                            <button type="submit" class="lb-btn lb-btn-primary" style="padding:7px 13px;font-size:12.5px">Enregistrer</button>
+                        </div>
+                        <p class="lb-muted" style="font-size:11.5px;margin-top:6px">Le CRM ne lit pas WhatsApp : ce texte est gardé dans l'historique et l'assistant en tient compte.</p>
+                    </form>
+                @endif
                 <div class="lb-people mt-3">
                     @forelse ($contact->activites as $a)
                         <a href="{{ route('activites.modifier', $a) }}" class="lb-prow" wire:navigate wire:key="ac-{{ $a->id }}" style="text-decoration:none">

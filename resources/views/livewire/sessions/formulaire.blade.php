@@ -69,6 +69,13 @@
         </div>
 
         <div class="mt-5">
+            <label for="lien_groupe" class="lb-label">Lien du groupe WhatsApp — optionnel</label>
+            <input id="lien_groupe" type="url" wire:model="lien_groupe" class="lb-field" placeholder="https://chat.whatsapp.com/…">
+            @error('lien_groupe') <p class="lb-error">{{ $message }}</p> @enderror
+            <p class="lb-muted" style="font-size:12px;margin-top:4px">Le lien d'invitation à ta communauté d'annonces. Variable <code>{lien_groupe}</code> dans tes messages.</p>
+        </div>
+
+        <div class="mt-5">
             <label for="notes" class="lb-label">Notes</label>
             <textarea id="notes" rows="4" wire:model="notes" class="lb-field" placeholder="ex. 3 stages de 3 jours : 10-12 mars, 14-16 avril, 12-14 mai…"></textarea>
         </div>

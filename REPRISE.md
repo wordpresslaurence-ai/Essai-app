@@ -197,6 +197,20 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **« Conversation terminée »** : bouton « ✓ Terminée » sur chaque ligne « réponse due » / « à
+  relancer » du Brief (`Brief::terminerConversation`). Pose `contacts.suivi_pause_le` (hors
+  `fillable`) : `CalculRelances` ignore alors le contact et ses tâches « Répondre/Relancer » se
+  clôturent. **Reprise automatique** : tout nouvel e-mail du contact (événement `Email::created`)
+  efface la pause. Mention + « Reprendre le suivi » sur la fiche.
+- **WhatsApp (sans API, le CRM n'envoie ni ne lit rien)** : bouton « Envoyer par WhatsApp » sur le
+  brouillon de prospection de la fiche ; **« Noter un échange WhatsApp »** (activité note dont le
+  titre commence par `Activite::TITRE_WHATSAPP`, reprise dans le contexte de l'assistant) ;
+  **« Message aux inscrits »** d'une session (`sessions/{seance}/message`,
+  `Sessions\MessageInscrits`) : un texte commun avec variables, ouvert dans WhatsApp personne après
+  personne, trace en activité. Nouveau champ `seances.lien_groupe` (variable `{lien_groupe}`).
+- **Campagne d'invitations** : le premier message est rédigé par l'assistant (prospection, avec la
+  session en consigne) ; les modèles de messages ne servent plus qu'aux relances (modèle commun
+  dont le nom commence par « Relance »).
 - **Réservations du site → CRM (brique 013)** : adresse secrète `POST webhooks/reservations/{jeton}`
   (`WebhookReservationController`, hors connexion, sans CSRF, limitée à 60 appels/min) à coller
   dans un webhook **FluentBooking**. `Services\Reservations\TraitementReservation` lit le corps de

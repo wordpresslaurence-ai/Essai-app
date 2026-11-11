@@ -70,6 +70,7 @@ class CalculRelances
         // relancer, digest…). On garde le chargement COMPLET des fils d'e-mails.
         return $this->lignesCache ??= Contact::query()
             ->has('emails')
+            ->whereNull('suivi_pause_le') // « conversation terminée » : hors listes
             ->when($this->poleId, fn ($q) => $q->whereHas(
                 'categorie',
                 fn ($c) => $c->where('pole_id', $this->poleId),

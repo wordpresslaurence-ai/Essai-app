@@ -30,6 +30,7 @@ class ModeleMessage extends Model
         'heure' => 'Heure de la session (ex. 10 h 30)',
         'lieu' => 'Lieu de la session',
         'lien' => 'Lien d’inscription de la session',
+        'lien_groupe' => 'Lien du groupe ou de la communauté WhatsApp de la session',
         'moi' => 'Ton nom (celui de ton compte)',
     ];
 
@@ -92,6 +93,7 @@ class ModeleMessage extends Model
             'heure' => $heure,
             'lieu' => $lieu,
             'lien' => (string) $seance->lien_inscription,
+            'lien_groupe' => (string) $seance->lien_groupe,
             'moi' => (string) $moi,
         ];
     }

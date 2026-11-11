@@ -545,8 +545,10 @@ class AssistantClaude implements AssistantIA
             ? $contact->emails->sortBy('date_email')
             : $contact->emails()->orderBy('date_email')->get();
 
+        $whatsapp = $this->echangesWhatsapp($contact);
+
         if ($emails->isEmpty()) {
-            return "Aucun e-mail échangé pour l'instant.";
+            return "Aucun e-mail échangé pour l'instant.".$whatsapp;
         }
 
         // On borne le fil aux 15 derniers échanges pour maîtriser la taille.
@@ -577,6 +579,34 @@ class AssistantClaude implements AssistantIA
             $lignes[] = '';
             $lignes[] = "----- [$sens le $date] Objet : $objet -----";
             $lignes[] = $corps !== '' ? $corps : '(corps vide)';
+        }
+
+        return implode("\n", $lignes).$whatsapp;
+    }
+
+    /**
+     * Échanges WhatsApp notés à la main sur la fiche (les 5 derniers), ajoutés au
+     * contexte : le CRM ne lit pas WhatsApp, ces notes en tiennent lieu.
+     */
+    private function echangesWhatsapp(Contact $contact): string
+    {
+        $notes = \App\Models\Activite::where('contact_id', $contact->id)
+            ->where('titre', 'like', \App\Models\Activite::TITRE_WHATSAPP.'%')
+            ->whereNotNull('notes')
+            ->orderByDesc('id')
+            ->limit(5)
+            ->get()
+            ->reverse();
+
+        if ($notes->isEmpty()) {
+            return '';
+        }
+
+        $lignes = ['', '', 'Échanges WhatsApp notés par Laurence (du plus ancien au plus récent) :'];
+        foreach ($notes as $note) {
+            $lignes[] = '';
+            $lignes[] = '----- ['.$note->titre.'] -----';
+            $lignes[] = mb_substr(trim((string) $note->notes), 0, 4000);
         }
 
         return implode("\n", $lignes);
