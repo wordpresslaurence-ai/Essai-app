@@ -14,6 +14,9 @@ class Formulaire extends Component
 {
     public ?Seance $seance = null;
 
+    /** Titre de la session copiée, quand on duplique (simple rappel à l'écran). */
+    public ?string $dupliqueeDe = null;
+
     public string $titre = '';
 
     public ?string $categorie_id = null;
@@ -55,6 +58,25 @@ class Formulaire extends Component
             $this->role_parcours = $seance->role_parcours;
             $this->capacite = $seance->capacite !== null ? (string) $seance->capacite : null;
             $this->notes = $seance->notes;
+
+            return;
+        }
+
+        // Duplication (?dupliquer=ID) : on pré-remplit une NOUVELLE session à partir
+        // d'une existante. Rien n'est créé tant que le formulaire n'est pas enregistré.
+        $modele = Seance::find(request()->integer('dupliquer'));
+        if ($modele) {
+            $this->dupliqueeDe = $modele->titre;
+            $this->titre = $modele->titre;
+            $this->categorie_id = $modele->categorie_id ? (string) $modele->categorie_id : null;
+            $this->lieu = $modele->lieu;
+            $this->lieu_contact_id = $modele->lieu_contact_id ? (string) $modele->lieu_contact_id : null;
+            $this->lien_inscription = $modele->lien_inscription;
+            $this->role_parcours = $modele->role_parcours;
+            $this->capacite = $modele->capacite !== null ? (string) $modele->capacite : null;
+            $this->notes = $modele->notes;
+            // Volontairement non repris : la date (à choisir), le lien du groupe WhatsApp
+            // (propre à chaque groupe), les inscrits et les invitations.
         }
     }
 

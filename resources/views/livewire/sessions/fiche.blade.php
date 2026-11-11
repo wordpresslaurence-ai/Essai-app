@@ -29,6 +29,7 @@
             <a href="{{ route('sessions.invitations', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Inviter</a>
             <a href="{{ route('sessions.message', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>💬 Message aux inscrits</a>
             <a href="{{ route('sessions.suivi', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Suivi après la séance</a>
+            <a href="{{ route('sessions.creer', ['dupliquer' => $seance->id]) }}" class="lb-btn lb-btn-ghost" wire:navigate>Dupliquer</a>
             <a href="{{ route('sessions.modifier', $seance) }}" class="lb-btn lb-btn-primary" wire:navigate>Modifier</a>
         </div>
     </div>

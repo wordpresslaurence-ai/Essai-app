@@ -2,6 +2,12 @@
     <a href="{{ route('sessions.index') }}" class="lb-muted" style="font-size:13px;text-decoration:none" wire:navigate>← Retour aux sessions</a>
 
     <h1 class="lb-h1 mt-4">{{ $seance ? 'Modifier la session' : 'Nouvelle session' }}</h1>
+    @if ($dupliqueeDe)
+        <div class="lb-alert mt-4" style="background:var(--gold-tint);color:var(--ink)">
+            Copie de « {{ $dupliqueeDe }} ». Choisis la nouvelle date, ajuste le titre si besoin, puis enregistre.
+            Les inscrits, les invitations et le lien du groupe WhatsApp ne sont pas repris.
+        </div>
+    @endif
 
     <form wire:submit="enregistrer" class="lb-card mt-5" style="padding:24px;max-width:640px">
         <div>

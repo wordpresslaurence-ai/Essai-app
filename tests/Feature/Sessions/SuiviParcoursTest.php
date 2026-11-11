@@ -243,3 +243,40 @@ it('ouvre le mail de prospection sans rédiger, pour laisser préciser l’angle
         ->call('redigerProspection')
         ->assertSet('brouillonErreur', null);
 });
+
+// --- Dupliquer une session ---------------------------------------------------
+
+it('duplique une session sans reprendre la date, le groupe ni les inscrits', function () {
+    $salle = Contact::factory()->create();
+    $origine = Seance::create([
+        'titre' => 'Séance découverte', 'role_parcours' => Seance::ROLE_DECOUVERTE,
+        'date_debut' => '2026-12-13 10:30:00', 'lieu' => 'en ligne', 'lieu_contact_id' => $salle->id,
+        'capacite' => 20, 'notes' => 'Prévoir un tapis', 'lien_inscription' => 'https://exemple.be/reserver',
+        'lien_groupe' => 'https://chat.whatsapp.com/abc',
+    ]);
+    $origine->inscrire(Contact::factory()->create());
+
+    $this->get(route('sessions.fiche', $origine))->assertOk()->assertSee('sessions/creer?dupliquer='.$origine->id, false);
+
+    Livewire::withQueryParams(['dupliquer' => $origine->id])
+        ->test(Formulaire::class)
+        ->assertSee('Copie de « Séance découverte »')
+        ->assertSet('titre', 'Séance découverte')
+        ->assertSet('date_debut', null)
+        ->assertSet('lien_groupe', null)
+        ->assertSet('capacite', '20')
+        ->assertSet('role_parcours', Seance::ROLE_DECOUVERTE)
+        ->assertSet('lien_inscription', 'https://exemple.be/reserver')
+        ->set('titre', 'Séance découverte de janvier')
+        ->set('date_debut', '2027-01-17T10:30')
+        ->call('enregistrer')
+        ->assertHasNoErrors();
+
+    $copie = Seance::where('titre', 'Séance découverte de janvier')->firstOrFail();
+    expect($copie->id)->not->toBe($origine->id);
+    expect($copie->lieu_contact_id)->toBe($salle->id);
+    expect($copie->notes)->toBe('Prévoir un tapis');
+    expect($copie->inscriptions()->count())->toBe(0);
+    expect($origine->fresh()->titre)->toBe('Séance découverte'); // l'originale n'a pas bougé
+    expect(Seance::count())->toBe(2);
+});
