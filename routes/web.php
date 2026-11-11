@@ -43,6 +43,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('sessions/creer', \App\Livewire\Sessions\Formulaire::class)->name('sessions.creer');
     Route::get('sessions/{seance}', \App\Livewire\Sessions\Fiche::class)->name('sessions.fiche');
     Route::get('sessions/{seance}/modifier', \App\Livewire\Sessions\Formulaire::class)->name('sessions.modifier');
+    // Campagne d'invitations à une session (module 012)
+    Route::get('sessions/{seance}/invitations', \App\Livewire\Sessions\Invitations::class)->name('sessions.invitations');
 
     // Assistant (module 005)
     Route::get('assistant', \App\Livewire\Assistant\Brief::class)->name('assistant.brief');
@@ -53,6 +55,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Réglages : boîtes e-mail multiples (module 009)
     Route::get('reglages/boites', \App\Livewire\Reglages\BoitesEmail::class)->name('reglages.boites');
+
+    // Réglages : modèles de messages (module 012)
+    Route::get('reglages/modeles', \App\Livewire\Reglages\ModelesMessage::class)->name('reglages.modeles');
 
     // Sauvegarde : téléchargement des données métier (sans secrets)
     Route::get('sauvegarde', [\App\Http\Controllers\SauvegardeController::class, 'telecharger'])->name('sauvegarde');

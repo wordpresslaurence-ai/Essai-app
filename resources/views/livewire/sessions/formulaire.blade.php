@@ -62,6 +62,13 @@
         </div>
 
         <div class="mt-5">
+            <label for="lien_inscription" class="lb-label">Lien d'inscription — optionnel</label>
+            <input id="lien_inscription" type="url" wire:model="lien_inscription" class="lb-field" placeholder="https://…">
+            @error('lien_inscription') <p class="lb-error">{{ $message }}</p> @enderror
+            <p class="lb-muted" style="font-size:12px;margin-top:4px">La page où l'on réserve sa place. Il sera repris dans tes invitations.</p>
+        </div>
+
+        <div class="mt-5">
             <label for="notes" class="lb-label">Notes</label>
             <textarea id="notes" rows="4" wire:model="notes" class="lb-field" placeholder="ex. 3 stages de 3 jours : 10-12 mars, 14-16 avril, 12-14 mai…"></textarea>
         </div>

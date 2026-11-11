@@ -28,6 +28,19 @@
         </div>
     </div>
 
+    {{-- Modèles de messages (brique 012) : gérés sur un écran dédié --}}
+    <div class="lb-card mt-5" style="padding:18px;max-width:720px">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <div class="lb-label" style="margin-bottom:2px">Modèles de messages</div>
+                <p class="lb-muted" style="font-size:12.5px;margin:0">
+                    Tes textes d'invitation et de relance, utilisés par le bouton « Inviter » des sessions.
+                </p>
+            </div>
+            <a href="{{ route('reglages.modeles') }}" class="lb-btn lb-btn-ghost" wire:navigate>Gérer les modèles →</a>
+        </div>
+    </div>
+
     <form wire:submit="enregistrer" class="mt-5" style="max-width:720px">
 
         {{-- Assistant IA --}}

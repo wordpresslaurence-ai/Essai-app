@@ -357,6 +357,36 @@ class Contact extends Model
         $this->forceFill(['archived_at' => null])->save();
     }
 
+    /**
+     * Numéro au format attendu par WhatsApp (chiffres, avec indicatif pays), ou null
+     * si le téléphone est absent ou inexploitable. Un numéro national commençant
+     * par 0 reçoit l'indicatif du pays de la fiche (Belgique par défaut, France).
+     */
+    public function numeroWhatsapp(): ?string
+    {
+        $brut = trim((string) $this->telephone);
+        if ($brut === '') {
+            return null;
+        }
+
+        $international = str_starts_with($brut, '+') || str_starts_with($brut, '00');
+        $chiffres = preg_replace('/\D+/', '', $brut) ?? '';
+
+        if ($international) {
+            $chiffres = str_starts_with($brut, '00') ? substr($chiffres, 2) : $chiffres;
+            // « +32 (0)470… » : le 0 entre parenthèses ne se compose pas.
+            $chiffres = preg_replace('/^(32|33)0/', '$1', $chiffres) ?? $chiffres;
+        } elseif (str_starts_with($chiffres, '0')) {
+            $pays = mb_strtoupper(trim((string) $this->adresse_pays));
+            $indicatif = in_array($pays, ['FR', 'FRANCE'], true) ? '33' : '32';
+            $chiffres = $indicatif.substr($chiffres, 1);
+        } else {
+            return null;
+        }
+
+        return strlen($chiffres) >= 9 ? $chiffres : null;
+    }
+
     /** Nom d'affichage : « Prénom Nom » pour une personne, la raison sociale sinon. */
     public function nomComplet(): string
     {

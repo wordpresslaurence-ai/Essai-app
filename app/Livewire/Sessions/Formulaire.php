@@ -28,6 +28,9 @@ class Formulaire extends Component
     /** Recherche pour la liste déroulante du contact du lieu. */
     public string $rechercheContact = '';
 
+    /** Lien d'inscription public (repris dans les invitations). */
+    public ?string $lien_inscription = null;
+
     public ?string $capacite = null;
 
     public ?string $notes = null;
@@ -41,6 +44,7 @@ class Formulaire extends Component
             $this->date_debut = $seance->date_debut?->format('Y-m-d\TH:i');
             $this->lieu = $seance->lieu;
             $this->lieu_contact_id = $seance->lieu_contact_id ? (string) $seance->lieu_contact_id : null;
+            $this->lien_inscription = $seance->lien_inscription;
             $this->capacite = $seance->capacite !== null ? (string) $seance->capacite : null;
             $this->notes = $seance->notes;
         }
@@ -54,6 +58,7 @@ class Formulaire extends Component
             'date_debut' => ['nullable', 'date'],
             'lieu' => ['nullable', 'string', 'max:255'],
             'lieu_contact_id' => ['nullable', 'exists:contacts,id'],
+            'lien_inscription' => ['nullable', 'url', 'max:500'],
             'capacite' => ['nullable', 'integer', 'min:0', 'max:100000'],
             'notes' => ['nullable', 'string'],
         ];
@@ -63,6 +68,8 @@ class Formulaire extends Component
     {
         // « Aucun » (chaîne vide) => null, pour passer la règle exists (nullable).
         $this->lieu_contact_id = filled($this->lieu_contact_id) ? $this->lieu_contact_id : null;
+
+        $this->lien_inscription = filled($this->lien_inscription) ? trim($this->lien_inscription) : null;
 
         $donnees = $this->validate();
         $donnees['capacite'] = $donnees['capacite'] !== null && $donnees['capacite'] !== ''

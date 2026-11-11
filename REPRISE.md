@@ -197,6 +197,19 @@ est **clôturée automatiquement**.
 
 ### Nouveautés récentes (octobre 2026)
 
+- **Campagne d'invitations à une session (brique 012)** : bouton **« Inviter »** sur la fiche
+  d'une session → `sessions/{seance}/invitations` (`Sessions\Invitations`). On choisit les contacts
+  (recherche, type, étiquette, pôle/catégorie, pays ; exclus : archivés, « ne plus contacter »,
+  déjà dans la campagne), puis pour chacun un **brouillon personnalisé** tiré d'un **modèle de
+  message** (Réglages → Modèles de messages, `Reglages\ModelesMessage`, table `modeles_message`).
+  Variables : `{prenom}` `{nom}` `{ville}` `{entreprise}` `{session}` `{date}` `{heure}` `{lieu}`
+  `{lien}` `{moi}` ; une variable vide devient un repère `[ville]`. **Le CRM n'envoie rien** :
+  copier / ouvrir la messagerie / ouvrir WhatsApp (`Contact::numeroWhatsapp()`), puis « C'est
+  envoyé » date l'envoi, crée une **activité terminée** (type e-mail) sur la fiche et ouvre la
+  personne suivante. Suivi dans `invitations` (unique session+contact) : à inviter → invité →
+  relancé, a répondu, a décliné ; « Inscrit » se déduit des inscriptions ; **à relancer** = invité
+  depuis ≥ 5 jours sans inscription. Nouveau champ `seances.lien_inscription`. Spec :
+  `specs/012-invitations/`. Suite prévue : arrivée automatique des inscriptions FluentBooking.
 - **Fiche contact — coordonnées bancaires** : deux vrais champs `contacts.iban` (40) et
   `contacts.bic` (15), **nullable**, éditables dans le formulaire (section « Coordonnées
   bancaires », valable personnes **et** entreprises) et affichés sur la fiche s'ils sont remplis.

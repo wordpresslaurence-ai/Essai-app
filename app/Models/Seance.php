@@ -16,7 +16,7 @@ class Seance extends Model
 {
     protected $table = 'seances';
 
-    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'lieu_contact_id', 'capacite', 'notes'];
+    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'lieu_contact_id', 'lien_inscription', 'capacite', 'notes'];
 
     protected function casts(): array
     {
@@ -42,6 +42,12 @@ class Seance extends Model
     public function inscriptions(): HasMany
     {
         return $this->hasMany(Inscription::class);
+    }
+
+    /** Invitations de la campagne liée à cette séance. */
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
     }
 
     /** @return Collection<int, Inscription> */

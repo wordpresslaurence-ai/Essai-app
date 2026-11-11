@@ -25,7 +25,10 @@
                 @endif
             </div>
         </div>
-        <a href="{{ route('sessions.modifier', $seance) }}" class="lb-btn lb-btn-primary" wire:navigate>Modifier</a>
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ route('sessions.invitations', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Inviter</a>
+            <a href="{{ route('sessions.modifier', $seance) }}" class="lb-btn lb-btn-primary" wire:navigate>Modifier</a>
+        </div>
     </div>
 
     {{-- Compteur de places --}}
