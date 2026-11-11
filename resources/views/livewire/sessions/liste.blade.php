@@ -16,7 +16,7 @@
 
     {{-- Onglets + filtres --}}
     <div class="flex flex-wrap items-center gap-2 mt-6">
-        @foreach (['avenir' => 'À venir', 'passees' => 'Passées'] as $cle => $lib)
+        @foreach (['avenir' => 'À venir', 'passees' => 'Passées', 'agenda' => '📅 Agenda'] as $cle => $lib)
             <button type="button" wire:click="$set('onglet', '{{ $cle }}')"
                     class="lb-pill" style="cursor:pointer;border:0;{{ $onglet === $cle ? 'color:var(--accent)' : '' }}">
                 {{ $lib }}
@@ -43,6 +43,9 @@
         @endif
     </div>
 
+    @if ($agenda)
+        @include('livewire.sessions._agenda')
+    @else
     {{-- Cartes --}}
     <div class="lb-cards mt-6">
         @forelse ($seances as $seance)
@@ -87,4 +90,5 @@
     </div>
 
     <div class="mt-4">{{ $seances->links() }}</div>
+    @endif
 </div>

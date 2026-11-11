@@ -19,9 +19,13 @@ class Liste extends Component
 {
     use WithPagination;
 
-    /** Onglet : 'avenir' (défaut) ou 'passees'. */
+    /** Onglet : 'avenir' (défaut), 'passees' ou 'agenda' (vue annuelle). */
     #[Url]
     public string $onglet = 'avenir';
+
+    /** Année affichée dans l'agenda (0 = année en cours). */
+    #[Url]
+    public int $annee = 0;
 
     /** Filtre par pôle (id). */
     #[Url]
@@ -47,6 +51,88 @@ class Liste extends Component
         $this->resetPage();
     }
 
+    public function anneePrecedente(): void
+    {
+        $this->annee = $this->anneeAffichee() - 1;
+    }
+
+    public function anneeSuivante(): void
+    {
+        $this->annee = $this->anneeAffichee() + 1;
+    }
+
+    public function anneeCourante(): void
+    {
+        $this->annee = 0;
+    }
+
+    private function anneeAffichee(): int
+    {
+        return $this->annee >= 2000 && $this->annee <= 2100 ? $this->annee : (int) now()->year;
+    }
+
+    /**
+     * Données de l'agenda annuel : 12 mois, et pour chaque jour les sessions
+     * (un point de couleur par session, à la couleur de sa catégorie).
+     *
+     * @return array{mois: array<int, array<string, mixed>>, total: int, sansDate: int, legende: \Illuminate\Support\Collection}
+     */
+    private function agenda(int $annee): array
+    {
+        $filtre = fn ($q) => $q
+            ->when($this->categorie !== '', fn ($c) => $c->where('categorie_id', $this->categorie))
+            ->when(
+                $this->categorie === '' && $this->pole !== '',
+                fn ($c) => $c->whereHas('categorie', fn ($cat) => $cat->where('pole_id', $this->pole))
+            );
+
+        $seances = $filtre(Seance::with('categorie.pole'))
+            ->whereYear('date_debut', $annee)
+            ->orderBy('date_debut')
+            ->get();
+
+        $couleur = fn (Seance $s) => $s->categorie?->couleur ?: 'var(--accent)';
+
+        $parJour = $seances->groupBy(fn (Seance $s) => $s->date_debut->toDateString())
+            ->map(fn ($groupe) => $groupe->map(fn (Seance $s) => [
+                'id' => $s->id,
+                'titre' => $s->titre,
+                'libelle' => $s->titre.', '.$s->date_debut->translatedFormat('j F Y'),
+                'couleur' => $couleur($s),
+            ])->all());
+
+        $mois = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $premier = \Illuminate\Support\Carbon::create($annee, $m, 1);
+            $jours = [];
+            for ($j = 1; $j <= $premier->daysInMonth; $j++) {
+                $date = $premier->copy()->day($j);
+                $jours[] = [
+                    'numero' => $j,
+                    'aujourdhui' => $date->isToday(),
+                    'seances' => $parJour->get($date->toDateString(), []),
+                ];
+            }
+
+            $mois[] = [
+                'numero' => $m,
+                'nom' => $premier->translatedFormat('F'),
+                'decalage' => $premier->dayOfWeekIso - 1, // semaine commençant le lundi
+                'jours' => $jours,
+            ];
+        }
+
+        return [
+            'mois' => $mois,
+            'total' => $seances->count(),
+            'sansDate' => $filtre(Seance::query())->whereNull('date_debut')->count(),
+            'legende' => $seances->map(fn (Seance $s) => [
+                'libelle' => $s->categorie?->libelleComplet() ?? 'Sans catégorie',
+                'couleur' => $couleur($s),
+            ])->unique('libelle')->values(),
+        ];
+    }
+
     public function render(): View
     {
         $seances = Seance::with(['categorie.pole', 'lieuContact'])
@@ -63,6 +149,8 @@ class Liste extends Component
             ->paginate(20);
 
         return view('livewire.sessions.liste', [
+            'annee' => $this->anneeAffichee(),
+            'agenda' => $this->onglet === 'agenda' ? $this->agenda($this->anneeAffichee()) : null,
             'seances' => $seances,
             'poles' => Pole::with('categories')->orderBy('ordre')->orderBy('nom')->get(),
         ]);
