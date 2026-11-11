@@ -80,10 +80,12 @@ class Brief extends Component
         // Une relance reste justifiée pour un e-mail sans réponse, mais aussi pour un
         // « indécis » (lead chaud sans suite, intéressé d'une session passée).
         $indecis = new CalculIndecis;
-        $relances = $calc->aRelancer()->map(fn ($l) => $l['contact']->id)
-            ->merge($indecis->leadsChaudsSansSuite()->pluck('id'))
-            ->merge($indecis->interessesSessionPassee()->pluck('id'))
-            ->unique()->values()->all();
+        // (tableaux simples : une collection Eloquent vide ne sait pas fusionner des identifiants)
+        $relances = array_values(array_unique(array_merge(
+            $calc->aRelancer()->map(fn ($l) => $l['contact']->id)->all(),
+            $indecis->leadsChaudsSansSuite()->modelKeys(),
+            $indecis->interessesSessionPassee()->modelKeys(),
+        )));
 
         Activite::whereNull('terminee_at')
             ->whereNotNull('contact_id')
