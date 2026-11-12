@@ -88,3 +88,17 @@ it('affiche le nom et la ville du contact du lieu sur la fiche', function () {
         ->assertSee('Salle Zen')
         ->assertSee('Namur');
 });
+
+it('classe les contacts à inscrire par nom affiché et permet de chercher', function () {
+    $this->actingAs(User::factory()->create());
+    $seance = Seance::create(['titre' => 'Stage']);
+    Contact::create(['type' => Contact::TYPE_PERSONNE, 'prenom' => 'Zoé', 'nom' => 'Adam']);
+    Contact::create(['type' => Contact::TYPE_PERSONNE, 'prenom' => 'alice', 'nom' => 'Zidane']);
+    Contact::create(['type' => Contact::TYPE_PERSONNE, 'prenom' => 'Élise', 'nom' => 'Martin']);
+
+    Livewire::test(Fiche::class, ['seance' => $seance])
+        ->assertSeeInOrder(['alice Zidane', 'Élise Martin', 'Zoé Adam'])
+        ->set('rechercheContact', 'martin')
+        ->assertSee('Élise Martin')
+        ->assertDontSee('Zoé Adam');
+});

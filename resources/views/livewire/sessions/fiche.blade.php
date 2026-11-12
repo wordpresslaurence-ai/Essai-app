@@ -52,8 +52,10 @@
     <form wire:submit="inscrire" class="lb-card mt-4 flex flex-wrap items-end gap-3" style="padding:16px">
         <div style="flex:1;min-width:14rem">
             <label for="contactAInscrire" class="lb-label">Inscrire un contact</label>
+            <input type="search" wire:model.live.debounce.300ms="rechercheContact" class="lb-field"
+                   placeholder="Rechercher un contact (nom, prénom, e-mail)…" aria-label="Rechercher un contact" style="margin-bottom:6px">
             <select id="contactAInscrire" wire:model="contactAInscrire" class="lb-field">
-                <option value="">— Choisir un contact —</option>
+                <option value="">{{ $rechercheContact !== '' ? '— '.$contactsDispo->count().' résultat(s) —' : '— Choisir un contact —' }}</option>
                 @foreach ($contactsDispo as $c)
                     <option value="{{ $c->id }}">{{ $c->nomComplet() }}</option>
                 @endforeach

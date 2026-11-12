@@ -137,9 +137,9 @@ class Formulaire extends Component
         // le contact déjà sélectionné, même hors filtre.
         $contacts = Contact::actifs()
             ->when($this->rechercheContact !== '', fn ($q) => $q->recherche($this->rechercheContact))
-            ->orderBy('nom')->orderBy('prenom')
-            ->limit(50)
-            ->get(['id', 'nom', 'prenom', 'type', 'adresse_ville']);
+            ->get(['id', 'nom', 'prenom', 'type', 'adresse_ville'])
+            ->sortBy(fn (Contact $c) => $c->cleTri())
+            ->values();
 
         if ($this->lieu_contact_id && ! $contacts->contains('id', (int) $this->lieu_contact_id)) {
             $selectionne = Contact::find($this->lieu_contact_id, ['id', 'nom', 'prenom', 'type', 'adresse_ville']);

@@ -417,6 +417,12 @@ class Contact extends Model
         return $this->nom;
     }
 
+    /** Clé de tri alphabétique sur le nom tel qu'il est affiché (sans accents ni majuscules). */
+    public function cleTri(): string
+    {
+        return \Illuminate\Support\Str::lower(\Illuminate\Support\Str::ascii($this->nomComplet()));
+    }
+
     /**
      * Toutes les valeurs de discipline reconnues (catégories + options),
      * pour savoir si une valeur saisie auparavant est « hors liste ».

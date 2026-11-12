@@ -18,6 +18,9 @@ class Fiche extends Component
 
     public ?string $inscriptionErreur = null;
 
+    /** Recherche dans la liste « Inscrire un contact ». */
+    public string $rechercheContact = '';
+
     public function mount(Seance $seance): void
     {
         $this->seance = $seance;
@@ -36,7 +39,7 @@ class Fiche extends Component
         $contact = Contact::find($donnees['contactAInscrire']);
         $this->seance->inscrire($contact);
 
-        $this->reset('contactAInscrire');
+        $this->reset('contactAInscrire', 'rechercheContact');
         session()->flash('message', 'Inscription enregistrée.');
     }
 
@@ -83,8 +86,10 @@ class Fiche extends Component
 
         $contactsDispo = Contact::actifs()
             ->whereNotIn('id', $actifs)
-            ->orderBy('nom')
-            ->get(['id', 'nom', 'prenom', 'type']);
+            ->recherche($this->rechercheContact)
+            ->get(['id', 'nom', 'prenom', 'type'])
+            ->sortBy(fn (Contact $c) => $c->cleTri())
+            ->values();
 
         return view('livewire.sessions.fiche', [
             'confirmes' => $this->seance->confirmes(),
