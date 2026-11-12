@@ -24,6 +24,7 @@ class Parametre extends Model
         'pitch_prospection',
         'derniere_synchro_at',
         'webhook_jeton',
+        'lien_avis',
     ];
 
     /** Valeurs par défaut au niveau du modèle (reflétées dès la création). */

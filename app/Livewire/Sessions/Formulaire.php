@@ -42,6 +42,9 @@ class Formulaire extends Component
 
     public ?string $capacite = null;
 
+    /** Prix par participant (vide = prix de la catégorie). */
+    public ?string $prix = null;
+
     public ?string $notes = null;
 
     public function mount(?Seance $seance = null): void
@@ -57,6 +60,7 @@ class Formulaire extends Component
             $this->lien_groupe = $seance->lien_groupe;
             $this->role_parcours = $seance->role_parcours;
             $this->capacite = $seance->capacite !== null ? (string) $seance->capacite : null;
+            $this->prix = $seance->prix !== null ? (string) $seance->prix : null;
             $this->notes = $seance->notes;
 
             return;
@@ -74,6 +78,7 @@ class Formulaire extends Component
             $this->lien_inscription = $modele->lien_inscription;
             $this->role_parcours = $modele->role_parcours;
             $this->capacite = $modele->capacite !== null ? (string) $modele->capacite : null;
+            $this->prix = $modele->prix !== null ? (string) $modele->prix : null;
             $this->notes = $modele->notes;
             // Volontairement non repris : la date (à choisir), le lien du groupe WhatsApp
             // (propre à chaque groupe), les inscrits et les invitations.
@@ -92,6 +97,7 @@ class Formulaire extends Component
             'lien_groupe' => ['nullable', 'url', 'max:500'],
             'role_parcours' => ['nullable', \Illuminate\Validation\Rule::in(array_keys(Seance::ROLES_PARCOURS))],
             'capacite' => ['nullable', 'integer', 'min:0', 'max:100000'],
+            'prix' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
             'notes' => ['nullable', 'string'],
         ];
     }
@@ -104,6 +110,8 @@ class Formulaire extends Component
         $this->lien_inscription = filled($this->lien_inscription) ? trim($this->lien_inscription) : null;
         $this->lien_groupe = filled($this->lien_groupe) ? trim($this->lien_groupe) : null;
         $this->role_parcours = filled($this->role_parcours) ? $this->role_parcours : null;
+
+        $this->prix = filled($this->prix) ? str_replace(',', '.', trim($this->prix)) : null;
 
         $donnees = $this->validate();
         $donnees['capacite'] = $donnees['capacite'] !== null && $donnees['capacite'] !== ''

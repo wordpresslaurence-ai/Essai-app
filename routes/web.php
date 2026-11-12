@@ -51,6 +51,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('sessions/{seance}', \App\Livewire\Sessions\Fiche::class)->name('sessions.fiche');
     Route::get('sessions/{seance}/modifier', \App\Livewire\Sessions\Formulaire::class)->name('sessions.modifier');
     // Campagne d'invitations à une session (module 012)
+    Route::get('sessions/{seance}/paiements', \App\Livewire\Sessions\Paiements::class)->name('sessions.paiements');
+    Route::get('sessions/{seance}/avis', \App\Livewire\Sessions\Avis::class)->name('sessions.avis');
     Route::get('sessions/{seance}/suivi', \App\Livewire\Sessions\Suivi::class)->name('sessions.suivi');
     Route::get('sessions/{seance}/message', \App\Livewire\Sessions\MessageInscrits::class)->name('sessions.message');
     Route::get('sessions/{seance}/invitations', \App\Livewire\Sessions\Invitations::class)->name('sessions.invitations');

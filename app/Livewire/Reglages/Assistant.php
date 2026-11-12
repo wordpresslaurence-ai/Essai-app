@@ -30,6 +30,9 @@ class Assistant extends Component
 
     public ?string $lien_journee_aura = null;
 
+    /** Page où laisser un avis public (variable {lien_avis} des modèles). */
+    public ?string $lien_avis = null;
+
     public ?string $pitch_prospection = null;
 
     /** Description de l'offre par catégorie : [categorie_id => texte]. */
@@ -63,6 +66,7 @@ class Assistant extends Component
             ?? 'https://homeharmony.be/seance-prana-gratuite/';
         $this->lien_journee_aura = $p->lien_journee_aura
             ?? 'https://homeharmony.be/nettoyage-aura-chakras';
+        $this->lien_avis = $p->lien_avis;
         $this->pitch_prospection = $p->pitch_prospection;
 
         foreach (Categorie::all() as $cat) {
@@ -81,6 +85,7 @@ class Assistant extends Component
             'lien_appel_visio' => ['nullable', 'url', 'max:255'],
             'lien_seance_decouverte' => ['nullable', 'url', 'max:255'],
             'lien_journee_aura' => ['nullable', 'url', 'max:255'],
+            'lien_avis' => ['nullable', 'url', 'max:500'],
             'pitch_prospection' => ['nullable', 'string'],
             'offres' => ['array'],
             'offres.*' => ['nullable', 'string'],
@@ -98,6 +103,7 @@ class Assistant extends Component
         $p->lien_appel_visio = $donnees['lien_appel_visio'];
         $p->lien_seance_decouverte = $donnees['lien_seance_decouverte'];
         $p->lien_journee_aura = $donnees['lien_journee_aura'];
+        $p->lien_avis = filled($donnees['lien_avis'] ?? null) ? $donnees['lien_avis'] : null;
         $p->pitch_prospection = $donnees['pitch_prospection'];
 
         // Offre & liens par catégorie

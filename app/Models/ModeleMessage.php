@@ -18,6 +18,10 @@ class ModeleMessage extends Model
 
     public const NOM_SUIVI_ABSENT = 'Suivi — absent à la séance';
 
+    public const NOM_AVIS = 'Avis — après un stage';
+
+    public const NOM_RAPPEL_PAIEMENT = 'Paiement — rappel';
+
     public const CANAUX = [
         self::CANAL_EMAIL => 'E-mail',
         self::CANAL_MESSAGE => 'Message court (WhatsApp, message privé)',
@@ -39,6 +43,10 @@ class ModeleMessage extends Model
         'prochaine_date' => 'Date de la prochaine session du même type (suivi des absents)',
         'prochaine_heure' => 'Heure de cette prochaine session',
         'prochain_lien' => 'Lien d’inscription de cette prochaine session',
+        'lien_avis' => 'Lien de la page où laisser un avis (Réglages de l’assistant)',
+        'montant' => 'Montant attendu pour la session (rappel de paiement)',
+        'deja_paye' => 'Montant déjà reçu de cette personne',
+        'reste' => 'Montant qu’il lui reste à payer',
     ];
 
     protected $table = 'modeles_message';
@@ -60,9 +68,9 @@ class ModeleMessage extends Model
      *
      * @return array{objet: string, corps: string}
      */
-    public function rendre(Contact $contact, Seance $seance, ?string $moi = null, ?Seance $prochaine = null): array
+    public function rendre(Contact $contact, Seance $seance, ?string $moi = null, ?Seance $prochaine = null, array $extras = []): array
     {
-        $valeurs = self::valeurs($contact, $seance, $moi, $prochaine);
+        $valeurs = array_merge(self::valeurs($contact, $seance, $moi, $prochaine), $extras);
 
         return [
             'objet' => self::remplacer((string) $this->objet, $valeurs),
@@ -101,6 +109,10 @@ class ModeleMessage extends Model
             'prochaine_date' => $prochaine?->date_debut ? $prochaine->date_debut->translatedFormat('l j F Y') : '',
             'prochaine_heure' => self::heureLisible($prochaine?->date_debut),
             'prochain_lien' => (string) $prochaine?->lien_inscription,
+            'lien_avis' => '',
+            'montant' => '',
+            'deja_paye' => '',
+            'reste' => '',
         ];
     }
 
@@ -134,6 +146,18 @@ class ModeleMessage extends Model
         $nom = $absent ? self::NOM_SUIVI_ABSENT : self::NOM_SUIVI_PRESENT;
 
         return new self(collect(self::modelesDeDepart())->firstWhere('nom', $nom));
+    }
+
+    /**
+     * Premier modèle dont le nom commence par ce mot (« Avis », « Paiement »…) ;
+     * à défaut, le modèle de départ qui porte ce nom.
+     */
+    public static function parDebut(string $debut, string $nomDeDepart): self
+    {
+        $trouve = self::orderBy('nom')->get()
+            ->first(fn (self $m) => mb_stripos($m->nom, $debut) === 0);
+
+        return $trouve ?? new self(collect(self::modelesDeDepart())->firstWhere('nom', $nomDeDepart));
     }
 
     /**
@@ -208,6 +232,28 @@ class ModeleMessage extends Model
                 'corps' => "Bonjour {prenom},\n\n"
                     ."Vous n’avez pas pu nous rejoindre pour « {session} », et j’espère que tout va bien.\n\n"
                     ."La prochaine séance a lieu {prochaine_date} à {prochaine_heure}. Si vous souhaitez y participer : {prochain_lien}\n\n"
+                    ."Bien à vous,\n{moi}",
+            ],
+            [
+                'nom' => self::NOM_AVIS,
+                'canal' => self::CANAL_EMAIL,
+                'objet' => 'Votre avis sur {session}',
+                'corps' => "Bonjour {prenom},\n\n"
+                    ."Merci encore pour votre présence à « {session} ».\n\n"
+                    ."Accepteriez-vous de m’écrire quelques lignes sur ce que vous en avez retiré ? Deux ou trois phrases suffisent : ce que vous cherchiez en venant, ce qui vous a marqué, et à qui vous le conseilleriez.\n\n"
+                    ."Vous pouvez simplement répondre à ce message, ou laisser votre avis ici : {lien_avis}\n\n"
+                    ."Avec votre accord, je le partagerai sur mon site, avec votre prénom seulement si vous préférez.\n\n"
+                    ."Merci d’avance,\n{moi}",
+            ],
+            [
+                'nom' => self::NOM_RAPPEL_PAIEMENT,
+                'canal' => self::CANAL_EMAIL,
+                'objet' => '{session} : votre inscription',
+                'corps' => "Bonjour {prenom},\n\n"
+                    ."Je me réjouis de vous retrouver pour « {session} », {date}.\n\n"
+                    ."Pour finaliser votre inscription, il reste {reste} à régler (montant total : {montant}, déjà reçu : {deja_paye}).\n\n"
+                    ."[Comment payer : coordonnées bancaires ou lien de paiement.]\n\n"
+                    ."Si le paiement est déjà parti, ne tenez pas compte de ce message.\n\n"
                     ."Bien à vous,\n{moi}",
             ],
             [

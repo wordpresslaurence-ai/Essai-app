@@ -43,6 +43,11 @@
                 @error('capacite') <p class="lb-error">{{ $message }}</p> @enderror
             </div>
             <div>
+                <label for="prix" class="lb-label">Prix par participant (€)</label>
+                <input id="prix" type="text" inputmode="decimal" wire:model="prix" class="lb-field" placeholder="vide = prix de la catégorie">
+                @error('prix') <p class="lb-error">{{ $message }}</p> @enderror
+            </div>
+            <div>
                 <label for="date_debut" class="lb-label">Date</label>
                 <input id="date_debut" type="datetime-local" step="900" wire:model="date_debut" class="lb-field">
                 @error('date_debut') <p class="lb-error">{{ $message }}</p> @enderror

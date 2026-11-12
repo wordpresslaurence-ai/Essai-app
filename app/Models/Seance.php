@@ -26,13 +26,14 @@ class Seance extends Model
         self::ROLE_FORMATION => 'Formation (stage)',
     ];
 
-    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'lieu_contact_id', 'lien_inscription', 'lien_groupe', 'role_parcours', 'capacite', 'notes'];
+    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'lieu_contact_id', 'lien_inscription', 'lien_groupe', 'role_parcours', 'capacite', 'prix', 'notes'];
 
     protected function casts(): array
     {
         return [
             'date_debut' => 'datetime',
             'capacite' => 'integer',
+            'prix' => 'float',
         ];
     }
 
@@ -84,6 +85,16 @@ class Seance extends Model
     public function scopePassees(Builder $query): void
     {
         $query->whereNotNull('date_debut')->where('date_debut', '<', now()->startOfDay());
+    }
+
+    /** Prix attendu par participant : celui de la session, sinon celui de sa catégorie. */
+    public function prixApplique(): ?float
+    {
+        if ($this->prix !== null) {
+            return (float) $this->prix;
+        }
+
+        return $this->categorie?->prix !== null ? (float) $this->categorie->prix : null;
     }
 
     // --- Places / inscriptions ----------------------------------------------

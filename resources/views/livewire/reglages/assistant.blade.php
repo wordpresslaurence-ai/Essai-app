@@ -88,6 +88,12 @@
                     @error('relance_delai_jours') <p class="lb-error">{{ $message }}</p> @enderror
                 </div>
             </div>
+            <div class="mt-5">
+                <label for="lien_avis" class="lb-label">Page où laisser un avis — optionnel</label>
+                <input id="lien_avis" type="url" wire:model="lien_avis" class="lb-field" placeholder="https://… (fiche Google, page du site…)">
+                @error('lien_avis') <p class="lb-error">{{ $message }}</p> @enderror
+                <p class="lb-muted" style="font-size:12px;margin-top:6px">Repris dans tes demandes d'avis après un stage (variable <code>{lien_avis}</code>).</p>
+            </div>
         </fieldset>
 
         {{-- Prospection --}}
