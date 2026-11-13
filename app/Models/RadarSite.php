@@ -59,11 +59,11 @@ class RadarSite extends Model
     {
         $radar = $contact->radarSite;
 
-        if (blank($contact->site_web)) {
+        if (blank($contact->adresseSite())) {
             return self::SANS_SITE;
         }
 
-        if ($radar && $radar->analyse_le && $radar->url === $contact->site_web) {
+        if ($radar && $radar->analyse_le && $radar->url === $contact->adresseSite()) {
             return $radar->statut;
         }
 

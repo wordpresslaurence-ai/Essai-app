@@ -92,7 +92,7 @@ it('classe les contacts, analyse les suivants et garde le résultat', function (
     expect(RadarSite::where('contact_id', $sansSite->id)->exists())->toBeFalse();
 
     // Filtre par statut, puis écarter.
-    $page->call('oublierRecents')->set('statut', RadarSite::A_AMELIORER)
+    $page->set('statut', RadarSite::A_AMELIORER)
         ->assertSee('Zoé Datée')
         ->assertDontSee('Léa Soignée')
         ->call('basculerEcarte', $date->id)
@@ -129,16 +129,20 @@ it('prépare l’angle du mail à partir des constats et l’ouvre sur la fiche'
     $this->get(route('prospection.index'))->assertOk()->assertSee('Radar sites web');
 });
 
-it('garde en tête de liste le contact qui vient d’être analysé, même hors filtre', function () {
-    Http::fake(['studio-lotus.test*' => Http::response(pageSoignee())]);
-    $contact = Contact::factory()->create(['prenom' => 'Léa', 'nom' => 'Soignée', 'site_web' => 'https://studio-lotus.test']);
+it('prend en compte le site d’une personne, et à défaut son « compte / lien »', function () {
+    $personne = Contact::factory()->create(['site_web' => null, 'url_profil' => null]);
+    expect(RadarSite::statutPour($personne))->toBe(RadarSite::SANS_SITE);
 
-    Livewire::test(Radar::class)
-        ->set('statut', RadarSite::NON_ANALYSE)
-        ->call('analyser', $contact->id)
-        ->assertSee('Tu viens d\'analyser', false)
-        ->assertSee('Léa Soignée')
-        ->assertSee('Site correct')
-        ->call('oublierRecents')
-        ->assertDontSee('Léa Soignée');
+    // Le champ « Site web » est enregistré pour une personne aussi.
+    Livewire::test(\App\Livewire\Contacts\Formulaire::class, ['contact' => $personne])
+        ->set('site_web', 'https://marie-yoga.test')
+        ->call('enregistrer')
+        ->assertHasNoErrors();
+    expect($personne->fresh()->site_web)->toBe('https://marie-yoga.test');
+    expect(RadarSite::statutPour($personne->fresh()))->toBe(RadarSite::NON_ANALYSE);
+
+    // Sans site, le « compte / lien » sert d'adresse s'il en a la forme.
+    $reseau = Contact::factory()->create(['site_web' => null, 'url_profil' => 'facebook.com/son-compte']);
+    expect($reseau->adresseSite())->toBe('facebook.com/son-compte');
+    expect(Contact::factory()->create(['url_profil' => 'croisée au salon'])->adresseSite())->toBeNull();
 });

@@ -90,11 +90,6 @@
                     @error('numero_tva') <p class="lb-error">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label for="site_web" class="lb-label">Site web</label>
-                    <input id="site_web" type="url" wire:model="site_web" placeholder="https://…" class="lb-field">
-                    @error('site_web') <p class="lb-error">{{ $message }}</p> @enderror
-                </div>
-                <div>
                     <label for="secteur" class="lb-label">Secteur d'activité</label>
                     <input id="secteur" type="text" wire:model="secteur" class="lb-field">
                 </div>
@@ -111,6 +106,11 @@
             <div>
                 <label for="telephone" class="lb-label">Téléphone</label>
                 <input id="telephone" type="text" wire:model="telephone" class="lb-field">
+            </div>
+            <div>
+                <label for="site_web" class="lb-label">Site web</label>
+                <input id="site_web" type="url" wire:model="site_web" placeholder="https://…" class="lb-field">
+                @error('site_web') <p class="lb-error">{{ $message }}</p> @enderror
             </div>
         </div>
 

@@ -321,7 +321,6 @@ class Formulaire extends Component
             $donnees['fonction'] = null;
             $donnees['entreprise_id'] = null;
         } else {
-            $donnees['site_web'] = null;
             $donnees['numero_entreprise'] = null;
             $donnees['numero_tva'] = null;
             $donnees['secteur'] = null;

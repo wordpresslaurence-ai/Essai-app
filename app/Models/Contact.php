@@ -229,6 +229,21 @@ class Contact extends Model
     }
 
     /** La catégorie (et donc le pôle) de ce contact. */
+    /**
+     * Adresse web à examiner : le champ « Site web », sinon le « Compte / lien »
+     * de l'origine s'il ressemble à une adresse (ex. facebook.com/son-compte).
+     */
+    public function adresseSite(): ?string
+    {
+        if (filled($this->site_web)) {
+            return trim($this->site_web);
+        }
+
+        $lien = trim((string) $this->url_profil);
+
+        return $lien !== '' && preg_match('#^(https?://)?[\w-]+(\.[\w-]+)+(/\S*)?$#i', $lien) ? $lien : null;
+    }
+
     /** Dernier examen de son site web (radar de prospection). */
     public function radarSite(): \Illuminate\Database\Eloquent\Relations\HasOne
     {

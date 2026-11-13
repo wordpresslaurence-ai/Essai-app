@@ -2,7 +2,7 @@
             @php
                 $s = $c->statut_radar;
                 $radar = $c->radarSite;
-                $aJour = $radar && $radar->analyse_le && $radar->url === $c->site_web;
+                $aJour = $radar && $radar->analyse_le && $radar->url === $c->adresseSite();
                 $couleur = match ($s) {
                     \App\Models\RadarSite::A_AMELIORER, \App\Models\RadarSite::RESEAU_SEUL => 'background:var(--gold-tint);color:var(--accent)',
                     \App\Models\RadarSite::SANS_SITE, \App\Models\RadarSite::INJOIGNABLE => 'background:var(--terra-tint);color:var(--terra)',
@@ -18,8 +18,8 @@
                     <a href="{{ route('contacts.fiche', $c) }}" wire:navigate class="nm" style="text-decoration:none;color:inherit">{{ $c->nomComplet() }}</a>
                     <div class="mt" style="overflow-wrap:anywhere">
                         @if (filled($c->adresse_ville)){{ $c->adresse_ville }} · @endif
-                        @if (filled($c->site_web))
-                            <a href="{{ \App\Services\Radar\AnalyseurSite::normaliser($c->site_web) ?? '#' }}" target="_blank" rel="noopener noreferrer" class="lb-accent" style="font-weight:600">{{ \Illuminate\Support\Str::limit(preg_replace('#^https?://(www\.)?#i', '', $c->site_web), 48) }}</a>
+                        @if (filled($c->adresseSite()))
+                            <a href="{{ \App\Services\Radar\AnalyseurSite::normaliser($c->adresseSite()) ?? '#' }}" target="_blank" rel="noopener noreferrer" class="lb-accent" style="font-weight:600">{{ \Illuminate\Support\Str::limit(preg_replace('#^https?://(www\.)?#i', '', $c->adresseSite()), 48) }}</a>
                         @elseif (filled($c->instagram) || filled($c->facebook))
                             présent sur {{ implode(' et ', array_filter([filled($c->instagram) ? 'Instagram' : null, filled($c->facebook) ? 'Facebook' : null])) }}
                         @else
@@ -40,7 +40,7 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2" style="margin-left:auto">
-                    @if (filled($c->site_web))
+                    @if (filled($c->adresseSite()))
                         <button type="button" wire:click="analyser({{ $c->id }})" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px"
                                 wire:loading.attr="disabled" wire:target="analyser({{ $c->id }})">
                             <span wire:loading.remove wire:target="analyser({{ $c->id }})">{{ $aJour ? 'Revisiter' : 'Analyser' }}</span>

@@ -605,6 +605,12 @@
                         </div>
                     </div>
 
+                    <div>
+                        <div class="k">Site web</div>
+                        <div class="val">
+                            @if ($contact->site_web)<a href="{{ $contact->site_web }}" target="_blank" rel="noopener" class="lb-truncate">{{ preg_replace('#^https?://#', '', $contact->site_web) }}</a>@else — @endif
+                        </div>
+                    </div>
                     @if ($contact->estPersonne())
                         <div><div class="k">Fonction</div><div class="val">{{ $contact->fonction ?: '—' }}</div></div>
                         <div>
@@ -614,12 +620,6 @@
                             </div>
                         </div>
                     @else
-                        <div>
-                            <div class="k">Site web</div>
-                            <div class="val">
-                                @if ($contact->site_web)<a href="{{ $contact->site_web }}" target="_blank" rel="noopener" class="lb-truncate">{{ preg_replace('#^https?://#', '', $contact->site_web) }}</a>@else — @endif
-                            </div>
-                        </div>
                         <div><div class="k">Secteur</div><div class="val">{{ $contact->secteur ?: '—' }}</div></div>
                         <div><div class="k">N° d'entreprise (BCE)</div><div class="val">{{ $contact->numero_entreprise ?: '—' }}</div></div>
                         <div><div class="k">N° de TVA</div><div class="val">{{ $contact->numero_tva ?: '—' }}</div></div>
