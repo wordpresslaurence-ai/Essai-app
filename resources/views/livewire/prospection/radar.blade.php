@@ -75,13 +75,13 @@
     </div>
 
     {{-- Résultats tout juste obtenus --}}
-    @if ($recents->isNotEmpty())
+    @if ($justeAnalyses->isNotEmpty())
         <div class="flex items-center justify-between gap-3 mt-5">
             <h3 class="lb-h3" style="font-size:17px">Tu viens d'analyser</h3>
             <button type="button" wire:click="oublierRecents" class="lb-muted" style="font-size:12.5px;background:none;border:0;cursor:pointer;text-decoration:underline">Masquer ce bloc</button>
         </div>
         <div class="lb-people mt-3">
-            @foreach ($recents as $c)
+            @foreach ($justeAnalyses as $c)
                 @include('livewire.prospection._radar-ligne')
             @endforeach
         </div>

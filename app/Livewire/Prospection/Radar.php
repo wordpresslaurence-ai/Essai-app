@@ -183,7 +183,7 @@ class Radar extends Component
 
         return view('livewire.prospection.radar', [
             'contacts' => $liste->take($this->affiches),
-            'recents' => $recents,
+            'justeAnalyses' => $recents,
             'total' => $liste->count(),
             'compteurs' => $tous->countBy('statut_radar'),
             'poles' => Pole::with('categories')->orderBy('ordre')->orderBy('nom')->get(),
