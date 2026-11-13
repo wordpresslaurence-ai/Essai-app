@@ -78,6 +78,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Module Prospection (Option B : brief pour ChatGPT, tri et import côté CRM)
     Route::get('prospection', \App\Livewire\Prospection\Liste::class)->name('prospection.index');
+    Route::get('prospection/radar', \App\Livewire\Prospection\Radar::class)->name('prospection.radar');
     Route::get('prospection/creer', \App\Livewire\Prospection\Formulaire::class)->name('prospection.creer');
     Route::get('prospection/{recherche}/modifier', \App\Livewire\Prospection\Formulaire::class)->name('prospection.modifier');
     Route::get('prospection/{recherche}/resultats', \App\Livewire\Prospection\Resultats::class)->name('prospection.resultats');

@@ -229,6 +229,12 @@ class Contact extends Model
     }
 
     /** La catégorie (et donc le pôle) de ce contact. */
+    /** Dernier examen de son site web (radar de prospection). */
+    public function radarSite(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(RadarSite::class);
+    }
+
     public function categorie(): BelongsTo
     {
         return $this->belongsTo(Categorie::class);

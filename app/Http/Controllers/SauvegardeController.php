@@ -47,6 +47,7 @@ class SauvegardeController extends Controller
             'seances' => Seance::all()->toArray(),
             'inscriptions' => Inscription::all()->toArray(),
             'paiements' => \App\Models\Paiement::all()->toArray(),
+            'radars_site' => \App\Models\RadarSite::all()->toArray(),
             'invitations' => \App\Models\Invitation::all()->toArray(),
             'modeles_message' => \App\Models\ModeleMessage::all()->toArray(),
         ];

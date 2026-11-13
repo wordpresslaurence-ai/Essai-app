@@ -4,7 +4,10 @@
             <div class="lb-eyebrow">Assistant de prospection</div>
             <h1 class="lb-h1">Mes recherches</h1>
         </div>
-        <a href="{{ route('prospection.creer') }}" class="lb-btn lb-btn-primary" wire:navigate>+ Nouvelle recherche</a>
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ route('prospection.radar') }}" class="lb-btn lb-btn-ghost" wire:navigate>Radar sites web</a>
+            <a href="{{ route('prospection.creer') }}" class="lb-btn lb-btn-primary" wire:navigate>+ Nouvelle recherche</a>
+        </div>
     </div>
 
     @if (session('message'))

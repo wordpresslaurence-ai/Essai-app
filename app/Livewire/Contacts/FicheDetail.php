@@ -61,6 +61,16 @@ class FicheDetail extends Component
     {
         $this->contact = $contact;
         $this->offreCategorieId = $contact->categorie_id ? (string) $contact->categorie_id : null;
+
+        // Arrivée depuis le radar « sites web » : angle et offre déjà choisis.
+        $angle = request()->query('angle');
+        if (is_string($angle) && trim($angle) !== '') {
+            $this->angleProspection = mb_substr(trim($angle), 0, 1500);
+        }
+        $offre = request()->query('offre');
+        if (is_string($offre) && ctype_digit($offre) && \App\Models\Categorie::whereKey((int) $offre)->exists()) {
+            $this->offreCategorieId = $offre;
+        }
     }
 
     /** Déplie la liste complète des e-mails de la fiche. */

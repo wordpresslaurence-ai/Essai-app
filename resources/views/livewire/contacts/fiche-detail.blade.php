@@ -443,7 +443,7 @@
             </div>
 
             {{-- Prospection (assistant IA) --}}
-            <div class="lb-card" style="padding:20px" x-data="{ copie: false, copieHtml: false }">
+            <div id="prospection" class="lb-card" style="padding:20px;scroll-margin-top:16px" x-data="{ copie: false, copieHtml: false }">
                 <h3 class="lb-h3" style="font-size:19px">Prospection</h3>
 
                 @if ($offresProspection->isNotEmpty())
