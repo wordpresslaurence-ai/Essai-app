@@ -606,7 +606,8 @@ class AssistantClaude implements AssistantIA
         foreach ($notes as $note) {
             $lignes[] = '';
             $lignes[] = '----- ['.$note->titre.'] -----';
-            $lignes[] = mb_substr(trim((string) $note->notes), 0, 4000);
+            // Les messages les plus récents sont en fin de note : on garde la fin.
+            $lignes[] = mb_substr(trim((string) $note->notes), -4000);
         }
 
         return implode("\n", $lignes);

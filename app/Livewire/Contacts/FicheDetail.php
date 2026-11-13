@@ -7,14 +7,19 @@ use App\Models\Analyse;
 use App\Models\Contact;
 use App\Models\Opportunite;
 use App\Services\IA\AssistantIA;
+use App\Services\Whatsapp\LecteurDiscussion;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 use Throwable;
 
 #[Layout('layouts.app')]
 class FicheDetail extends Component
 {
+    use WithFileUploads;
+
     public Contact $contact;
 
     public ?string $analyseErreur = null;
@@ -23,6 +28,9 @@ class FicheDetail extends Component
     public bool $whatsappOuvert = false;
 
     public string $whatsappTexte = '';
+
+    /** Discussion exportée depuis WhatsApp (.txt, ou .zip qui la contient). */
+    public ?TemporaryUploadedFile $whatsappFichier = null;
 
     // Prospection
     public string $angleProspection = '';
@@ -85,28 +93,141 @@ class FicheDetail extends Component
     }
 
     /**
-     * Garde dans l'historique un échange WhatsApp collé à la main (le CRM ne lit
-     * pas WhatsApp). L'assistant en tient compte dans ses analyses et réponses.
+     * Fichier déposé : son texte remplit la zone de saisie, que l'on peut relire
+     * avant d'enregistrer. Un .zip (export iPhone) est ouvert pour en tirer le .txt.
+     */
+    public function updatedWhatsappFichier(): void
+    {
+        $this->validate([
+            'whatsappFichier' => ['file', 'mimes:txt,zip', 'max:5120'],
+        ], [
+            'whatsappFichier.mimes' => 'Dépose le fichier .txt (ou .zip) exporté depuis WhatsApp.',
+            'whatsappFichier.max' => 'Ce fichier dépasse 5 Mo : exporte la discussion « sans médias ».',
+        ]);
+
+        $chemin = $this->whatsappFichier->getRealPath();
+        $contenu = null;
+
+        if (strtolower($this->whatsappFichier->getClientOriginalExtension()) === 'zip') {
+            if (class_exists(\ZipArchive::class)) {
+                $zip = new \ZipArchive;
+                if ($zip->open($chemin) === true) {
+                    for ($i = 0; $i < $zip->numFiles; $i++) {
+                        if (str_ends_with(strtolower((string) $zip->getNameIndex($i)), '.txt')) {
+                            $contenu = (string) $zip->getFromIndex($i);
+                            break;
+                        }
+                    }
+                    $zip->close();
+                }
+            }
+        } else {
+            $contenu = (string) file_get_contents($chemin);
+        }
+
+        $this->reset('whatsappFichier');
+
+        if ($contenu === null || trim($contenu) === '') {
+            $this->addError('whatsappFichier', 'Aucune discussion trouvée dans ce fichier. Ouvre-le et colle son texte ci-dessous.');
+
+            return;
+        }
+
+        if (! mb_check_encoding($contenu, 'UTF-8')) {
+            $contenu = mb_convert_encoding($contenu, 'UTF-8', 'Windows-1252');
+        }
+
+        $this->whatsappTexte = trim($contenu);
+    }
+
+    /**
+     * Garde dans l'historique un échange WhatsApp collé à la main ou exporté (le
+     * CRM ne lit pas WhatsApp). L'assistant en tient compte dans ses analyses.
+     *
+     * Une discussion exportée est reconnue : ses messages sont rangés proprement
+     * et seuls ceux qui ne sont pas déjà dans l'historique sont ajoutés. Tout
+     * autre texte (résumé, copie partielle) est gardé tel quel.
      */
     public function noterWhatsapp(): void
     {
         $donnees = $this->validate([
-            'whatsappTexte' => ['required', 'string', 'max:20000'],
+            'whatsappTexte' => ['required', 'string', 'max:2000000'],
         ], [
-            'whatsappTexte.required' => 'Colle la conversation ou résume l’échange.',
+            'whatsappTexte.required' => 'Colle la conversation, dépose le fichier exporté, ou résume l’échange.',
+            'whatsappTexte.max' => 'Cette discussion est trop longue : exporte-la « sans médias » ou colle seulement la partie récente.',
         ]);
 
+        $lecteur = new LecteurDiscussion;
+        $messages = $lecteur->lire($donnees['whatsappTexte']);
+
+        // Texte libre : comportement d'origine.
+        if (count($messages) < 2) {
+            $this->creerNoteWhatsapp(
+                Activite::TITRE_WHATSAPP.' du '.now()->format('d/m/Y'),
+                mb_substr(trim($donnees['whatsappTexte']), 0, 20000),
+            );
+            $this->finNoteWhatsapp('Échange WhatsApp noté dans l’historique.');
+
+            return;
+        }
+
+        // Discussion reconnue : on écarte ce qui est déjà noté sur cette fiche.
+        $connues = [];
+        $anciennes = Activite::where('contact_id', $this->contact->id)
+            ->where('titre', 'like', Activite::TITRE_WHATSAPP.'%')
+            ->whereNotNull('notes')
+            ->pluck('notes');
+        foreach ($anciennes as $note) {
+            foreach ($lecteur->lire((string) $note) as $ancien) {
+                $connues[LecteurDiscussion::cle($ancien)] = true;
+            }
+        }
+
+        $nouveaux = [];
+        foreach ($messages as $message) {
+            $cle = LecteurDiscussion::cle($message);
+            if (! isset($connues[$cle])) {
+                $connues[$cle] = true;
+                $nouveaux[] = $message;
+            }
+        }
+
+        if ($nouveaux === []) {
+            $this->finNoteWhatsapp('Rien de nouveau : ces '.count($messages).' messages sont déjà dans l’historique.');
+
+            return;
+        }
+
+        foreach (LecteurDiscussion::blocs($nouveaux) as $bloc) {
+            $debut = $bloc[0]['date'];
+            $fin = $bloc[count($bloc) - 1]['date'];
+
+            $this->creerNoteWhatsapp(
+                Activite::TITRE_WHATSAPP.' du '.$debut.($fin !== $debut ? ' au '.$fin : ''),
+                implode("\n", array_map([LecteurDiscussion::class, 'formater'], $bloc)),
+            );
+        }
+
+        $deja = count($messages) - count($nouveaux);
+        $this->finNoteWhatsapp(count($nouveaux).' message(s) WhatsApp ajouté(s) à l’historique'.($deja > 0 ? ' ('.$deja.' déjà présent(s), ignoré(s))' : '').'.');
+    }
+
+    private function creerNoteWhatsapp(string $titre, string $notes): void
+    {
         Activite::create([
-            'titre' => Activite::TITRE_WHATSAPP.' du '.now()->format('d/m/Y'),
+            'titre' => $titre,
             'type' => Activite::TYPE_NOTE,
             'contact_id' => $this->contact->id,
             'terminee_at' => now(),
-            'notes' => trim($donnees['whatsappTexte']),
+            'notes' => $notes,
         ]);
+    }
 
-        $this->reset('whatsappTexte', 'whatsappOuvert');
+    private function finNoteWhatsapp(string $message): void
+    {
+        $this->reset('whatsappTexte', 'whatsappOuvert', 'whatsappFichier');
         $this->contact->refresh();
-        session()->flash('message', 'Échange WhatsApp noté dans l’historique.');
+        session()->flash('message', $message);
     }
 
     /** Met le contact « à la une » (ou l'en retire) — affiché sur le tableau de bord. */

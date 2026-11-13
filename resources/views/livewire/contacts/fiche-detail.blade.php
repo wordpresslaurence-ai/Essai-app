@@ -79,14 +79,19 @@
                 </div>
                 @if ($whatsappOuvert)
                     <form wire:submit="noterWhatsapp" style="margin-top:12px">
-                        <label for="whatsappTexte" class="lb-label" style="font-weight:500;color:var(--text-muted)">Colle la conversation, ou résume-la</label>
-                        <textarea id="whatsappTexte" rows="6" wire:model="whatsappTexte" class="lb-field" placeholder="Dans WhatsApp : ouvre la discussion → ⋮ → Plus → Exporter la discussion, ou copie simplement les messages."></textarea>
+                        <label for="whatsappFichier" class="lb-label" style="font-weight:500;color:var(--text-muted)">Déposer une discussion exportée (.txt ou .zip)</label>
+                        <input id="whatsappFichier" type="file" wire:model="whatsappFichier" accept=".txt,.zip" class="lb-field">
+                        @error('whatsappFichier') <p class="lb-error">{{ $message }}</p> @enderror
+                        <div wire:loading wire:target="whatsappFichier" class="lb-muted" style="font-size:12px;margin-top:6px">Lecture du fichier…</div>
+
+                        <label for="whatsappTexte" class="lb-label" style="font-weight:500;color:var(--text-muted);margin-top:12px">Ou colle la conversation, ou résume-la</label>
+                        <textarea id="whatsappTexte" rows="6" wire:model="whatsappTexte" class="lb-field" placeholder="Dans WhatsApp : ouvre la discussion → ⋮ → Plus → Exporter la discussion → Sans médias. Ou copie simplement les messages."></textarea>
                         @error('whatsappTexte') <p class="lb-error">{{ $message }}</p> @enderror
                         <div class="flex items-center justify-end gap-3" style="margin-top:8px">
                             <button type="button" wire:click="$set('whatsappOuvert', false)" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px">Annuler</button>
                             <button type="submit" class="lb-btn lb-btn-primary" style="padding:7px 13px;font-size:12.5px">Enregistrer</button>
                         </div>
-                        <p class="lb-muted" style="font-size:11.5px;margin-top:6px">Le CRM ne lit pas WhatsApp : ce texte est gardé dans l'historique et l'assistant en tient compte.</p>
+                        <p class="lb-muted" style="font-size:11.5px;margin-top:6px">Le CRM ne lit pas WhatsApp : ce texte est gardé dans l'historique et l'assistant en tient compte. Une discussion exportée est reconnue : si tu la réimportes plus tard, seuls les nouveaux messages sont ajoutés.</p>
                     </form>
                 @endif
                 <div class="lb-people mt-3">

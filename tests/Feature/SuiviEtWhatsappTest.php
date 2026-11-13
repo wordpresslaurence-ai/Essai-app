@@ -236,3 +236,53 @@ it('enregistre le lien du groupe WhatsApp d’une session', function () {
 
     expect(Seance::where('titre', 'Stage de mai')->first()->lien_groupe)->toBe('https://chat.whatsapp.com/abc');
 });
+
+// --- Discussion WhatsApp exportée --------------------------------------------
+
+it('reconnaît une discussion WhatsApp exportée et n’ajoute que les nouveaux messages', function () {
+    $contact = Contact::factory()->create();
+    $export = "13/12/2026, 10:32 - Les messages et les appels sont chiffrés de bout en bout.\n"
+        ."13/12/2026, 10:32 - Marie Durand: Bonjour Laurence\nje viens samedi\n"
+        ."13/12/2026, 10:35 - Laurence: Super, à samedi !\n";
+
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->set('whatsappTexte', $export)
+        ->call('noterWhatsapp')
+        ->assertHasNoErrors();
+
+    $note = Activite::where('contact_id', $contact->id)->firstOrFail();
+    expect($note->titre)->toBe('Échange WhatsApp du 13/12/2026');
+    expect($note->notes)->toBe("[13/12/2026 10:32] Marie Durand: Bonjour Laurence\nje viens samedi\n[13/12/2026 10:35] Laurence: Super, à samedi !");
+
+    // Réimport de la même discussion, plus un message (format iPhone) : un seul ajout.
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->set('whatsappTexte', $export."[14/12/2026 09:01:22] Marie Durand: Merci pour hier\n")
+        ->call('noterWhatsapp');
+
+    $notes = Activite::where('contact_id', $contact->id)->orderBy('id')->get();
+    expect($notes)->toHaveCount(2);
+    expect($notes[1]->notes)->toBe('[14/12/2026 09:01] Marie Durand: Merci pour hier');
+
+    // Réimport à l'identique : rien de plus.
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->set('whatsappTexte', $export)
+        ->call('noterWhatsapp');
+    expect(Activite::where('contact_id', $contact->id)->count())->toBe(2);
+});
+
+it('lit le fichier .txt exporté depuis WhatsApp', function () {
+    $contact = Contact::factory()->create();
+    $fichier = \Illuminate\Http\UploadedFile::fake()->createWithContent(
+        'Discussion WhatsApp avec Marie.txt',
+        "13/12/2026, 10:32 - Marie Durand: Bonjour\n13/12/2026, 10:35 - Laurence: Bonjour Marie\n",
+    );
+
+    Livewire::test(FicheDetail::class, ['contact' => $contact])
+        ->set('whatsappFichier', $fichier)
+        ->assertHasNoErrors()
+        ->assertSet('whatsappTexte', "13/12/2026, 10:32 - Marie Durand: Bonjour\n13/12/2026, 10:35 - Laurence: Bonjour Marie")
+        ->call('noterWhatsapp');
+
+    expect(Activite::where('contact_id', $contact->id)->firstOrFail()->notes)
+        ->toContain('[13/12/2026 10:35] Laurence: Bonjour Marie');
+});
