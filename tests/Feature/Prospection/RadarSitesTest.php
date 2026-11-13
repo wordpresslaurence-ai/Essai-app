@@ -92,7 +92,7 @@ it('classe les contacts, analyse les suivants et garde le résultat', function (
     expect(RadarSite::where('contact_id', $sansSite->id)->exists())->toBeFalse();
 
     // Filtre par statut, puis écarter.
-    $page->set('statut', RadarSite::A_AMELIORER)
+    $page->call('oublierRecents')->set('statut', RadarSite::A_AMELIORER)
         ->assertSee('Zoé Datée')
         ->assertDontSee('Léa Soignée')
         ->call('basculerEcarte', $date->id)
@@ -127,4 +127,18 @@ it('prépare l’angle du mail à partir des constats et l’ouvre sur la fiche'
 
     $this->get(route('prospection.radar'))->assertOk();
     $this->get(route('prospection.index'))->assertOk()->assertSee('Radar sites web');
+});
+
+it('garde en tête de liste le contact qui vient d’être analysé, même hors filtre', function () {
+    Http::fake(['studio-lotus.test*' => Http::response(pageSoignee())]);
+    $contact = Contact::factory()->create(['prenom' => 'Léa', 'nom' => 'Soignée', 'site_web' => 'https://studio-lotus.test']);
+
+    Livewire::test(Radar::class)
+        ->set('statut', RadarSite::NON_ANALYSE)
+        ->call('analyser', $contact->id)
+        ->assertSee('Tu viens d\'analyser', false)
+        ->assertSee('Léa Soignée')
+        ->assertSee('Site correct')
+        ->call('oublierRecents')
+        ->assertDontSee('Léa Soignée');
 });
