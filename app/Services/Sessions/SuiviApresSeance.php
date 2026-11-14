@@ -30,16 +30,22 @@ class SuiviApresSeance
             ->where('statut', Inscription::STATUT_CONFIRME)
             ->whereNull('suivi_cree_le')
             ->whereNull('suivi_envoye_le')
+            // Pour un cycle, le suivi se fait après la DERNIÈRE date.
             ->whereHas('seance', fn ($q) => $q
                 ->whereNotNull('date_debut')
-                ->where('date_debut', '<', now()->startOfDay())
-                ->where('date_debut', '>=', now()->subDays(self::FENETRE_JOURS)->startOfDay()))
+                ->where(fn ($d) => $d
+                    ->where(fn ($simple) => $simple->whereNull('date_fin')
+                        ->where('date_debut', '<', now()->startOfDay())
+                        ->where('date_debut', '>=', now()->subDays(self::FENETRE_JOURS)->startOfDay()))
+                    ->orWhere(fn ($cycle) => $cycle->whereNotNull('date_fin')
+                        ->where('date_fin', '<', now()->startOfDay())
+                        ->where('date_fin', '>=', now()->subDays(self::FENETRE_JOURS)->startOfDay()))))
             ->with(['seance.lieuContact', 'contact.entreprise'])
             ->get();
 
         foreach ($inscriptions as $inscription) {
             $texte = $this->texte($inscription, $moi);
-            $lendemain = $inscription->seance->date_debut->copy()->addDay()->startOfDay();
+            $lendemain = $inscription->seance->fin()->copy()->addDay()->startOfDay();
 
             Activite::create([
                 'titre' => self::titreTache($inscription),

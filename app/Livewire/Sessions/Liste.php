@@ -86,20 +86,28 @@ class Liste extends Component
                 fn ($c) => $c->whereHas('categorie', fn ($cat) => $cat->where('pole_id', $this->pole))
             );
 
-        $seances = $filtre(Seance::with('categorie.pole'))
-            ->whereYear('date_debut', $annee)
+        $seances = $filtre(Seance::with(['categorie.pole', 'dates']))
+            ->where(fn ($q) => $q->whereYear('date_debut', $annee)->orWhereYear('date_fin', $annee))
             ->orderBy('date_debut')
             ->get();
 
         $couleur = fn (Seance $s) => $s->categorie?->couleur ?: 'var(--accent)';
 
-        $parJour = $seances->groupBy(fn (Seance $s) => $s->date_debut->toDateString())
-            ->map(fn ($groupe) => $groupe->map(fn (Seance $s) => [
-                'id' => $s->id,
-                'titre' => $s->titre,
-                'libelle' => $s->titre.', '.$s->date_debut->translatedFormat('j F Y'),
-                'couleur' => $couleur($s),
-            ])->all());
+        // Un point par date : toutes les dates d'un cycle apparaissent dans l'agenda.
+        $parJour = collect();
+        foreach ($seances as $s) {
+            $jours = $s->dates->isNotEmpty() ? $s->dates->pluck('date_debut') : collect([$s->date_debut]);
+            foreach ($jours->filter(fn ($d) => $d->year === $annee) as $rang => $jour) {
+                $cle = $jour->toDateString();
+                $parJour[$cle] = array_merge($parJour->get($cle, []), [[
+                    'id' => $s->id,
+                    'titre' => $s->titre,
+                    'libelle' => $s->titre.', '.$jour->translatedFormat('j F Y')
+                        .($jours->count() > 1 ? ' (date '.($rang + 1).' sur '.$jours->count().')' : ''),
+                    'couleur' => $couleur($s),
+                ]]);
+            }
+        }
 
         $mois = [];
         for ($m = 1; $m <= 12; $m++) {
@@ -138,6 +146,7 @@ class Liste extends Component
         $seances = Seance::with(['categorie.pole', 'lieuContact'])
             ->withCount(['inscriptions as confirmes_count' => fn ($q) => $q->where('statut', 'confirme')])
             ->withCount(['inscriptions as attente_count' => fn ($q) => $q->where('statut', 'attente')])
+            ->withCount('dates')
             ->when($this->onglet === 'passees', fn ($q) => $q->passees(), fn ($q) => $q->aVenir())
             ->when($this->categorie !== '', fn ($q) => $q->where('categorie_id', $this->categorie))
             ->when(

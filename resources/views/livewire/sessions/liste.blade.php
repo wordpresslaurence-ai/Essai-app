@@ -65,7 +65,7 @@
 
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-1" style="font-size:12.5px;color:var(--text-muted)">
                     @if ($seance->date_debut)
-                        <span>📅 {{ $seance->date_debut->translatedFormat('d/m/Y') }}{{ $seance->date_debut->format('H:i') !== '00:00' ? ' · '.$seance->date_debut->format('H:i') : '' }}</span>
+                        <span>📅 {{ $seance->date_debut->translatedFormat('d/m/Y') }}{{ $seance->date_debut->format('H:i') !== '00:00' ? ' · '.$seance->date_debut->format('H:i') : '' }}@if ($seance->date_fin) → {{ $seance->date_fin->translatedFormat('d/m/Y') }} ({{ $seance->dates_count }} dates)@endif</span>
                     @endif
                     @if ($seance->lieuContact)
                         <span class="lb-truncate">🏛️ {{ $seance->lieuContact->nomComplet() }}@if (filled($seance->lieuContact->adresse_ville)) · {{ $seance->lieuContact->adresse_ville }}@endif</span>

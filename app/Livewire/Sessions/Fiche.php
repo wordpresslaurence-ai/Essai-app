@@ -18,6 +18,9 @@ class Fiche extends Component
 
     public ?string $inscriptionErreur = null;
 
+    /** Cycle déjà commencé : les inscriptions sont closes, sauf si l'on force. */
+    public bool $forcerInscription = false;
+
     /** Recherche dans la liste « Inscrire un contact ». */
     public string $rechercheContact = '';
 
@@ -95,6 +98,7 @@ class Fiche extends Component
             'confirmes' => $this->seance->confirmes(),
             'enAttente' => $this->seance->enAttente(),
             'contactsDispo' => $contactsDispo,
+            'dates' => $this->seance->dates()->get(),
         ]);
     }
 }

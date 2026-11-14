@@ -27,6 +27,7 @@
         </div>
         <div class="flex flex-wrap items-center gap-2">
             <a href="{{ route('sessions.invitations', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Inviter</a>
+            <a href="{{ route('sessions.dates', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Dates et présences</a>
             <a href="{{ route('sessions.message', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>💬 Message aux inscrits</a>
             <a href="{{ route('sessions.suivi', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Suivi après la séance</a>
             <a href="{{ route('sessions.paiements', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Paiements</a>
@@ -50,7 +51,32 @@
         @endif
     </div>
 
+    {{-- Dates du cycle --}}
+    @if ($dates->count() > 1 || $dates->contains(fn ($d) => filled($d->lien_visio)))
+        <div class="lb-card mt-4" style="padding:16px 20px">
+            <div class="flex items-center justify-between gap-3">
+                <div class="lb-label" style="margin:0">{{ $dates->count() > 1 ? 'Cycle de '.$dates->count().' dates' : 'Séance en ligne' }}</div>
+                <a href="{{ route('sessions.dates', $seance) }}" class="lb-accent" style="font-size:12.5px;font-weight:600;text-decoration:none" wire:navigate>Présences, rappels, enregistrements →</a>
+            </div>
+            <ul style="margin:8px 0 0;padding:0;list-style:none;font-size:13.5px">
+                @foreach ($dates as $d)
+                    <li style="padding:3px 0;{{ $d->date_debut->isPast() ? 'color:var(--text-muted)' : 'color:var(--ink)' }}">
+                        {{ ucfirst($d->libelle()) }}
+                        @if (filled($d->lien_visio)) · <a href="{{ $d->lien_visio }}" target="_blank" rel="noopener noreferrer" class="lb-accent" style="font-weight:600">lien de visio</a>@else · <span class="lb-muted">pas de lien de visio</span>@endif
+                        @if (filled($d->lien_enregistrement)) · <a href="{{ $d->lien_enregistrement }}" target="_blank" rel="noopener noreferrer" class="lb-accent" style="font-weight:600">enregistrement</a>@endif
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     {{-- Inscrire un contact --}}
+    @if ($seance->inscriptionsCloses() && ! $forcerInscription)
+        <div class="lb-card mt-4 flex flex-wrap items-center justify-between gap-3" style="padding:16px">
+            <span class="lb-muted" style="font-size:13.5px">Le cycle a commencé : les inscriptions sont closes.</span>
+            <button type="button" wire:click="$set('forcerInscription', true)" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px">Inscrire quand même quelqu'un</button>
+        </div>
+    @else
     <form wire:submit="inscrire" class="lb-card mt-4 flex flex-wrap items-end gap-3" style="padding:16px">
         <div style="flex:1;min-width:14rem">
             <label for="contactAInscrire" class="lb-label">Inscrire un contact</label>
@@ -66,6 +92,7 @@
         </div>
         <button type="submit" class="lb-btn lb-btn-primary">Inscrire</button>
     </form>
+    @endif
     @if ($seance->capacite && $confirmes->count() >= $seance->capacite)
         <p class="lb-muted" style="font-size:12.5px;margin-top:6px">La session est complète : les nouvelles inscriptions iront en liste d'attente.</p>
     @endif

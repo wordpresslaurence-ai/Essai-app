@@ -17,6 +17,7 @@ class TableauBord extends Component
     public function mount(): void
     {
         app(\App\Services\Sessions\SuiviApresSeance::class)->creerTaches(auth()->user()?->name);
+        app(\App\Services\Sessions\RappelsCycle::class)->creerTaches();
     }
 
     /** Coche une tâche du jour comme terminée. */

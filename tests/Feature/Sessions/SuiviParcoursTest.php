@@ -167,7 +167,7 @@ it('refuse d’agir sur l’inscription d’une autre session, et affiche la pag
     expect($ailleurs->fresh()->presence)->toBeNull();
 
     $this->get(route('sessions.suivi', $hier))->assertOk()->assertSee('Suivi après la séance');
-    $this->get(route('sessions.suivi', $prochaine))->assertOk()->assertSee('pas encore eu lieu');
+    $this->get(route('sessions.suivi', $prochaine))->assertOk()->assertSee('pas encore terminée');
     $this->get(route('sessions.fiche', $hier))->assertOk()->assertSee('Suivi après la séance');
 });
 

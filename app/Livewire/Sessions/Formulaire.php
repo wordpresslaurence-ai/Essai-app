@@ -5,6 +5,7 @@ namespace App\Livewire\Sessions;
 use App\Models\Contact;
 use App\Models\Pole;
 use App\Models\Seance;
+use App\Models\SeanceDate;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -22,6 +23,19 @@ class Formulaire extends Component
     public ?string $categorie_id = null;
 
     public ?string $date_debut = null;
+
+    /** Lien de visio de la première date. */
+    public ?string $lien_visio = null;
+
+    /** Identifiant de la ligne « première date » déjà enregistrée (pour garder ses présences). */
+    public ?int $premiereDateId = null;
+
+    /**
+     * Dates suivantes d'un cycle.
+     *
+     * @var array<int, array{id: ?int, date: ?string, lien_visio: ?string}>
+     */
+    public array $autresDates = [];
 
     public ?string $lieu = null;
 
@@ -63,6 +77,19 @@ class Formulaire extends Component
             $this->prix = $seance->prix !== null ? (string) $seance->prix : null;
             $this->notes = $seance->notes;
 
+            // Dates déjà enregistrées : la première dans les champs principaux, les suivantes en liste.
+            $dates = $seance->dates;
+            if ($premiere = $dates->first()) {
+                $this->premiereDateId = $premiere->id;
+                $this->date_debut = $premiere->date_debut->format('Y-m-d\TH:i');
+                $this->lien_visio = $premiere->lien_visio;
+            }
+            $this->autresDates = $dates->skip(1)->map(fn (SeanceDate $d) => [
+                'id' => $d->id,
+                'date' => $d->date_debut->format('Y-m-d\TH:i'),
+                'lien_visio' => $d->lien_visio,
+            ])->values()->all();
+
             return;
         }
 
@@ -91,6 +118,10 @@ class Formulaire extends Component
             'titre' => ['required', 'string', 'max:255'],
             'categorie_id' => ['nullable', 'exists:categories,id'],
             'date_debut' => ['nullable', 'date'],
+            'lien_visio' => ['nullable', 'url', 'max:500'],
+            'autresDates' => ['array', 'max:60'],
+            'autresDates.*.date' => ['nullable', 'date'],
+            'autresDates.*.lien_visio' => ['nullable', 'url', 'max:500'],
             'lieu' => ['nullable', 'string', 'max:255'],
             'lieu_contact_id' => ['nullable', 'exists:contacts,id'],
             'lien_inscription' => ['nullable', 'url', 'max:500'],
@@ -100,6 +131,59 @@ class Formulaire extends Component
             'prix' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
             'notes' => ['nullable', 'string'],
         ];
+    }
+
+    public function ajouterDate(): void
+    {
+        $this->autresDates[] = ['id' => null, 'date' => null, 'lien_visio' => null];
+    }
+
+    public function retirerDate(int $index): void
+    {
+        unset($this->autresDates[$index]);
+        $this->autresDates = array_values($this->autresDates);
+    }
+
+    /**
+     * Enregistre les dates de la session : la première et les suivantes. Les lignes
+     * existantes gardent leur identifiant (et donc leurs présences) ; date_debut et
+     * date_fin de la session suivent la première et la dernière date.
+     */
+    private function synchroniserDates(Seance $seance): void
+    {
+        $lignes = [];
+        if (filled($this->date_debut)) {
+            $lignes[] = ['id' => $this->premiereDateId, 'date' => $this->date_debut, 'lien_visio' => $this->lien_visio];
+        }
+        foreach ($this->autresDates as $autre) {
+            if (filled($autre['date'] ?? null)) {
+                $lignes[] = ['id' => $autre['id'] ?? null, 'date' => $autre['date'], 'lien_visio' => $autre['lien_visio'] ?? null];
+            }
+        }
+
+        $gardees = [];
+        foreach ($lignes as $ligne) {
+            $valeurs = [
+                'date_debut' => $ligne['date'],
+                'lien_visio' => filled($ligne['lien_visio']) ? trim($ligne['lien_visio']) : null,
+            ];
+            $existante = $ligne['id'] ? $seance->dates()->find($ligne['id']) : null;
+
+            if ($existante) {
+                $existante->update($valeurs);
+                $gardees[] = $existante->id;
+            } else {
+                $gardees[] = $seance->dates()->create($valeurs)->id;
+            }
+        }
+
+        $seance->dates()->whereNotIn('id', $gardees)->delete();
+
+        $dates = $seance->dates()->pluck('date_debut');
+        $seance->update([
+            'date_debut' => $dates->min(),
+            'date_fin' => $dates->count() > 1 ? $dates->max() : null,
+        ]);
     }
 
     public function enregistrer()
@@ -113,7 +197,14 @@ class Formulaire extends Component
 
         $this->prix = filled($this->prix) ? str_replace(',', '.', trim($this->prix)) : null;
 
+        $this->lien_visio = filled($this->lien_visio) ? trim($this->lien_visio) : null;
+        foreach ($this->autresDates as $i => $autre) {
+            $this->autresDates[$i]['lien_visio'] = filled($autre['lien_visio'] ?? null) ? trim($autre['lien_visio']) : null;
+            $this->autresDates[$i]['date'] = filled($autre['date'] ?? null) ? $autre['date'] : null;
+        }
+
         $donnees = $this->validate();
+        unset($donnees['lien_visio'], $donnees['autresDates']); // enregistrés dans seance_dates
         $donnees['capacite'] = $donnees['capacite'] !== null && $donnees['capacite'] !== ''
             ? (int) $donnees['capacite'] : null;
 
@@ -125,6 +216,8 @@ class Formulaire extends Component
             $cible = Seance::create($donnees);
             $message = 'Session créée.';
         }
+
+        $this->synchroniserDates($cible);
 
         session()->flash('message', $message);
 

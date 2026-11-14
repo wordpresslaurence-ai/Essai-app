@@ -48,6 +48,7 @@ class Brief extends Component
 
         // Suivi après séance : une tâche par participant dès le lendemain.
         app(\App\Services\Sessions\SuiviApresSeance::class)->creerTaches(auth()->user()?->name);
+        app(\App\Services\Sessions\RappelsCycle::class)->creerTaches();
 
         // Les tâches « Répondre »/« Relancer » dont le motif a disparu se clôturent seules.
         $this->cloturerTachesResolues();

@@ -13,9 +13,9 @@
         </p>
     </div>
 
-    @if ($seance->date_debut && $seance->date_debut->isFuture())
+    @if ($seance->fin() && $seance->fin()->isFuture())
         <div class="lb-alert mt-4" style="background:var(--gold-tint);color:var(--ink)">
-            Cette séance n'a pas encore eu lieu ({{ $seance->date_debut->translatedFormat('l j F Y') }}). Le suivi se fait après.
+            Cette séance n'est pas encore terminée ({{ $seance->fin()->translatedFormat('l j F Y') }}). Le suivi se fait après.
         </div>
     @endif
 

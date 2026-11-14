@@ -41,6 +41,32 @@ class Inscription extends Model
         return $this->presence === self::ABSENT;
     }
 
+    /** Présences date par date (cycles). */
+    public function presencesDate(): HasMany
+    {
+        return $this->hasMany(PresenceDate::class);
+    }
+
+    /**
+     * Pour un cycle, la présence globale se déduit des dates : présent s'il est
+     * venu au moins une fois, absent s'il a manqué toutes les dates, sinon non noté.
+     */
+    public function recalculerPresence(): void
+    {
+        $dates = $this->seance->dates;
+        if ($dates->isEmpty()) {
+            return;
+        }
+
+        $notes = $this->presencesDate()->whereIn('seance_date_id', $dates->modelKeys())->pluck('presence');
+
+        $this->update(['presence' => match (true) {
+            $notes->contains(self::PRESENT) => self::PRESENT,
+            $notes->filter()->count() === $dates->count() => self::ABSENT,
+            default => null,
+        }]);
+    }
+
     // --- Paiements (brique 015) ----------------------------------------------
 
     public function paiements(): HasMany

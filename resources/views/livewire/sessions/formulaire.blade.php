@@ -48,15 +48,46 @@
                 @error('prix') <p class="lb-error">{{ $message }}</p> @enderror
             </div>
             <div>
-                <label for="date_debut" class="lb-label">Date</label>
+                <label for="date_debut" class="lb-label">Date{{ $autresDates ? ' (1re du cycle)' : '' }}</label>
                 <input id="date_debut" type="datetime-local" step="900" wire:model="date_debut" class="lb-field">
                 @error('date_debut') <p class="lb-error">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label for="lien_visio" class="lb-label">Lien de visio de cette date — optionnel</label>
+                <input id="lien_visio" type="url" wire:model="lien_visio" class="lb-field" placeholder="https://…">
+                @error('lien_visio') <p class="lb-error">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label for="lieu" class="lb-label">Lieu (texte libre)</label>
                 <input id="lieu" type="text" wire:model="lieu" class="lb-field" placeholder="ex. Salle A, 1er étage">
                 @error('lieu') <p class="lb-error">{{ $message }}</p> @enderror
             </div>
+        </div>
+
+        {{-- Dates suivantes d'un cycle --}}
+        <div class="mt-5">
+            <div class="lb-label">Autres dates (cycle de plusieurs séances)</div>
+            @foreach ($autresDates as $i => $autre)
+                <div class="grid gap-3 sm:grid-cols-2 mt-2" wire:key="autre-date-{{ $i }}">
+                    <div>
+                        <label for="autre-date-{{ $i }}" class="lb-muted" style="font-size:12px">Date n° {{ $i + 2 }}</label>
+                        <input id="autre-date-{{ $i }}" type="datetime-local" step="900" wire:model="autresDates.{{ $i }}.date" class="lb-field">
+                        @error('autresDates.'.$i.'.date') <p class="lb-error">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label for="autre-visio-{{ $i }}" class="lb-muted" style="font-size:12px">Lien de visio de cette date</label>
+                        <div class="flex items-start gap-2">
+                            <input id="autre-visio-{{ $i }}" type="url" wire:model="autresDates.{{ $i }}.lien_visio" class="lb-field" placeholder="https://…" style="flex:1">
+                            <button type="button" wire:click="retirerDate({{ $i }})" class="lb-btn lb-btn-ghost" style="padding:9px 12px" aria-label="Retirer la date n° {{ $i + 2 }}">✕</button>
+                        </div>
+                        @error('autresDates.'.$i.'.lien_visio') <p class="lb-error">Indique une adresse complète (https://…).</p> @enderror
+                    </div>
+                </div>
+            @endforeach
+            <button type="button" wire:click="ajouterDate" class="lb-btn lb-btn-ghost" style="margin-top:8px;padding:7px 13px;font-size:12.5px">+ Ajouter une date</button>
+            <p class="lb-muted" style="font-size:12px;margin-top:6px">
+                Une inscription couvre toutes les dates. Les présences se notent ensuite date par date, et les inscriptions se ferment quand le cycle commence.
+            </p>
         </div>
 
         <div class="mt-5">

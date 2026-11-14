@@ -18,6 +18,10 @@ class ModeleMessage extends Model
 
     public const NOM_SUIVI_ABSENT = 'Suivi — absent à la séance';
 
+    public const NOM_RAPPEL_VEILLE = 'Rappel — veille de séance';
+
+    public const NOM_ENREGISTREMENT = 'Enregistrement — pour les absents';
+
     public const NOM_AVIS = 'Avis — après un stage';
 
     public const NOM_RAPPEL_PAIEMENT = 'Paiement — rappel';
@@ -43,6 +47,9 @@ class ModeleMessage extends Model
         'prochaine_date' => 'Date de la prochaine session du même type (suivi des absents)',
         'prochaine_heure' => 'Heure de cette prochaine session',
         'prochain_lien' => 'Lien d’inscription de cette prochaine session',
+        'dates' => 'Toutes les dates d’un cycle (ex. lundi 11 janvier à 10 h, lundi 18 janvier à 10 h)',
+        'lien_visio' => 'Lien de visio de la date concernée (à défaut, de la prochaine date)',
+        'lien_enregistrement' => 'Lien de l’enregistrement d’une date (message aux absents)',
         'lien_avis' => 'Lien de la page où laisser un avis (Réglages de l’assistant)',
         'montant' => 'Montant attendu pour la session (rappel de paiement)',
         'deja_paye' => 'Montant déjà reçu de cette personne',
@@ -88,6 +95,11 @@ class ModeleMessage extends Model
         $date = $seance->date_debut;
         $heure = self::heureLisible($date);
 
+        // Cycle : la liste des dates, et le lien de visio de la prochaine date (à défaut, de la première).
+        $datesCycle = $seance->exists ? $seance->dates : collect();
+        $dateVisio = $datesCycle->first(fn (SeanceDate $d) => $d->date_debut->isFuture() && filled($d->lien_visio))
+            ?? $datesCycle->first(fn (SeanceDate $d) => filled($d->lien_visio));
+
         $lieu = (string) $seance->lieu;
         if ($seance->lieuContact) {
             $lieu = $seance->lieuContact->nomComplet()
@@ -109,6 +121,10 @@ class ModeleMessage extends Model
             'prochaine_date' => $prochaine?->date_debut ? $prochaine->date_debut->translatedFormat('l j F Y') : '',
             'prochaine_heure' => self::heureLisible($prochaine?->date_debut),
             'prochain_lien' => (string) $prochaine?->lien_inscription,
+            'dates' => $datesCycle->map(fn (SeanceDate $d) => $d->date_debut->translatedFormat('l j F')
+                .(self::heureLisible($d->date_debut) !== '' ? ' à '.self::heureLisible($d->date_debut) : ''))->implode(', '),
+            'lien_visio' => (string) $dateVisio?->lien_visio,
+            'lien_enregistrement' => '',
             'lien_avis' => '',
             'montant' => '',
             'deja_paye' => '',
@@ -117,7 +133,7 @@ class ModeleMessage extends Model
     }
 
     /** « 10 h 30 », « 10 h », ou chaîne vide si l'heure n'est pas précisée (minuit). */
-    private static function heureLisible(?\Illuminate\Support\Carbon $date): string
+    public static function heureLisible(?\Illuminate\Support\Carbon $date): string
     {
         if (! $date || $date->format('H:i') === '00:00') {
             return '';
@@ -233,6 +249,22 @@ class ModeleMessage extends Model
                     ."Vous n’avez pas pu nous rejoindre pour « {session} », et j’espère que tout va bien.\n\n"
                     ."La prochaine séance a lieu {prochaine_date} à {prochaine_heure}. Si vous souhaitez y participer : {prochain_lien}\n\n"
                     ."Bien à vous,\n{moi}",
+            ],
+            [
+                'nom' => self::NOM_RAPPEL_VEILLE,
+                'canal' => self::CANAL_MESSAGE,
+                'objet' => null,
+                'corps' => "Bonjour {prenom}, un petit rappel : « {session} » a lieu demain, {date} à {heure}.\n\n"
+                    ."Le lien pour nous rejoindre : {lien_visio}\n\n"
+                    ."Installez-vous au calme quelques minutes avant. À demain,\n{moi}",
+            ],
+            [
+                'nom' => self::NOM_ENREGISTREMENT,
+                'canal' => self::CANAL_MESSAGE,
+                'objet' => null,
+                'corps' => "Bonjour {prenom}, vous n’avez pas pu être là {date} pour « {session} ».\n\n"
+                    ."Voici l’enregistrement, pour suivre la séance quand vous le pourrez : {lien_enregistrement}\n\n"
+                    ."À bientôt,\n{moi}",
             ],
             [
                 'nom' => self::NOM_AVIS,

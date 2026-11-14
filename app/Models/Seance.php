@@ -26,12 +26,13 @@ class Seance extends Model
         self::ROLE_FORMATION => 'Formation (stage)',
     ];
 
-    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'lieu_contact_id', 'lien_inscription', 'lien_groupe', 'role_parcours', 'capacite', 'prix', 'notes'];
+    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'lieu_contact_id', 'lien_inscription', 'lien_groupe', 'role_parcours', 'capacite', 'prix', 'notes', 'date_fin'];
 
     protected function casts(): array
     {
         return [
             'date_debut' => 'datetime',
+            'date_fin' => 'datetime',
             'capacite' => 'integer',
             'prix' => 'float',
         ];
@@ -53,6 +54,30 @@ class Seance extends Model
     public function inscriptions(): HasMany
     {
         return $this->hasMany(Inscription::class);
+    }
+
+    /** Les dates de la session (plusieurs pour un cycle), dans l'ordre. */
+    public function dates(): HasMany
+    {
+        return $this->hasMany(SeanceDate::class)->orderBy('date_debut');
+    }
+
+    /** Un cycle : une session qui se déroule sur plusieurs dates. */
+    public function estCycle(): bool
+    {
+        return $this->date_fin !== null;
+    }
+
+    /** Dernière date de la session (la seule, pour une session simple). */
+    public function fin(): ?\Illuminate\Support\Carbon
+    {
+        return $this->date_fin ?? $this->date_debut;
+    }
+
+    /** Un cycle déjà commencé n'accepte plus d'inscription. */
+    public function inscriptionsCloses(): bool
+    {
+        return $this->estCycle() && $this->date_debut !== null && $this->date_debut->isPast();
     }
 
     /** Invitations de la campagne liée à cette séance. */
@@ -78,13 +103,16 @@ class Seance extends Model
     /** Séances à venir (ou sans date). @param  Builder<Seance>  $query */
     public function scopeAVenir(Builder $query): void
     {
-        $query->where(fn ($q) => $q->whereNull('date_debut')->orWhere('date_debut', '>=', now()->startOfDay()));
+        $query->where(fn ($q) => $q->whereNull('date_debut')
+            ->orWhere('date_debut', '>=', now()->startOfDay())
+            ->orWhere('date_fin', '>=', now()->startOfDay())); // cycle en cours
     }
 
     /** Séances passées. @param  Builder<Seance>  $query */
     public function scopePassees(Builder $query): void
     {
-        $query->whereNotNull('date_debut')->where('date_debut', '<', now()->startOfDay());
+        $query->whereNotNull('date_debut')->where('date_debut', '<', now()->startOfDay())
+            ->where(fn ($q) => $q->whereNull('date_fin')->orWhere('date_fin', '<', now()->startOfDay()));
     }
 
     /** Prix attendu par participant : celui de la session, sinon celui de sa catégorie. */
