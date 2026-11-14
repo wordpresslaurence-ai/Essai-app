@@ -41,6 +41,19 @@
         </div>
     </div>
 
+    {{-- Telegram (brique 018) --}}
+    <div class="lb-card mt-5" style="padding:18px;max-width:720px">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <div class="lb-label" style="margin-bottom:2px">Telegram</div>
+                <p class="lb-muted" style="font-size:12.5px;margin:0">
+                    Un robot qui reçoit les questions de tes contacts et les range sur leur fiche.
+                </p>
+            </div>
+            <a href="{{ route('reglages.telegram') }}" class="lb-btn lb-btn-ghost" wire:navigate>Configurer →</a>
+        </div>
+    </div>
+
     {{-- Réservations du site (brique 013) --}}
     <div class="lb-card mt-5" style="padding:18px;max-width:720px">
         <div class="flex flex-wrap items-center justify-between gap-3">

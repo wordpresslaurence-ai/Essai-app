@@ -92,6 +92,31 @@
         </div>
     @endif
 
+    {{-- Questions reçues sur Telegram (brique 018) --}}
+    @if ($questionsTelegram->isNotEmpty())
+        <div class="flex flex-wrap items-center justify-between gap-2 mt-6">
+            <h3 class="lb-h3" style="font-size:19px">Questions reçues sur Telegram</h3>
+            <span class="lb-tag" style="background:var(--terra-tint);color:var(--terra)">{{ $questionsTelegram->count() }}</span>
+        </div>
+        <div class="lb-people mt-3">
+            @foreach ($questionsTelegram as $ligne)
+                <div class="lb-prow" wire:key="tg-{{ $ligne['contact']->id }}">
+                    <span class="lb-tag" style="background:var(--lav-tint);color:var(--lav)">Telegram</span>
+                    <a href="{{ route('contacts.fiche', $ligne['contact']) }}#telegram" style="min-width:0;flex:1;text-decoration:none;color:inherit">
+                        <div class="nm lb-truncate">{{ $ligne['contact']->nomComplet() }}@if ($ligne['nombre'] > 1) <span class="lb-muted" style="font-weight:400">· {{ $ligne['nombre'] }} messages</span>@endif</div>
+                        <div class="mt lb-truncate">{{ \Illuminate\Support\Str::limit($ligne['dernier']->apercu(), 120) }}</div>
+                    </a>
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex:none">
+                        <span class="lb-muted" style="font-size:12px;white-space:nowrap">{{ $ligne['dernier']->created_at->translatedFormat('d/m à H:i') }}</span>
+                        <a href="{{ route('contacts.fiche', $ligne['contact']) }}#telegram" class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap;text-decoration:none">Répondre</a>
+                        <button type="button" wire:click="traiterTelegram({{ $ligne['contact']->id }})" title="Pas besoin de répondre"
+                                class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">✓ Vu</button>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
     {{-- Réponses dues (prioritaire) --}}
     <div class="flex flex-wrap items-center justify-between gap-2 mt-6">
         <h3 class="lb-h3" style="font-size:19px">Tu dois une réponse</h3>

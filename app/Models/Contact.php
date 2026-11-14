@@ -244,6 +244,36 @@ class Contact extends Model
         return $lien !== '' && preg_match('#^(https?://)?[\w-]+(\.[\w-]+)+(/\S*)?$#i', $lien) ? $lien : null;
     }
 
+    // --- Telegram (brique 018) -----------------------------------------------
+
+    public function messagesTelegram(): HasMany
+    {
+        return $this->hasMany(MessageTelegram::class)->orderBy('id');
+    }
+
+    public function telegramRelie(): bool
+    {
+        return filled($this->telegram_id);
+    }
+
+    /**
+     * Lien personnel vers le robot : quand le contact l'ouvre, son compte Telegram
+     * est relié à sa fiche. Null tant que le robot n'est pas connecté.
+     */
+    public function lienTelegram(): ?string
+    {
+        $robot = Parametre::instance()->telegram_robot;
+        if (blank($robot) || ! $this->exists) {
+            return null;
+        }
+
+        if (blank($this->telegram_jeton_lien)) {
+            $this->forceFill(['telegram_jeton_lien' => \Illuminate\Support\Str::random(24)])->saveQuietly();
+        }
+
+        return 'https://t.me/'.$robot.'?start='.$this->telegram_jeton_lien;
+    }
+
     /** Dernier examen de son site web (radar de prospection). */
     public function radarSite(): \Illuminate\Database\Eloquent\Relations\HasOne
     {

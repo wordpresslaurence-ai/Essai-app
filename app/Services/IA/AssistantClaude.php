@@ -179,6 +179,31 @@ class AssistantClaude implements AssistantIA
         );
     }
 
+    public function redigerReponseTelegram(Contact $contact, string $echange): string
+    {
+        $p = Parametre::instance();
+
+        $systeme = <<<'TXT'
+            Tu es l'assistant de Laurence (enseignante « Prana Vidya »). Rédige, en son nom, un
+            brouillon de RÉPONSE au dernier message Telegram du contact, en français. C'est une
+            messagerie : réponds en quelques phrases, chaleureuses et concrètes, sans objet ni
+            formule de politesse longue. Réponds réellement à la question posée. N'invente AUCUN
+            fait, prix, date ou engagement absent de l'échange : si une information manque, dis
+            que tu reviens vers la personne. Aucune promesse de soin ni conseil médical. Réponds
+            UNIQUEMENT par le texte du message, sans guillemets ni commentaire.
+            TXT;
+
+        $lignes = ['### Contact', 'Nom : '.$contact->nomComplet()];
+        if (filled($contact->notes)) {
+            $lignes[] = 'Notes internes : '.$contact->notes;
+        }
+        $lignes[] = '';
+        $lignes[] = '### Conversation Telegram (du plus ancien au plus récent)';
+        $lignes[] = $echange;
+
+        return trim($this->envoyer($p, $systeme, implode("\n", $lignes), 800));
+    }
+
     public function redigerReponse(Contact $contact): ResultatProspection
     {
         $p = Parametre::instance();

@@ -333,6 +333,15 @@ class Brief extends Component
         ];
     }
 
+    /** Question Telegram qui n'appelle pas de réponse : elle sort de la liste. */
+    public function traiterTelegram(int $contactId): void
+    {
+        \App\Models\MessageTelegram::where('contact_id', $contactId)
+            ->where('sens', \App\Models\MessageTelegram::ENTRANT)
+            ->whereNull('traite_le')
+            ->update(['traite_le' => now()]);
+    }
+
     public function render(): View
     {
         $pole = $this->poleIdFiltre();
@@ -370,6 +379,14 @@ class Brief extends Component
             'dejaOpp' => $dejaOpp,
             'indecisChauds' => $indecis->leadsChaudsSansSuite($pole),
             'indecisSessions' => $indecis->interessesSessionPassee($pole),
+            'questionsTelegram' => \App\Models\MessageTelegram::with('contact')
+                ->where('sens', \App\Models\MessageTelegram::ENTRANT)
+                ->whereNull('traite_le')->whereNotNull('contact_id')
+                ->orderBy('id')->get()
+                ->groupBy('contact_id')
+                ->map(fn ($messages) => ['contact' => $messages->first()->contact, 'dernier' => $messages->last(), 'nombre' => $messages->count()])
+                ->filter(fn ($ligne) => $ligne['contact'] !== null)
+                ->values(),
         ]);
     }
 }

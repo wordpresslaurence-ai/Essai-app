@@ -31,6 +31,12 @@ Route::post('webhooks/reservations/{jeton}', \App\Http\Controllers\WebhookReserv
     ->middleware('throttle:60,1')
     ->name('webhooks.reservations');
 
+// Réception des messages envoyés au robot Telegram (module 018) : Telegram joint
+// le secret convenu dans un en-tête.
+Route::post('webhooks/telegram', \App\Http\Controllers\WebhookTelegramController::class)
+    ->middleware('throttle:120,1')
+    ->name('webhooks.telegram');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('contacts', Liste::class)->name('contacts.index');
     Route::get('contacts/creer', Formulaire::class)->name('contacts.creer');
@@ -72,6 +78,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reglages/reservations', \App\Livewire\Reglages\ReservationsSite::class)->name('reglages.reservations');
 
     // Réglages : modèles de messages (module 012)
+    Route::get('reglages/telegram', \App\Livewire\Reglages\Telegram::class)->name('reglages.telegram');
     Route::get('reglages/modeles', \App\Livewire\Reglages\ModelesMessage::class)->name('reglages.modeles');
 
     // Sauvegarde : téléchargement des données métier (sans secrets)

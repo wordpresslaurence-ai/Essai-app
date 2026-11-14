@@ -28,6 +28,12 @@ interface AssistantIA
     public function redigerReponse(Contact $contact): ResultatProspection;
 
     /**
+     * Rédige un brouillon de réponse courte à une conversation Telegram (texte
+     * seul, sans objet). Ne l'envoie jamais.
+     */
+    public function redigerReponseTelegram(Contact $contact, string $echange): string;
+
+    /**
      * Devine l'identité d'un prospect (prénom, nom, entreprise, fonction, téléphone)
      * à partir de son adresse e-mail et du corps de son message (signature). Les
      * champs inconnus restent null. N'invente jamais une coordonnée.

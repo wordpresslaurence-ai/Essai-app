@@ -55,6 +55,11 @@ class AssistantFactice implements AssistantIA
         );
     }
 
+    public function redigerReponseTelegram(Contact $contact, string $echange): string
+    {
+        return 'Bonjour '.$contact->nomComplet().', (réponse Telegram factice)';
+    }
+
     public function devinerProspect(string $adresse, ?string $corps): array
     {
         return [

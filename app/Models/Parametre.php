@@ -25,6 +25,9 @@ class Parametre extends Model
         'derniere_synchro_at',
         'webhook_jeton',
         'lien_avis',
+        'telegram_jeton',
+        'telegram_secret',
+        'telegram_robot',
     ];
 
     /** Valeurs par défaut au niveau du modèle (reflétées dès la création). */
@@ -37,6 +40,7 @@ class Parametre extends Model
         return [
             'gmail_app_password' => 'encrypted',
             'anthropic_api_key' => 'encrypted',
+            'telegram_jeton' => 'encrypted',
             'relance_delai_jours' => 'integer',
             'derniere_synchro_at' => 'datetime',
         ];

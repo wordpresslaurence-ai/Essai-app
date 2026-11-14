@@ -32,6 +32,11 @@ class FicheDetail extends Component
     /** Discussion exportée depuis WhatsApp (.txt, ou .zip qui la contient). */
     public ?TemporaryUploadedFile $whatsappFichier = null;
 
+    // Telegram : réponse en cours de rédaction
+    public string $telegramReponse = '';
+
+    public ?string $telegramErreur = null;
+
     // Prospection
     public string $angleProspection = '';
 
@@ -238,6 +243,79 @@ class FicheDetail extends Component
         $this->reset('whatsappTexte', 'whatsappOuvert', 'whatsappFichier');
         $this->contact->refresh();
         session()->flash('message', $message);
+    }
+
+    // --- Telegram (brique 018) -----------------------------------------------
+
+    /** Conversation Telegram en texte, pour l'assistant (les 20 derniers messages). */
+    private function echangeTelegram(): string
+    {
+        return $this->contact->messagesTelegram()->latest('id')->limit(20)->get()->reverse()
+            ->map(fn (\App\Models\MessageTelegram $m) => '['.$m->created_at->format('d/m/Y H:i').'] '
+                .($m->estEntrant() ? $this->contact->nomComplet() : 'Laurence').' : '.$m->apercu())
+            ->implode("\n");
+    }
+
+    /** L'assistant propose une réponse ; rien n'est envoyé. */
+    public function proposerReponseTelegram(): void
+    {
+        $this->reset('telegramErreur');
+
+        try {
+            $this->telegramReponse = app(AssistantIA::class)->redigerReponseTelegram($this->contact, $this->echangeTelegram());
+        } catch (Throwable $e) {
+            $this->telegramErreur = $e->getMessage();
+        }
+    }
+
+    /** Envoie la réponse par le robot, au clic. Les messages reçus sont alors considérés comme traités. */
+    public function envoyerTelegram(): void
+    {
+        $this->reset('telegramErreur');
+
+        if (! $this->contact->telegramRelie()) {
+            return;
+        }
+
+        $this->validate(
+            ['telegramReponse' => ['required', 'string', 'max:4000']],
+            ['telegramReponse.required' => 'Écris ta réponse avant de l’envoyer.'],
+        );
+
+        try {
+            $id = app(\App\Services\Telegram\ClientTelegram::class)->envoyer($this->contact->telegram_id, trim($this->telegramReponse));
+        } catch (Throwable $e) {
+            $this->telegramErreur = $e->getMessage();
+
+            return;
+        }
+
+        \App\Models\MessageTelegram::create([
+            'contact_id' => $this->contact->id,
+            'chat_id' => $this->contact->telegram_id,
+            'sens' => \App\Models\MessageTelegram::SORTANT,
+            'texte' => trim($this->telegramReponse),
+            'telegram_message_id' => $id,
+        ]);
+        $this->marquerTelegramTraite();
+
+        $this->reset('telegramReponse');
+        session()->flash('message', 'Réponse envoyée sur Telegram.');
+    }
+
+    /** Les messages reçus n'appellent pas (ou plus) de réponse. */
+    public function marquerTelegramTraite(): void
+    {
+        $this->contact->messagesTelegram()
+            ->where('sens', \App\Models\MessageTelegram::ENTRANT)
+            ->whereNull('traite_le')
+            ->update(['traite_le' => now()]);
+    }
+
+    /** Détache le compte Telegram de cette fiche (les messages sont conservés). */
+    public function delierTelegram(): void
+    {
+        $this->contact->forceFill(['telegram_id' => null, 'telegram_nom' => null, 'telegram_jeton_lien' => null])->save();
     }
 
     /** Met le contact « à la une » (ou l'en retire) — affiché sur le tableau de bord. */
@@ -672,6 +750,10 @@ class FicheDetail extends Component
         return view('livewire.contacts.fiche-detail', [
             'derniereAnalyse' => $this->contact->analyses()->latest('faite_le')->first(),
             'offresProspection' => $offres,
+            'lienTelegram' => $this->contact->lienTelegram(),
+            'messagesTelegram' => $this->contact->messagesTelegram()->latest('id')->limit(30)->get()->reverse()->values(),
+            'telegramEnAttente' => $this->contact->messagesTelegram()
+                ->where('sens', \App\Models\MessageTelegram::ENTRANT)->whereNull('traite_le')->count(),
         ]);
     }
 }

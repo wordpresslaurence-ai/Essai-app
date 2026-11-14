@@ -442,6 +442,73 @@
                 @endif
             </div>
 
+            {{-- Telegram (brique 018) --}}
+            @if ($lienTelegram || $messagesTelegram->isNotEmpty())
+                <div id="telegram" class="lb-card" style="padding:20px;scroll-margin-top:16px" x-data="{ copie: false }">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h3 class="lb-h3" style="font-size:19px">Telegram</h3>
+                        @if ($contact->telegramRelie())
+                            <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep)">Compte relié{{ $contact->telegram_nom ? ' · '.$contact->telegram_nom : '' }}</span>
+                        @else
+                            <span class="lb-tag" style="background:var(--surface)">Pas encore relié</span>
+                        @endif
+                    </div>
+
+                    @if (! $contact->telegramRelie() && $lienTelegram)
+                        <p class="lb-muted" style="font-size:13px;margin-top:8px">
+                            Envoie ce lien personnel à {{ $contact->prenom ?: $contact->nomComplet() }}. Quand il sera ouvert, ses messages au robot arriveront ici.
+                        </p>
+                        <div class="flex flex-wrap items-center gap-2" style="margin-top:8px">
+                            <input type="text" readonly value="{{ $lienTelegram }}" x-ref="lien" class="lb-field" style="flex:1;min-width:14rem;font-size:12.5px" aria-label="Lien Telegram personnel">
+                            <button type="button" class="lb-btn lb-btn-ghost"
+                                    x-on:click="navigator.clipboard.writeText($refs.lien.value).then(() => { copie = true; setTimeout(() => copie = false, 2000) })">
+                                <span x-show="!copie">Copier le lien</span><span x-show="copie" x-cloak>Copié ✓</span>
+                            </button>
+                        </div>
+                    @endif
+
+                    @if ($messagesTelegram->isNotEmpty())
+                        <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto">
+                            @foreach ($messagesTelegram as $m)
+                                <div wire:key="tg-{{ $m->id }}" style="max-width:85%;padding:9px 12px;border-radius:12px;font-size:13.5px;white-space:pre-line;overflow-wrap:anywhere;{{ $m->estEntrant() ? 'align-self:flex-start;background:var(--surface);color:var(--ink)' : 'align-self:flex-end;background:var(--mint-tint);color:var(--ink)' }}">{{ $m->apercu() }}
+                                    <div class="lb-muted" style="font-size:11px;margin-top:3px">{{ $m->estEntrant() ? '' : 'Toi · ' }}{{ $m->created_at->translatedFormat('d/m à H:i') }}</div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    @if ($contact->telegramRelie())
+                        @if ($telegramErreur)
+                            <div class="lb-alert lb-alert-danger mt-3">{{ $telegramErreur }}</div>
+                        @endif
+                        <form wire:submit="envoyerTelegram" style="margin-top:12px">
+                            <label for="telegramReponse" class="lb-label" style="font-weight:500;color:var(--text-muted)">Ta réponse</label>
+                            <textarea id="telegramReponse" rows="3" wire:model="telegramReponse" class="lb-field" placeholder="Écris ta réponse, ou demande une proposition à l'assistant."></textarea>
+                            @error('telegramReponse') <p class="lb-error">{{ $message }}</p> @enderror
+                            <div class="flex flex-wrap items-center justify-end gap-2" style="margin-top:8px">
+                                @if ($telegramEnAttente > 0)
+                                    <button type="button" wire:click="marquerTelegramTraite" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px">Pas besoin de répondre</button>
+                                @endif
+                                @if ($messagesTelegram->isNotEmpty())
+                                    <button type="button" wire:click="proposerReponseTelegram" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px"
+                                            wire:loading.attr="disabled" wire:target="proposerReponseTelegram">
+                                        <span wire:loading.remove wire:target="proposerReponseTelegram">✍️ Proposer une réponse</span>
+                                        <span wire:loading wire:target="proposerReponseTelegram">Rédaction…</span>
+                                    </button>
+                                @endif
+                                <button type="submit" class="lb-btn lb-btn-primary" style="padding:7px 13px;font-size:12.5px"
+                                        wire:loading.attr="disabled" wire:target="envoyerTelegram">Envoyer sur Telegram</button>
+                            </div>
+                            <p class="lb-muted" style="font-size:11.5px;margin-top:6px">
+                                Ici, « Envoyer » fait vraiment partir le message, par ton robot. Les vocaux et les photos reçus s'écoutent et se voient dans Telegram.
+                                <button type="button" wire:click="delierTelegram" wire:confirm="Détacher ce compte Telegram de la fiche ? Les messages sont conservés."
+                                        style="background:none;border:0;cursor:pointer;color:var(--text-muted);text-decoration:underline;font-size:11.5px">Détacher ce compte</button>
+                            </p>
+                        </form>
+                    @endif
+                </div>
+            @endif
+
             {{-- Prospection (assistant IA) --}}
             <div id="prospection" class="lb-card" style="padding:20px;scroll-margin-top:16px" x-data="{ copie: false, copieHtml: false }">
                 <h3 class="lb-h3" style="font-size:19px">Prospection</h3>

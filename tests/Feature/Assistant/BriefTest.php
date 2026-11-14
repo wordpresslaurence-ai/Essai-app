@@ -204,6 +204,11 @@ it('transmet à l’assistant un contexte enrichi (tâches en retard, sessions�
             throw new RuntimeException('non utilisé');
         }
 
+        public function redigerReponseTelegram(Contact $contact, string $echange): string
+        {
+            return '';
+        }
+
         public function devinerProspect(string $adresse, ?string $corps): array
         {
             return [];
