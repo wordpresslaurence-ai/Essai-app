@@ -45,6 +45,8 @@ class ClientTelegram
 
             throw new RuntimeException(match (true) {
                 $reponse->status() === 401 || $reponse->status() === 404 => 'Telegram refuse ce jeton : vérifie que tu as copié le jeton complet donné par BotFather.',
+                str_contains($detail, 'not enough rights') || str_contains($detail, 'CHAT_ADMIN_REQUIRED') || str_contains($detail, 'chat not found')
+                    => 'Le robot n’a pas les droits nécessaires dans ce canal : vérifie qu’il y est administrateur, avec « Inviter via un lien » et « Bannir des utilisateurs ».',
                 str_contains($detail, 'bot was blocked') => 'Cette personne a bloqué le robot : le message ne peut pas lui parvenir.',
                 default => 'Telegram a refusé la demande : '.$detail,
             });
@@ -64,7 +66,7 @@ class ClientTelegram
         $this->appeler('setWebhook', [
             'url' => $url,
             'secret_token' => $secret,
-            'allowed_updates' => ['message'],
+            'allowed_updates' => ['message', 'channel_post', 'my_chat_member', 'chat_member'],
         ]);
     }
 
@@ -77,6 +79,35 @@ class ClientTelegram
     public function etat(): array
     {
         return (array) $this->appeler('getWebhookInfo');
+    }
+
+    /** Lien d'invitation personnel : une seule entrée, expiration facultative (horodatage). */
+    public function creerLienInvitation(string $chatId, string $nom, ?int $expire = null): string
+    {
+        $donnees = ['chat_id' => $chatId, 'name' => mb_substr($nom, 0, 32), 'member_limit' => 1];
+        if ($expire) {
+            $donnees['expire_date'] = $expire;
+        }
+
+        $resultat = $this->appeler('createChatInviteLink', $donnees);
+
+        if (! is_array($resultat) || blank($resultat['invite_link'] ?? null)) {
+            throw new RuntimeException('Telegram n’a pas renvoyé de lien d’invitation.');
+        }
+
+        return (string) $resultat['invite_link'];
+    }
+
+    public function revoquerLien(string $chatId, string $lien): void
+    {
+        $this->appeler('revokeChatInviteLink', ['chat_id' => $chatId, 'invite_link' => $lien]);
+    }
+
+    /** Retire quelqu'un du canal, sans l'empêcher d'y revenir plus tard avec un nouveau lien. */
+    public function exclure(string $chatId, string $userId): void
+    {
+        $this->appeler('banChatMember', ['chat_id' => $chatId, 'user_id' => (int) $userId]);
+        $this->appeler('unbanChatMember', ['chat_id' => $chatId, 'user_id' => (int) $userId, 'only_if_banned' => true]);
     }
 
     /** Envoie un message texte ; retourne son identifiant Telegram. */

@@ -26,13 +26,17 @@ class Seance extends Model
         self::ROLE_FORMATION => 'Formation (stage)',
     ];
 
-    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'lieu_contact_id', 'lien_inscription', 'lien_groupe', 'role_parcours', 'capacite', 'prix', 'notes', 'date_fin'];
+    protected $fillable = ['titre', 'categorie_id', 'date_debut', 'lieu', 'lieu_contact_id', 'lien_inscription', 'lien_groupe', 'role_parcours', 'capacite', 'prix', 'notes', 'date_fin',
+        'canal_telegram_id', 'fin_acces', 'limite_entree', 'renouvellement_cree_le'];
 
     protected function casts(): array
     {
         return [
             'date_debut' => 'datetime',
             'date_fin' => 'datetime',
+            'fin_acces' => 'date',
+            'limite_entree' => 'date',
+            'renouvellement_cree_le' => 'datetime',
             'capacite' => 'integer',
             'prix' => 'float',
         ];
@@ -74,9 +78,27 @@ class Seance extends Model
         return $this->date_fin ?? $this->date_debut;
     }
 
-    /** Un cycle déjà commencé n'accepte plus d'inscription. */
+    /** Canal Telegram auquel l'inscription donne accès (abonnement par trimestre). */
+    public function canalTelegram(): BelongsTo
+    {
+        return $this->belongsTo(CanalTelegram::class);
+    }
+
+    public function limiteEntreePassee(): bool
+    {
+        return $this->limite_entree !== null && $this->limite_entree->copy()->endOfDay()->isPast();
+    }
+
+    /**
+     * Inscriptions closes : date limite d'entrée passée ou, sans date limite, cycle
+     * déjà commencé.
+     */
     public function inscriptionsCloses(): bool
     {
+        if ($this->limite_entree !== null) {
+            return $this->limiteEntreePassee();
+        }
+
         return $this->estCycle() && $this->date_debut !== null && $this->date_debut->isPast();
     }
 
@@ -105,14 +127,16 @@ class Seance extends Model
     {
         $query->where(fn ($q) => $q->whereNull('date_debut')
             ->orWhere('date_debut', '>=', now()->startOfDay())
-            ->orWhere('date_fin', '>=', now()->startOfDay())); // cycle en cours
+            ->orWhere('date_fin', '>=', now()->startOfDay()) // cycle en cours
+            ->orWhere('fin_acces', '>=', now()->toDateString())); // trimestre en cours
     }
 
     /** Séances passées. @param  Builder<Seance>  $query */
     public function scopePassees(Builder $query): void
     {
         $query->whereNotNull('date_debut')->where('date_debut', '<', now()->startOfDay())
-            ->where(fn ($q) => $q->whereNull('date_fin')->orWhere('date_fin', '<', now()->startOfDay()));
+            ->where(fn ($q) => $q->whereNull('date_fin')->orWhere('date_fin', '<', now()->startOfDay()))
+            ->where(fn ($q) => $q->whereNull('fin_acces')->orWhere('fin_acces', '<', now()->toDateString()));
     }
 
     /** Prix attendu par participant : celui de la session, sinon celui de sa catégorie. */

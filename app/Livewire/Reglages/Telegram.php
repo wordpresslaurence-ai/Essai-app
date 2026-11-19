@@ -82,6 +82,33 @@ class Telegram extends Component
         session()->flash('message', 'Robot déconnecté. Les comptes déjà reliés et les messages reçus sont conservés.');
     }
 
+    /**
+     * Met à jour le branchement (pour recevoir aussi ce qui se passe dans les canaux)
+     * puis invite à publier un message dans chaque canal pour qu'il soit reconnu.
+     */
+    public function detecterCanaux(): void
+    {
+        $this->reset('erreur', 'etat');
+        $p = Parametre::instance();
+
+        try {
+            $secret = $p->telegram_secret ?: Str::random(48);
+            app(ClientTelegram::class)->brancher(route('webhooks.telegram'), $secret);
+            $p->update(['telegram_secret' => $secret]);
+        } catch (Throwable $e) {
+            $this->erreur = $e->getMessage();
+
+            return;
+        }
+
+        session()->flash('message', 'C’est prêt. Publie maintenant un court message (par exemple « Bienvenue ») dans chacun de tes canaux, puis recharge cette page : ils apparaîtront dans la liste.');
+    }
+
+    public function oublierCanal(int $id): void
+    {
+        \App\Models\CanalTelegram::whereKey($id)->delete();
+    }
+
     public function supprimerMessage(int $id): void
     {
         MessageTelegram::whereNull('contact_id')->whereKey($id)->delete();
@@ -95,6 +122,7 @@ class Telegram extends Component
             'robot' => $p->telegram_robot,
             'connecte' => filled($p->telegram_robot) && filled($p->secret('telegram_jeton')),
             'inconnus' => MessageTelegram::whereNull('contact_id')->where('sens', MessageTelegram::ENTRANT)->latest('id')->limit(30)->get(),
+            'canaux' => \App\Models\CanalTelegram::orderBy('titre')->get(),
             'nbRelies' => \App\Models\Contact::whereNotNull('telegram_id')->count(),
         ]);
     }

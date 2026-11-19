@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CanalTelegram;
 use App\Models\Contact;
+use App\Models\Inscription;
 use App\Models\MessageTelegram;
 use App\Models\Parametre;
 use App\Services\Telegram\ClientTelegram;
@@ -22,6 +24,37 @@ class WebhookTelegramController extends Controller
         $recu = (string) $request->header('X-Telegram-Bot-Api-Secret-Token');
 
         abort_unless($attendu !== '' && hash_equals($attendu, $recu), 404);
+
+        // Le robot voit une publication dans un canal où il est administrateur : on mémorise le canal.
+        if (is_array($post = $request->input('channel_post'))) {
+            $this->memoriserCanal((array) data_get($post, 'chat'), true);
+
+            return response()->json(['ok' => true]);
+        }
+
+        // Le robot est ajouté à un canal (ou en est retiré).
+        if (is_array($changement = $request->input('my_chat_member'))) {
+            $statut = (string) data_get($changement, 'new_chat_member.status');
+            $this->memoriserCanal((array) data_get($changement, 'chat'), $statut === 'administrator');
+
+            return response()->json(['ok' => true]);
+        }
+
+        // Quelqu'un rejoint un canal avec son lien personnel : on note son compte sur l'inscription.
+        if (is_array($membre = $request->input('chat_member'))) {
+            $lien = (string) data_get($membre, 'invite_link.invite_link');
+            $statut = (string) data_get($membre, 'new_chat_member.status');
+
+            if ($lien !== '' && in_array($statut, ['member', 'restricted'], true)) {
+                $inscription = Inscription::where('acces_lien', $lien)->first();
+                $inscription?->update([
+                    'acces_telegram_id' => (string) data_get($membre, 'new_chat_member.user.id'),
+                    'acces_rejoint_le' => $inscription->acces_rejoint_le ?? now(),
+                ]);
+            }
+
+            return response()->json(['ok' => true]);
+        }
 
         $message = $request->input('message');
 
@@ -77,6 +110,19 @@ class WebhookTelegramController extends Controller
         }
 
         return response()->json(['ok' => true]);
+    }
+
+    /** @param  array<string, mixed>  $chat */
+    private function memoriserCanal(array $chat, bool $actif): void
+    {
+        if (! in_array($chat['type'] ?? null, ['channel', 'supergroup', 'group'], true) || ! isset($chat['id'])) {
+            return;
+        }
+
+        CanalTelegram::updateOrCreate(
+            ['chat_id' => (string) $chat['id']],
+            ['titre' => isset($chat['title']) ? mb_substr((string) $chat['title'], 0, 255) : null, 'type' => (string) $chat['type'], 'actif' => $actif],
+        );
     }
 
     /** Réponse automatique : un échec d'envoi ne doit pas faire échouer la réception. */

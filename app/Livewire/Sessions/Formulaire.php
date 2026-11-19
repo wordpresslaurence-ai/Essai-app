@@ -56,6 +56,13 @@ class Formulaire extends Component
 
     public ?string $capacite = null;
 
+    /** Abonnement Telegram : canal, fin de l'accès commune, date limite d'entrée. */
+    public ?string $canal_telegram_id = null;
+
+    public ?string $fin_acces = null;
+
+    public ?string $limite_entree = null;
+
     /** Prix par participant (vide = prix de la catégorie). */
     public ?string $prix = null;
 
@@ -75,6 +82,9 @@ class Formulaire extends Component
             $this->role_parcours = $seance->role_parcours;
             $this->capacite = $seance->capacite !== null ? (string) $seance->capacite : null;
             $this->prix = $seance->prix !== null ? (string) $seance->prix : null;
+            $this->canal_telegram_id = $seance->canal_telegram_id ? (string) $seance->canal_telegram_id : null;
+            $this->fin_acces = $seance->fin_acces?->toDateString();
+            $this->limite_entree = $seance->limite_entree?->toDateString();
             $this->notes = $seance->notes;
 
             // Dates déjà enregistrées : la première dans les champs principaux, les suivantes en liste.
@@ -106,6 +116,7 @@ class Formulaire extends Component
             $this->role_parcours = $modele->role_parcours;
             $this->capacite = $modele->capacite !== null ? (string) $modele->capacite : null;
             $this->prix = $modele->prix !== null ? (string) $modele->prix : null;
+            $this->canal_telegram_id = $modele->canal_telegram_id ? (string) $modele->canal_telegram_id : null;
             $this->notes = $modele->notes;
             // Volontairement non repris : la date (à choisir), le lien du groupe WhatsApp
             // (propre à chaque groupe), les inscrits et les invitations.
@@ -129,6 +140,9 @@ class Formulaire extends Component
             'role_parcours' => ['nullable', \Illuminate\Validation\Rule::in(array_keys(Seance::ROLES_PARCOURS))],
             'capacite' => ['nullable', 'integer', 'min:0', 'max:100000'],
             'prix' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
+            'canal_telegram_id' => ['nullable', 'exists:canaux_telegram,id'],
+            'fin_acces' => ['nullable', 'date'],
+            'limite_entree' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ];
     }
@@ -196,6 +210,9 @@ class Formulaire extends Component
         $this->role_parcours = filled($this->role_parcours) ? $this->role_parcours : null;
 
         $this->prix = filled($this->prix) ? str_replace(',', '.', trim($this->prix)) : null;
+        $this->canal_telegram_id = filled($this->canal_telegram_id) ? $this->canal_telegram_id : null;
+        $this->fin_acces = filled($this->fin_acces) ? $this->fin_acces : null;
+        $this->limite_entree = filled($this->limite_entree) ? $this->limite_entree : null;
 
         $this->lien_visio = filled($this->lien_visio) ? trim($this->lien_visio) : null;
         foreach ($this->autresDates as $i => $autre) {
@@ -252,6 +269,7 @@ class Formulaire extends Component
         return view('livewire.sessions.formulaire', [
             'poles' => Pole::with('categories')->orderBy('ordre')->orderBy('nom')->get(),
             'contacts' => $contacts,
+            'canaux' => \App\Models\CanalTelegram::orderBy('titre')->get(),
         ]);
     }
 }

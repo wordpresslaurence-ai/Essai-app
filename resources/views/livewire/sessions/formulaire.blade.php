@@ -115,6 +115,37 @@
             <p class="lb-muted" style="font-size:12px;margin-top:4px">Sert au tableau « Parcours formation » et à proposer la prochaine date aux absents.</p>
         </div>
 
+        {{-- Abonnement Telegram (trimestre) --}}
+        <div class="mt-5" style="padding:14px;border-radius:14px;background:var(--surface)">
+            <div class="lb-label">Abonnement Telegram — optionnel</div>
+            <p class="lb-muted" style="font-size:12px;margin-top:2px">Pour un trimestre : chaque inscrit payé reçoit un lien personnel vers le canal, retiré à la fin si l'abonnement n'est pas renouvelé.</p>
+            <div class="grid gap-4 sm:grid-cols-3 mt-3">
+                <div>
+                    <label for="canal_telegram_id" class="lb-muted" style="font-size:12px">Canal</label>
+                    <select id="canal_telegram_id" wire:model="canal_telegram_id" class="lb-field">
+                        <option value="">— Aucun —</option>
+                        @foreach ($canaux as $canal)
+                            <option value="{{ $canal->id }}">{{ $canal->nom() }}{{ $canal->actif ? '' : ' (robot retiré)' }}</option>
+                        @endforeach
+                    </select>
+                    @error('canal_telegram_id') <p class="lb-error">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="fin_acces" class="lb-muted" style="font-size:12px">Fin de l'accès (commune)</label>
+                    <input id="fin_acces" type="date" wire:model="fin_acces" class="lb-field">
+                    @error('fin_acces') <p class="lb-error">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="limite_entree" class="lb-muted" style="font-size:12px">Entrée possible jusqu'au</label>
+                    <input id="limite_entree" type="date" wire:model="limite_entree" class="lb-field">
+                    @error('limite_entree') <p class="lb-error">{{ $message }}</p> @enderror
+                </div>
+            </div>
+            @if ($canaux->isEmpty())
+                <p class="lb-muted" style="font-size:12px;margin-top:6px">Aucun canal détecté : va dans <a href="{{ route('reglages.telegram') }}" class="lb-accent" style="font-weight:600" wire:navigate>Réglages → Telegram</a>.</p>
+            @endif
+        </div>
+
         <div class="mt-5">
             <label for="lien_inscription" class="lb-label">Lien d'inscription — optionnel</label>
             <input id="lien_inscription" type="url" wire:model="lien_inscription" class="lb-field" placeholder="https://…">

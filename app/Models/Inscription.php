@@ -22,7 +22,8 @@ class Inscription extends Model
     public const ABSENT = 'absent';
 
     protected $fillable = ['seance_id', 'contact_id', 'statut', 'notes', 'presence', 'suivi_cree_le', 'suivi_envoye_le',
-        'montant_du', 'avis_demande_le', 'avis_recu_le', 'avis_texte', 'avis_publiable'];
+        'montant_du', 'avis_demande_le', 'avis_recu_le', 'avis_texte', 'avis_publiable',
+        'acces_lien', 'acces_lien_cree_le', 'acces_envoye_le', 'acces_telegram_id', 'acces_rejoint_le', 'acces_retire_le'];
 
     protected function casts(): array
     {
@@ -33,6 +34,10 @@ class Inscription extends Model
             'avis_demande_le' => 'datetime',
             'avis_recu_le' => 'datetime',
             'avis_publiable' => 'boolean',
+            'acces_lien_cree_le' => 'datetime',
+            'acces_envoye_le' => 'datetime',
+            'acces_rejoint_le' => 'datetime',
+            'acces_retire_le' => 'datetime',
         ];
     }
 
@@ -65,6 +70,18 @@ class Inscription extends Model
             $notes->filter()->count() === $dates->count() => self::ABSENT,
             default => null,
         }]);
+    }
+
+    /** sans_lien | lien_cree | envoye | rejoint | retire */
+    public function etatAcces(): string
+    {
+        return match (true) {
+            $this->acces_retire_le !== null => 'retire',
+            $this->acces_rejoint_le !== null => 'rejoint',
+            $this->acces_envoye_le !== null => 'envoye',
+            filled($this->acces_lien) => 'lien_cree',
+            default => 'sans_lien',
+        };
     }
 
     // --- Paiements (brique 015) ----------------------------------------------

@@ -46,6 +46,38 @@
         </div>
 
         <div class="lb-card mt-5" style="padding:20px;max-width:720px">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="lb-label" style="margin:0">Tes canaux</div>
+                <button type="button" wire:click="detecterCanaux" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px">Détecter mes canaux</button>
+            </div>
+            @if ($canaux->isEmpty())
+                <p class="lb-muted" style="font-size:13px;margin-top:8px">
+                    Aucun canal pour l'instant. Vérifie que ton robot est administrateur de tes canaux, clique sur « Détecter mes canaux »,
+                    puis publie un court message dans chacun.
+                </p>
+            @else
+                <div class="lb-people mt-3">
+                    @foreach ($canaux as $canal)
+                        <div class="lb-prow" wire:key="canal-{{ $canal->id }}">
+                            @if ($canal->actif)
+                                <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep)">Robot administrateur</span>
+                            @else
+                                <span class="lb-tag" style="background:var(--terra-tint);color:var(--terra)">Robot retiré</span>
+                            @endif
+                            <div style="min-width:0;flex:1">
+                                <div class="nm lb-truncate">{{ $canal->nom() }}</div>
+                                <div class="mt">{{ $canal->type === 'channel' ? 'Canal' : 'Groupe' }} · {{ $canal->seances()->count() }} session(s) reliée(s)</div>
+                            </div>
+                            <button type="button" wire:click="oublierCanal({{ $canal->id }})" wire:confirm="Retirer ce canal de la liste ? Les sessions reliées perdront ce lien."
+                                    class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;flex:none">Retirer</button>
+                        </div>
+                    @endforeach
+                </div>
+                <p class="lb-muted" style="font-size:12px;margin-top:8px">Pour en ajouter un : rends le robot administrateur, puis publie un message dans le canal.</p>
+            @endif
+        </div>
+
+        <div class="lb-card mt-5" style="padding:20px;max-width:720px">
             <div class="lb-label">Comment relier un contact</div>
             <ol style="margin:8px 0 0;padding-left:20px;font-size:13.5px;color:var(--ink);line-height:1.7">
                 <li>Ouvre la fiche du contact : son <b>lien Telegram personnel</b> s'y trouve, avec un bouton pour le copier.</li>

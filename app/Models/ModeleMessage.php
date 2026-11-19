@@ -22,6 +22,10 @@ class ModeleMessage extends Model
 
     public const NOM_ENREGISTREMENT = 'Enregistrement — pour les absents';
 
+    public const NOM_ACCES = 'Accès — bienvenue dans le canal';
+
+    public const NOM_RENOUVELLEMENT = 'Renouvellement — fin de trimestre';
+
     public const NOM_AVIS = 'Avis — après un stage';
 
     public const NOM_RAPPEL_PAIEMENT = 'Paiement — rappel';
@@ -51,6 +55,8 @@ class ModeleMessage extends Model
         'lien_visio' => 'Lien de visio de la date concernée (à défaut, de la prochaine date)',
         'lien_enregistrement' => 'Lien de l’enregistrement d’une date (message aux absents)',
         'lien_telegram' => 'Lien personnel du contact vers ton robot Telegram (pour qu’il puisse te poser ses questions)',
+        'lien_acces' => 'Lien d’accès personnel au canal Telegram (valable une seule fois)',
+        'fin_acces' => 'Date de fin de l’accès au canal (fin du trimestre)',
         'lien_avis' => 'Lien de la page où laisser un avis (Réglages de l’assistant)',
         'montant' => 'Montant attendu pour la session (rappel de paiement)',
         'deja_paye' => 'Montant déjà reçu de cette personne',
@@ -127,6 +133,8 @@ class ModeleMessage extends Model
             'lien_visio' => (string) $dateVisio?->lien_visio,
             'lien_enregistrement' => '',
             'lien_telegram' => (string) $contact->lienTelegram(),
+            'lien_acces' => '',
+            'fin_acces' => $seance->fin_acces ? $seance->fin_acces->translatedFormat('l j F Y') : '',
             'lien_avis' => '',
             'montant' => '',
             'deja_paye' => '',
@@ -267,6 +275,25 @@ class ModeleMessage extends Model
                 'corps' => "Bonjour {prenom}, vous n’avez pas pu être là {date} pour « {session} ».\n\n"
                     ."Voici l’enregistrement, pour suivre la séance quand vous le pourrez : {lien_enregistrement}\n\n"
                     ."À bientôt,\n{moi}",
+            ],
+            [
+                'nom' => self::NOM_ACCES,
+                'canal' => self::CANAL_MESSAGE,
+                'objet' => null,
+                'corps' => "Bonjour {prenom}, bienvenue dans « {session} » !\n\n"
+                    ."Voici votre lien personnel pour rejoindre le canal Telegram : {lien_acces}\n"
+                    ."Il ne fonctionne qu’une fois, pour vous : merci de ne pas le partager.\n\n"
+                    ."Votre accès court jusqu’au {fin_acces}. Pour me poser vos questions, écrivez-moi ici : {lien_telegram}\n\n"
+                    ."Belle pratique,\n{moi}",
+            ],
+            [
+                'nom' => self::NOM_RENOUVELLEMENT,
+                'canal' => self::CANAL_MESSAGE,
+                'objet' => null,
+                'corps' => "Bonjour {prenom}, votre trimestre « {session} » se termine le {fin_acces}.\n\n"
+                    ."Si vous souhaitez continuer, le prochain commence le {prochaine_date}. Dites-le-moi simplement et je vous envoie la facture.\n\n"
+                    ."Sans renouvellement, votre accès au canal s’arrêtera à la fin du trimestre.\n\n"
+                    ."Merci pour ce chemin partagé,\n{moi}",
             ],
             [
                 'nom' => self::NOM_AVIS,

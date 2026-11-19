@@ -48,6 +48,7 @@ class SauvegardeController extends Controller
             'inscriptions' => Inscription::all()->toArray(),
             'seance_dates' => \App\Models\SeanceDate::all()->toArray(),
             'presences_date' => \App\Models\PresenceDate::all()->toArray(),
+            'canaux_telegram' => \App\Models\CanalTelegram::all()->toArray(),
             'messages_telegram' => \App\Models\MessageTelegram::all()->toArray(),
             'paiements' => \App\Models\Paiement::all()->toArray(),
             'radars_site' => \App\Models\RadarSite::all()->toArray(),

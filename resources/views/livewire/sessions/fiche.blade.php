@@ -27,6 +27,9 @@
         </div>
         <div class="flex flex-wrap items-center gap-2">
             <a href="{{ route('sessions.invitations', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Inviter</a>
+            @if ($seance->canal_telegram_id)
+                <a href="{{ route('sessions.acces', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Accès Telegram</a>
+            @endif
             <a href="{{ route('sessions.dates', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Dates et présences</a>
             <a href="{{ route('sessions.message', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>💬 Message aux inscrits</a>
             <a href="{{ route('sessions.suivi', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Suivi après la séance</a>
@@ -73,7 +76,7 @@
     {{-- Inscrire un contact --}}
     @if ($seance->inscriptionsCloses() && ! $forcerInscription)
         <div class="lb-card mt-4 flex flex-wrap items-center justify-between gap-3" style="padding:16px">
-            <span class="lb-muted" style="font-size:13.5px">Le cycle a commencé : les inscriptions sont closes.</span>
+            <span class="lb-muted" style="font-size:13.5px">{{ $seance->limite_entree ? 'La date limite d’entrée est passée' : 'Le cycle a commencé' }} : les inscriptions sont closes.</span>
             <button type="button" wire:click="$set('forcerInscription', true)" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px">Inscrire quand même quelqu'un</button>
         </div>
     @else
