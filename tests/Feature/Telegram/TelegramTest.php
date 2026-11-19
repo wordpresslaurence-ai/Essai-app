@@ -23,6 +23,7 @@ function robotConnecte(): void
 {
     Parametre::instance()->update([
         'telegram_jeton' => JETON_ROBOT, 'telegram_secret' => 'secret-de-test', 'telegram_robot' => 'laurence_prana_bot',
+        'telegram_branchement' => \App\Services\Telegram\ClientTelegram::VERSION_BRANCHEMENT,
     ]);
 }
 

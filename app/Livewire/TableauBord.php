@@ -18,6 +18,7 @@ class TableauBord extends Component
     {
         app(\App\Services\Sessions\SuiviApresSeance::class)->creerTaches(auth()->user()?->name);
         app(\App\Services\Sessions\RappelsCycle::class)->creerTaches();
+        \App\Services\Telegram\Assiduite::mettreAJourBranchement();
         app(\App\Services\Telegram\AccesTelegram::class)->creerTachesRenouvellement();
         app(\App\Services\Telegram\AccesTelegram::class)->retirerExpires();
     }

@@ -50,6 +50,7 @@ class Telegram extends Component
             'telegram_jeton' => trim($this->jeton),
             'telegram_secret' => $secret,
             'telegram_robot' => (string) ($moi['username'] ?? ''),
+            'telegram_branchement' => ClientTelegram::VERSION_BRANCHEMENT,
         ]);
 
         $this->reset('jeton');
@@ -94,7 +95,7 @@ class Telegram extends Component
         try {
             $secret = $p->telegram_secret ?: Str::random(48);
             app(ClientTelegram::class)->brancher(route('webhooks.telegram'), $secret);
-            $p->update(['telegram_secret' => $secret]);
+            $p->update(['telegram_secret' => $secret, 'telegram_branchement' => ClientTelegram::VERSION_BRANCHEMENT]);
         } catch (Throwable $e) {
             $this->erreur = $e->getMessage();
 

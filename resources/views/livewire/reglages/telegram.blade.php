@@ -74,6 +74,10 @@
                     @endforeach
                 </div>
                 <p class="lb-muted" style="font-size:12px;margin-top:8px">Pour en ajouter un : rends le robot administrateur, puis publie un message dans le canal.</p>
+                <p class="lb-muted" style="font-size:12px;margin-top:4px">
+                    Ajoute <code>#pratique</code> dans le texte ou la légende d'une publication : le robot place dessous un bouton « ✓ Fait »,
+                    et tu vois qui pratique. Il lui faut pour cela le droit « Modifier les messages des autres ».
+                </p>
             @endif
         </div>
 

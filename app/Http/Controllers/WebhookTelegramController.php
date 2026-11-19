@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\CanalTelegram;
 use App\Models\Contact;
 use App\Models\Inscription;
+use App\Models\Contenu;
 use App\Models\MessageTelegram;
+use App\Models\PratiqueFaite;
+use App\Models\PratiqueTelegram;
 use App\Models\Parametre;
 use App\Services\Telegram\ClientTelegram;
 use Illuminate\Http\JsonResponse;
@@ -27,7 +30,20 @@ class WebhookTelegramController extends Controller
 
         // Le robot voit une publication dans un canal où il est administrateur : on mémorise le canal.
         if (is_array($post = $request->input('channel_post'))) {
-            $this->memoriserCanal((array) data_get($post, 'chat'), true);
+            $canal = $this->memoriserCanal((array) data_get($post, 'chat'), true);
+
+            // Publication marquée #pratique : bouton « ✓ Fait » et lien avec le calendrier de contenu.
+            $texte = (string) (data_get($post, 'text') ?? data_get($post, 'caption') ?? '');
+            if ($canal && PratiqueTelegram::estPratique($texte)) {
+                $this->enregistrerPratique($telegram, $canal, $post, $texte);
+            }
+
+            return response()->json(['ok' => true]);
+        }
+
+        // Clic sur « ✓ Fait » sous une pratique.
+        if (is_array($clic = $request->input('callback_query'))) {
+            $this->noterPratiqueFaite($telegram, $clic);
 
             return response()->json(['ok' => true]);
         }
@@ -112,14 +128,84 @@ class WebhookTelegramController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    /** @param  array<string, mixed>  $chat */
-    private function memoriserCanal(array $chat, bool $actif): void
+    /** @param  array<string, mixed>  $post */
+    private function enregistrerPratique(ClientTelegram $telegram, CanalTelegram $canal, array $post, string $texte): void
     {
-        if (! in_array($chat['type'] ?? null, ['channel', 'supergroup', 'group'], true) || ! isset($chat['id'])) {
+        $titre = trim((string) preg_replace('/#pratique\b/iu', '', strtok($texte, "\n") ?: ''));
+        $type = match (true) {
+            data_get($post, 'voice') !== null, data_get($post, 'audio') !== null => 'vocal',
+            data_get($post, 'video') !== null, data_get($post, 'video_note') !== null => 'video',
+            data_get($post, 'document') !== null => 'pdf',
+            data_get($post, 'photo') !== null => 'photo',
+            default => 'texte',
+        };
+
+        $pratique = PratiqueTelegram::firstOrCreate(
+            ['canal_telegram_id' => $canal->id, 'message_id' => (string) data_get($post, 'message_id')],
+            ['titre' => $titre !== '' ? mb_substr($titre, 0, 255) : null, 'type' => $type, 'publie_le' => now()],
+        );
+
+        if (! $pratique->wasRecentlyCreated) {
             return;
         }
 
-        CanalTelegram::updateOrCreate(
+        try {
+            $telegram->ajouterBoutonFait($canal->chat_id, $pratique->message_id, $pratique->id);
+        } catch (Throwable) {
+            // Le robot n'a pas le droit de modifier les publications : la pratique est gardée sans bouton.
+        }
+
+        // Le contenu prévu ce jour-là dans le calendrier du trimestre passe en « Publié ».
+        $contenu = Contenu::query()
+            ->whereNull('pratique_telegram_id')
+            ->where('statut', '!=', 'publie')
+            ->whereDate('date_prevue', now()->toDateString())
+            ->whereHas('seance', fn ($q) => $q->where('canal_telegram_id', $canal->id))
+            ->orderBy('id')
+            ->first();
+        $contenu?->update(['statut' => 'publie', 'pratique_telegram_id' => $pratique->id]);
+    }
+
+    /** @param  array<string, mixed>  $clic */
+    private function noterPratiqueFaite(ClientTelegram $telegram, array $clic): void
+    {
+        $userId = (string) data_get($clic, 'from.id');
+        $reponse = '';
+
+        if (preg_match('/^fait:(\d+)$/', (string) data_get($clic, 'data'), $m) && $userId !== ''
+            && ($pratique = PratiqueTelegram::find((int) $m[1]))) {
+            $inscription = Inscription::where('acces_telegram_id', $userId)
+                ->whereHas('seance', fn ($q) => $q->where('canal_telegram_id', $pratique->canal_telegram_id))
+                ->latest('id')
+                ->first();
+
+            $fait = PratiqueFaite::firstOrCreate(
+                ['pratique_telegram_id' => $pratique->id, 'telegram_user_id' => $userId],
+                [
+                    'inscription_id' => $inscription?->id,
+                    'contact_id' => $inscription?->contact_id ?? Contact::where('telegram_id', $userId)->value('id'),
+                    'fait_le' => now(),
+                ],
+            );
+
+            $reponse = $fait->wasRecentlyCreated ? 'Bravo, c’est noté. Belle pratique !' : 'C’est déjà noté, merci !';
+        }
+
+        try {
+            $telegram->repondreBouton((string) data_get($clic, 'id'), $reponse);
+        } catch (Throwable) {
+            // Sans gravité : le clic est enregistré de toute façon.
+        }
+    }
+
+    /** @param  array<string, mixed>  $chat */
+    private function memoriserCanal(array $chat, bool $actif): ?CanalTelegram
+    {
+        if (! in_array($chat['type'] ?? null, ['channel', 'supergroup', 'group'], true) || ! isset($chat['id'])) {
+            return null;
+        }
+
+        return CanalTelegram::updateOrCreate(
             ['chat_id' => (string) $chat['id']],
             ['titre' => isset($chat['title']) ? mb_substr((string) $chat['title'], 0, 255) : null, 'type' => (string) $chat['type'], 'actif' => $actif],
         );

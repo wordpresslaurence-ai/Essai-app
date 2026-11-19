@@ -12,6 +12,9 @@ use RuntimeException;
  */
 class ClientTelegram
 {
+    /** Version du branchement : à augmenter quand la liste des événements reçus change. */
+    public const VERSION_BRANCHEMENT = 2;
+
     public function __construct(private ?string $jeton = null) {}
 
     private function jeton(): string
@@ -66,7 +69,7 @@ class ClientTelegram
         $this->appeler('setWebhook', [
             'url' => $url,
             'secret_token' => $secret,
-            'allowed_updates' => ['message', 'channel_post', 'my_chat_member', 'chat_member'],
+            'allowed_updates' => ['message', 'channel_post', 'my_chat_member', 'chat_member', 'callback_query'],
         ]);
     }
 
@@ -79,6 +82,22 @@ class ClientTelegram
     public function etat(): array
     {
         return (array) $this->appeler('getWebhookInfo');
+    }
+
+    /** Ajoute le bouton « ✓ Fait » sous une publication du canal. */
+    public function ajouterBoutonFait(string $chatId, string $messageId, int $pratiqueId): void
+    {
+        $this->appeler('editMessageReplyMarkup', [
+            'chat_id' => $chatId,
+            'message_id' => (int) $messageId,
+            'reply_markup' => ['inline_keyboard' => [[['text' => '✓ Fait', 'callback_data' => 'fait:'.$pratiqueId]]]],
+        ]);
+    }
+
+    /** Petite réponse affichée à la personne qui a cliqué sur un bouton. */
+    public function repondreBouton(string $callbackId, string $texte): void
+    {
+        $this->appeler('answerCallbackQuery', ['callback_query_id' => $callbackId, 'text' => $texte]);
     }
 
     /** Lien d'invitation personnel : une seule entrée, expiration facultative (horodatage). */

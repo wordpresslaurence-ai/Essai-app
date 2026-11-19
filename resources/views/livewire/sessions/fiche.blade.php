@@ -29,6 +29,7 @@
             <a href="{{ route('sessions.invitations', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Inviter</a>
             @if ($seance->canal_telegram_id)
                 <a href="{{ route('sessions.acces', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Accès Telegram</a>
+                <a href="{{ route('sessions.contenu', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Calendrier de contenu</a>
             @endif
             <a href="{{ route('sessions.dates', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>Dates et présences</a>
             <a href="{{ route('sessions.message', $seance) }}" class="lb-btn lb-btn-ghost" wire:navigate>💬 Message aux inscrits</a>

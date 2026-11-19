@@ -12,7 +12,9 @@
         <div class="lb-eyebrow">Accès Telegram</div>
         <h1 class="lb-h1" style="font-size:28px">{{ $seance->titre }}</h1>
         <p class="lb-muted" style="font-size:13px;margin-top:4px;max-width:54rem">
-            Chaque abonné reçoit son propre lien vers le canal, valable une seule fois. À la fin du trimestre,
+            Chaque abonné reçoit son propre lien vers le canal, valable une seule fois. Le nombre de pratiques faites
+            compte les clics sur « ✓ Fait » sous tes publications marquées <code>#pratique</code>
+            (<a href="{{ route('sessions.contenu', $seance) }}" class="lb-accent" style="font-weight:600" wire:navigate>calendrier de contenu</a>). À la fin du trimestre,
             l'accès de ceux qui ne se sont pas réinscrits est retiré à la première ouverture du CRM.
         </p>
     </div>
@@ -142,7 +144,10 @@
                         <div class="mt lb-truncate">
                             @switch($acces)
                                 @case('retire') Accès retiré le {{ $ins->acces_retire_le->format('d/m/Y') }} @break
-                                @case('rejoint') Dans le canal depuis le {{ $ins->acces_rejoint_le->format('d/m/Y') }} @break
+                                @case('rejoint') Dans le canal depuis le {{ $ins->acces_rejoint_le->format('d/m/Y') }}
+                                    @php $b = $bilans[$ins->id]; @endphp
+                                    @if ($b['publiees'] > 0) · <b style="color:var(--ink)">{{ $b['faites'] }}/{{ $b['publiees'] }} pratiques</b>@if ($b['derniere']), dernière le {{ $b['derniere']->format('d/m') }}@endif @endif
+                                    @break
                                 @case('envoye') Lien envoyé le {{ $ins->acces_envoye_le->format('d/m/Y') }}, pas encore utilisé @break
                                 @case('lien_cree') Lien créé, pas encore envoyé @break
                                 @default Pas encore de lien

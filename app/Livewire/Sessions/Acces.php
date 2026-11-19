@@ -279,6 +279,7 @@ class Acces extends Component
 
         return view('livewire.sessions.acces', [
             'inscriptions' => $inscriptions,
+            'bilans' => $inscriptions->mapWithKeys(fn (Inscription $i) => [$i->id => \App\Services\Telegram\Assiduite::bilan($i)]),
             'canal' => $this->seance->canalTelegram,
             'prochaine' => AccesTelegram::prochaineSession($this->seance),
             'lignesRenouvellement' => $lignesRenouvellement,

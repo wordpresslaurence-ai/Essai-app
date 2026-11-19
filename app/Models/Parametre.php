@@ -28,6 +28,7 @@ class Parametre extends Model
         'telegram_jeton',
         'telegram_secret',
         'telegram_robot',
+        'telegram_branchement',
     ];
 
     /** Valeurs par défaut au niveau du modèle (reflétées dès la création). */
@@ -41,6 +42,7 @@ class Parametre extends Model
             'gmail_app_password' => 'encrypted',
             'anthropic_api_key' => 'encrypted',
             'telegram_jeton' => 'encrypted',
+            'telegram_branchement' => 'integer',
             'relance_delai_jours' => 'integer',
             'derniere_synchro_at' => 'datetime',
         ];

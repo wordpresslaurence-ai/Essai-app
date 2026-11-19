@@ -117,6 +117,52 @@
         </div>
     @endif
 
+    {{-- Abonnés qui décrochent (brique 020) --}}
+    @if ($decrocheurs->isNotEmpty())
+        <div class="flex flex-wrap items-center justify-between gap-2 mt-6">
+            <h3 class="lb-h3" style="font-size:19px">Abonnés qui décrochent</h3>
+            <span class="lb-tag" style="background:var(--gold-tint);color:var(--accent)">{{ $decrocheurs->count() }}</span>
+        </div>
+        <p class="lb-muted" style="font-size:12.5px;margin-top:2px">Aucune pratique faite ces {{ \App\Services\Telegram\Assiduite::JOURS }} derniers jours. Un petit mot personnel aide souvent à reprendre.</p>
+        <div class="lb-people mt-3">
+            @foreach ($decrocheurs as $ligne)
+                @php $ins = $ligne['inscription']; @endphp
+                <div class="lb-prow" wire:key="dec-{{ $ins->id }}">
+                    <span class="lb-tag" style="background:var(--lav-tint);color:var(--lav)">Pratique</span>
+                    <a href="{{ route('contacts.fiche', $ins->contact) }}" wire:navigate style="min-width:0;flex:1;text-decoration:none;color:inherit">
+                        <div class="nm lb-truncate">{{ $ins->contact->nomComplet() }}</div>
+                        <div class="mt lb-truncate">{{ $ins->seance->titre }} · {{ $ligne['derniere'] ? 'dernière pratique le '.\Illuminate\Support\Carbon::parse($ligne['derniere'])->format('d/m') : 'aucune pratique faite' }}</div>
+                    </a>
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex:none">
+                        <a href="{{ route('contacts.fiche', $ins->contact) }}" class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap;text-decoration:none" wire:navigate>Écrire</a>
+                        <button type="button" wire:click="vuAssiduite({{ $ins->id }})" title="Ne plus signaler pendant 10 jours"
+                                class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;white-space:nowrap">✓ Vu</button>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
+    {{-- Contenu à préparer (brique 020) --}}
+    @if ($contenusAPreparer->isNotEmpty())
+        <div class="flex flex-wrap items-center justify-between gap-2 mt-6">
+            <h3 class="lb-h3" style="font-size:19px">Contenu à préparer</h3>
+            <span class="lb-tag" style="background:var(--gold-tint);color:var(--accent)">{{ $contenusAPreparer->count() }}</span>
+        </div>
+        <div class="lb-people mt-3">
+            @foreach ($contenusAPreparer as $c)
+                <div class="lb-prow" wire:key="cap-{{ $c->id }}">
+                    <span class="lb-tag" style="{{ $c->date_prevue->isPast() && ! $c->date_prevue->isToday() ? 'background:var(--terra-tint);color:var(--terra)' : 'background:var(--gold-tint);color:var(--accent)' }}">{{ \App\Models\Contenu::FORMATS[$c->format] ?? $c->format }}</span>
+                    <a href="{{ route('sessions.contenu', $c->seance) }}" wire:navigate style="min-width:0;flex:1;text-decoration:none;color:inherit">
+                        <div class="nm lb-truncate">{{ $c->titre }}</div>
+                        <div class="mt lb-truncate">{{ $c->seance->titre }} · {{ \App\Models\Contenu::STATUTS[$c->statut] }}</div>
+                    </a>
+                    <span class="lb-muted" style="font-size:12px;white-space:nowrap;margin-left:auto">{{ $c->date_prevue->translatedFormat('D j M') }}</span>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
     {{-- Réponses dues (prioritaire) --}}
     <div class="flex flex-wrap items-center justify-between gap-2 mt-6">
         <h3 class="lb-h3" style="font-size:19px">Tu dois une réponse</h3>

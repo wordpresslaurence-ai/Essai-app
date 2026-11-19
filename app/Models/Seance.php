@@ -78,6 +78,12 @@ class Seance extends Model
         return $this->date_fin ?? $this->date_debut;
     }
 
+    /** Calendrier de contenu du trimestre. */
+    public function contenus(): HasMany
+    {
+        return $this->hasMany(Contenu::class)->orderBy('date_prevue')->orderBy('id');
+    }
+
     /** Canal Telegram auquel l'inscription donne accès (abonnement par trimestre). */
     public function canalTelegram(): BelongsTo
     {

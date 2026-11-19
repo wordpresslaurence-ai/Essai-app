@@ -49,6 +49,7 @@ class Brief extends Component
         // Suivi après séance : une tâche par participant dès le lendemain.
         app(\App\Services\Sessions\SuiviApresSeance::class)->creerTaches(auth()->user()?->name);
         app(\App\Services\Sessions\RappelsCycle::class)->creerTaches();
+        \App\Services\Telegram\Assiduite::mettreAJourBranchement();
         app(\App\Services\Telegram\AccesTelegram::class)->creerTachesRenouvellement();
         app(\App\Services\Telegram\AccesTelegram::class)->retirerExpires();
 
@@ -335,6 +336,12 @@ class Brief extends Component
         ];
     }
 
+    /** Décrochage vu : la personne sort de la liste pour 10 jours. */
+    public function vuAssiduite(int $inscriptionId): void
+    {
+        \App\Models\Inscription::whereKey($inscriptionId)->update(['assiduite_vu_le' => now()]);
+    }
+
     /** Question Telegram qui n'appelle pas de réponse : elle sort de la liste. */
     public function traiterTelegram(int $contactId): void
     {
@@ -381,6 +388,11 @@ class Brief extends Component
             'dejaOpp' => $dejaOpp,
             'indecisChauds' => $indecis->leadsChaudsSansSuite($pole),
             'indecisSessions' => $indecis->interessesSessionPassee($pole),
+            'decrocheurs' => \App\Services\Telegram\Assiduite::decrocheurs(),
+            'contenusAPreparer' => \App\Models\Contenu::with('seance')
+                ->whereIn('statut', \App\Models\Contenu::A_PREPARER)
+                ->where('date_prevue', '<=', now()->addDays(7)->toDateString())
+                ->orderBy('date_prevue')->limit(20)->get(),
             'questionsTelegram' => \App\Models\MessageTelegram::with('contact')
                 ->where('sens', \App\Models\MessageTelegram::ENTRANT)
                 ->whereNull('traite_le')->whereNotNull('contact_id')

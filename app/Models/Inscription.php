@@ -23,7 +23,7 @@ class Inscription extends Model
 
     protected $fillable = ['seance_id', 'contact_id', 'statut', 'notes', 'presence', 'suivi_cree_le', 'suivi_envoye_le',
         'montant_du', 'avis_demande_le', 'avis_recu_le', 'avis_texte', 'avis_publiable',
-        'acces_lien', 'acces_lien_cree_le', 'acces_envoye_le', 'acces_telegram_id', 'acces_rejoint_le', 'acces_retire_le'];
+        'acces_lien', 'acces_lien_cree_le', 'acces_envoye_le', 'acces_telegram_id', 'acces_rejoint_le', 'acces_retire_le', 'assiduite_vu_le'];
 
     protected function casts(): array
     {
@@ -38,6 +38,7 @@ class Inscription extends Model
             'acces_envoye_le' => 'datetime',
             'acces_rejoint_le' => 'datetime',
             'acces_retire_le' => 'datetime',
+            'assiduite_vu_le' => 'datetime',
         ];
     }
 
