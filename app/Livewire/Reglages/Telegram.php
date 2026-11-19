@@ -105,6 +105,17 @@ class Telegram extends Component
         session()->flash('message', 'C’est prêt. Publie maintenant un court message (par exemple « Bienvenue ») dans chacun de tes canaux, puis recharge cette page : ils apparaîtront dans la liste.');
     }
 
+    /** Nouvel essai d'ajout du bouton « ✓ Fait » sous une pratique. */
+    public function reessayerBouton(int $id): void
+    {
+        $this->reset('erreur', 'etat');
+        $pratique = \App\Models\PratiqueTelegram::with('canal')->find($id);
+
+        if ($pratique && ! $pratique->ajouterBouton(app(ClientTelegram::class))) {
+            $this->erreur = $pratique->bouton_erreur;
+        }
+    }
+
     public function oublierCanal(int $id): void
     {
         \App\Models\CanalTelegram::whereKey($id)->delete();
@@ -124,6 +135,7 @@ class Telegram extends Component
             'connecte' => filled($p->telegram_robot) && filled($p->secret('telegram_jeton')),
             'inconnus' => MessageTelegram::whereNull('contact_id')->where('sens', MessageTelegram::ENTRANT)->latest('id')->limit(30)->get(),
             'canaux' => \App\Models\CanalTelegram::orderBy('titre')->get(),
+            'pratiques' => \App\Models\PratiqueTelegram::with('canal')->latest('id')->limit(8)->get(),
             'nbRelies' => \App\Models\Contact::whereNotNull('telegram_id')->count(),
         ]);
     }

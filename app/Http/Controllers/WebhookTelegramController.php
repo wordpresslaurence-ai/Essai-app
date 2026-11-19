@@ -29,7 +29,8 @@ class WebhookTelegramController extends Controller
         abort_unless($attendu !== '' && hash_equals($attendu, $recu), 404);
 
         // Le robot voit une publication dans un canal où il est administrateur : on mémorise le canal.
-        if (is_array($post = $request->input('channel_post'))) {
+        // (Une publication modifiée compte aussi : on peut ajouter #pratique après coup.)
+        if (is_array($post = $request->input('channel_post') ?? $request->input('edited_channel_post'))) {
             $canal = $this->memoriserCanal((array) data_get($post, 'chat'), true);
 
             // Publication marquée #pratique : bouton « ✓ Fait » et lien avec le calendrier de contenu.
@@ -149,11 +150,9 @@ class WebhookTelegramController extends Controller
             return;
         }
 
-        try {
-            $telegram->ajouterBoutonFait($canal->chat_id, $pratique->message_id, $pratique->id);
-        } catch (Throwable) {
-            // Le robot n'a pas le droit de modifier les publications : la pratique est gardée sans bouton.
-        }
+        // En cas de refus, la raison est gardée et affichée dans Réglages → Telegram.
+        $pratique->setRelation('canal', $canal);
+        $pratique->ajouterBouton($telegram);
 
         // Le contenu prévu ce jour-là dans le calendrier du trimestre passe en « Publié ».
         $contenu = Contenu::query()

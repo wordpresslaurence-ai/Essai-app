@@ -14,11 +14,11 @@ class PratiqueTelegram extends Model
 
     protected $table = 'pratiques_telegram';
 
-    protected $fillable = ['canal_telegram_id', 'message_id', 'titre', 'type', 'publie_le'];
+    protected $fillable = ['canal_telegram_id', 'message_id', 'titre', 'type', 'publie_le', 'bouton_ajoute', 'bouton_erreur'];
 
     protected function casts(): array
     {
-        return ['publie_le' => 'datetime'];
+        return ['publie_le' => 'datetime', 'bouton_ajoute' => 'boolean'];
     }
 
     public function canal(): BelongsTo
@@ -29,6 +29,21 @@ class PratiqueTelegram extends Model
     public function faites(): HasMany
     {
         return $this->hasMany(PratiqueFaite::class);
+    }
+
+    /** Ajoute le bouton sous la publication et garde le résultat (succès ou raison du refus). */
+    public function ajouterBouton(\App\Services\Telegram\ClientTelegram $telegram): bool
+    {
+        try {
+            $telegram->ajouterBoutonFait($this->canal->chat_id, $this->message_id, $this->id);
+            $this->update(['bouton_ajoute' => true, 'bouton_erreur' => null]);
+
+            return true;
+        } catch (\Throwable $e) {
+            $this->update(['bouton_ajoute' => false, 'bouton_erreur' => mb_substr($e->getMessage(), 0, 500)]);
+
+            return false;
+        }
     }
 
     public static function estPratique(string $texte): bool

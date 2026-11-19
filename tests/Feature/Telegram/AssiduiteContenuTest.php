@@ -163,3 +163,25 @@ it('met à jour le branchement une seule fois à l’ouverture du CRM', function
     Http::assertSent(fn ($r) => str_contains($r->url(), '/setWebhook') && in_array('callback_query', $r['allowed_updates'], true));
     expect(Parametre::instance()->fresh()->telegram_branchement)->toBe(ClientTelegram::VERSION_BRANCHEMENT);
 });
+
+it('garde la raison d’un refus d’ajout du bouton, l’affiche et permet de réessayer', function () {
+    [$canal] = trimestreAvecAbonnee();
+    Http::swap(new \Illuminate\Http\Client\Factory(app('events'))); // remplace le faux Telegram du beforeEach
+    Http::fake(['api.telegram.org/*' => Http::sequence()
+        ->push(['ok' => false, 'description' => "Bad Request: message can't be edited"], 400)
+        ->push(['ok' => true, 'result' => true])]);
+
+    envoiTelegram(['edited_channel_post' => ['message_id' => 50, 'chat' => ['id' => -1001234, 'type' => 'channel'], 'text' => 'Ancienne publication #pratique']])->assertOk();
+
+    $pratique = PratiqueTelegram::sole();
+    expect($pratique->bouton_ajoute)->toBeFalse();
+    expect($pratique->bouton_erreur)->toContain('ne permet pas au robot de modifier');
+
+    Livewire::test(\App\Livewire\Reglages\Telegram::class)
+        ->assertSee('Sans bouton')
+        ->assertSee("message can't be edited")
+        ->call('reessayerBouton', $pratique->id)
+        ->assertSee('Bouton ajouté');
+
+    expect($pratique->fresh()->bouton_ajoute)->toBeTrue();
+});

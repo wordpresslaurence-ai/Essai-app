@@ -13,7 +13,7 @@ use RuntimeException;
 class ClientTelegram
 {
     /** Version du branchement : à augmenter quand la liste des événements reçus change. */
-    public const VERSION_BRANCHEMENT = 2;
+    public const VERSION_BRANCHEMENT = 3;
 
     public function __construct(private ?string $jeton = null) {}
 
@@ -49,7 +49,9 @@ class ClientTelegram
             throw new RuntimeException(match (true) {
                 $reponse->status() === 401 || $reponse->status() === 404 => 'Telegram refuse ce jeton : vérifie que tu as copié le jeton complet donné par BotFather.',
                 str_contains($detail, 'not enough rights') || str_contains($detail, 'CHAT_ADMIN_REQUIRED') || str_contains($detail, 'chat not found')
-                    => 'Le robot n’a pas les droits nécessaires dans ce canal : vérifie qu’il y est administrateur, avec « Inviter via un lien » et « Bannir des utilisateurs ».',
+                    => 'Le robot n’a pas les droits nécessaires dans ce canal : vérifie qu’il y est administrateur, avec « Inviter via un lien », « Bannir des utilisateurs » et « Modifier les messages des autres ». (Détail : '.$detail.')',
+                str_contains($detail, "message can't be edited") || str_contains($detail, 'MESSAGE_AUTHOR_REQUIRED')
+                    => 'Telegram ne permet pas au robot de modifier cette publication. (Détail : '.$detail.')',
                 str_contains($detail, 'bot was blocked') => 'Cette personne a bloqué le robot : le message ne peut pas lui parvenir.',
                 default => 'Telegram a refusé la demande : '.$detail,
             });
@@ -69,7 +71,7 @@ class ClientTelegram
         $this->appeler('setWebhook', [
             'url' => $url,
             'secret_token' => $secret,
-            'allowed_updates' => ['message', 'channel_post', 'my_chat_member', 'chat_member', 'callback_query'],
+            'allowed_updates' => ['message', 'channel_post', 'my_chat_member', 'chat_member', 'callback_query', 'edited_channel_post'],
         ]);
     }
 

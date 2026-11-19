@@ -81,6 +81,40 @@
             @endif
         </div>
 
+        {{-- Dernières pratiques reçues : diagnostic du bouton « ✓ Fait » --}}
+        <div class="lb-card mt-5" style="padding:20px;max-width:720px">
+            <div class="lb-label">Dernières pratiques reçues</div>
+            @if ($pratiques->isEmpty())
+                <p class="lb-muted" style="font-size:13px;margin-top:8px">
+                    Aucune publication avec <code>#pratique</code> n'est arrivée jusqu'au CRM. Publie-en une dans ton canal
+                    (ou modifie une publication pour y ajouter <code>#pratique</code>), puis recharge cette page.
+                    Si rien n'apparaît, clique sur « Vérifier le branchement » plus haut.
+                </p>
+            @else
+                <div class="lb-people mt-3">
+                    @foreach ($pratiques as $p)
+                        <div class="lb-prow" wire:key="prat-{{ $p->id }}" style="align-items:flex-start;flex-wrap:wrap;row-gap:8px">
+                            @if ($p->bouton_ajoute)
+                                <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep)">Bouton ajouté</span>
+                            @else
+                                <span class="lb-tag" style="background:var(--terra-tint);color:var(--terra)">Sans bouton</span>
+                            @endif
+                            <div style="min-width:12rem;flex:1">
+                                <div class="nm">{{ $p->titre ?: 'Pratique sans titre' }}</div>
+                                <div class="mt">{{ $p->canal?->nom() }} · {{ $p->publie_le->translatedFormat('d/m à H:i') }} · {{ $p->faites()->count() }} « fait »</div>
+                                @if (! $p->bouton_ajoute && $p->bouton_erreur)
+                                    <div style="font-size:12.5px;color:var(--terra);margin-top:4px">{{ $p->bouton_erreur }}</div>
+                                @endif
+                            </div>
+                            @if (! $p->bouton_ajoute)
+                                <button type="button" wire:click="reessayerBouton({{ $p->id }})" class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;flex:none">Réessayer</button>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
         <div class="lb-card mt-5" style="padding:20px;max-width:720px">
             <div class="lb-label">Comment relier un contact</div>
             <ol style="margin:8px 0 0;padding-left:20px;font-size:13.5px;color:var(--ink);line-height:1.7">
