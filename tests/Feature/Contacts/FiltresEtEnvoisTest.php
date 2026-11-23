@@ -67,9 +67,9 @@ it('montre l’enveloppe du dernier mail envoyé dans le carnet et sur la fiche'
     expect($rien->dernierEnvoi())->toBeNull();
 
     Livewire::test(Liste::class)
-        ->assertSee('Dernier mail envoyé le 12 novembre 2026')
-        ->assertSee('Dernier mail envoyé le 20 novembre 2026');
+        ->assertSee('Dernier mail envoyé le '.$ecrit->dernierEnvoi()->translatedFormat('j F Y'))
+        ->assertSee('Dernier mail envoyé le '.$note->dernierEnvoi()->translatedFormat('j F Y'));
 
-    Livewire::test(FicheDetail::class, ['contact' => $ecrit])->assertSee('Dernier mail envoyé le 12 novembre 2026');
+    Livewire::test(FicheDetail::class, ['contact' => $ecrit])->assertSee('Dernier mail envoyé le '.$ecrit->dernierEnvoi()->translatedFormat('j F Y'));
     Livewire::test(FicheDetail::class, ['contact' => $rien])->assertSee('Aucun mail envoyé');
 });
