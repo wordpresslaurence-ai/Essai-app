@@ -85,6 +85,9 @@ class DeposeBrouillon
             'To: '.$a,
             'Subject: '.mb_encode_mimeheader($objet, 'UTF-8', 'B', "\r\n"),
             'Date: '.now()->format('D, d M Y H:i:s O'),
+            // Identifiant du message : sans lui, certains webmails envoient le brouillon
+            // sans identifiant et le CRM ne pouvait plus relire le mail dans les « Envoyés ».
+            'Message-ID: <crm-'.bin2hex(random_bytes(12)).'@'.(substr(strrchr($de, '@') ?: '@crm.local', 1) ?: 'crm.local').'>',
             'MIME-Version: 1.0',
             'Content-Type: multipart/alternative; boundary="'.$frontiere.'"',
         ];

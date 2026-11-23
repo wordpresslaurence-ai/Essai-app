@@ -139,14 +139,18 @@ class ClientImap implements LecteurEmails
 
     private function construireMessage(\IMAP\Connection|false $flux, int $uid, object $entete): ?MessageEmail
     {
-        $messageId = isset($entete->message_id) ? trim($entete->message_id) : '';
-        if ($messageId === '') {
-            return null;
-        }
-
         $de = $this->premiereAdresse($entete->from ?? []);
         if ($de === null) {
             return null;
+        }
+
+        // Sans identifiant (certains brouillons envoyés depuis un webmail), on en
+        // fabrique un stable à partir de l'expéditeur, des destinataires, de la date
+        // et de l'objet : le mail est importé, et une seule fois.
+        $messageId = isset($entete->message_id) ? trim($entete->message_id) : '';
+        if ($messageId === '') {
+            $messageId = '<sans-id-'.sha1(mb_strtolower($de).'|'.implode(',', $this->toutesAdresses($entete->to ?? []))
+                .'|'.($entete->date ?? '').'|'.($entete->subject ?? '')).'@crm>';
         }
 
         $corps = $this->extraireCorps($flux, $uid);

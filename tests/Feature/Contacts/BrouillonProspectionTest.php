@@ -94,6 +94,7 @@ it('construit un e-mail aux liens cliquables, avec un objet accentué', function
     expect($message)->toContain("To: marie@exemple.be\r\n");
     expect($message)->toContain('Subject: =?UTF-8?B?');
     expect($message)->toContain('multipart/alternative');
+    expect($message)->toMatch('/Message-ID: <crm-[0-9a-f]{24}@exemple\\.be>/');
 
     $html = DeposeBrouillon::htmlAvecLiens("Bonjour,\nLe programme : https://exemple.be/p?a=1&b=2\n- https://seul.be");
     expect($html)->toBe('Bonjour,<br><a href="https://exemple.be/p?a=1&amp;b=2">Le programme</a><br>- <a href="https://seul.be">https://seul.be</a>');
