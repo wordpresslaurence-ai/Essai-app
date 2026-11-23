@@ -199,6 +199,36 @@ class Contact extends Model
         return $this->hasMany(Email::class);
     }
 
+    /**
+     * Ajoute aux requêtes de contacts la date du dernier mail envoyé : mail lu
+     * dans le dossier « Envoyés », ou envoi noté dans le CRM (« C'est envoyé »,
+     * mail de prospection marqué fait).
+     *
+     * @param  Builder<Contact>  $query
+     */
+    public function scopeAvecDernierEnvoi(Builder $query): void
+    {
+        $query->withMax(['emails as dernier_mail_sortant' => fn ($q) => $q->where('direction', Email::DIRECTION_SORTANT)], 'date_email')
+            ->withMax(['activites as dernier_envoi_note' => fn ($q) => $q->whereNotNull('terminee_at')
+                ->where(fn ($a) => $a->where('type', Activite::TYPE_EMAIL)
+                    ->orWhere('titre', 'like', 'Envoyer le mail de prospection%'))], 'terminee_at');
+    }
+
+    /** Date du dernier mail envoyé à ce contact (null s'il n'y en a pas). */
+    public function dernierEnvoi(): ?\Illuminate\Support\Carbon
+    {
+        if (! array_key_exists('dernier_mail_sortant', $this->attributes)) {
+            $this->setAttribute('dernier_mail_sortant', $this->emails()->where('direction', Email::DIRECTION_SORTANT)->max('date_email'));
+            $this->setAttribute('dernier_envoi_note', $this->activites()->whereNotNull('terminee_at')
+                ->where(fn ($a) => $a->where('type', Activite::TYPE_EMAIL)->orWhere('titre', 'like', 'Envoyer le mail de prospection%'))
+                ->max('terminee_at'));
+        }
+
+        $dates = array_filter([$this->attributes['dernier_mail_sortant'] ?? null, $this->attributes['dernier_envoi_note'] ?? null]);
+
+        return $dates ? \Illuminate\Support\Carbon::parse(max(array_map(fn ($d) => (string) $d, $dates))) : null;
+    }
+
     /** Adresses e-mail secondaires (l'adresse principale est contacts.email). */
     public function adressesEmail(): HasMany
     {

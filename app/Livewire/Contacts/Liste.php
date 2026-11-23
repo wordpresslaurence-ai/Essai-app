@@ -60,6 +60,52 @@ class Liste extends Component
     #[Url]
     public string $sens = 'asc';
 
+    /** Filtres retenus d'une visite à l'autre (retour depuis une fiche, menu « Contacts »). */
+    public const FILTRES = ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'inclureMasques', 'tri', 'sens'];
+
+    private const CLE_SESSION = 'contacts.filtres';
+
+    /**
+     * Sans filtre dans l'adresse, on reprend ceux de la dernière visite (et la page).
+     * Une adresse qui porte ses propres filtres reste prioritaire.
+     */
+    public function mount(): void
+    {
+        $query = request()->query();
+        $sauves = session(self::CLE_SESSION);
+
+        if (! is_array($sauves) || array_intersect(array_keys($query), [...self::FILTRES, 'page']) !== []) {
+            return;
+        }
+
+        foreach (self::FILTRES as $filtre) {
+            if (array_key_exists($filtre, $sauves)) {
+                $this->{$filtre} = is_bool($this->{$filtre}) ? (bool) $sauves[$filtre] : (string) $sauves[$filtre];
+            }
+        }
+
+        if (($sauves['page'] ?? 1) > 1) {
+            $this->setPage((int) $sauves['page']);
+        }
+    }
+
+    /** Un filtre est-il actif (pour afficher « Effacer les filtres ») ? */
+    public function filtresActifs(): bool
+    {
+        $defauts = [
+            'recherche' => '', 'type' => '', 'etiquette' => '', 'statut' => 'actifs', 'temperature' => '',
+            'origine' => '', 'pole' => '', 'categorie' => '', 'inclureMasques' => false,
+        ];
+
+        foreach ($defauts as $filtre => $defaut) {
+            if ($this->{$filtre} !== $defaut) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /** Réinitialise la pagination dès qu'un filtre change. */
     public function updating($name): void
     {
@@ -118,6 +164,7 @@ class Liste extends Component
     {
         $this->reset(['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'inclureMasques']);
         $this->resetPage();
+        session()->forget(self::CLE_SESSION);
     }
 
     public function render(): View
@@ -127,6 +174,7 @@ class Liste extends Component
 
         $contacts = Contact::query()
             ->with(['entreprise', 'etiquettes'])
+            ->avecDernierEnvoi()
             ->recherche($this->recherche)
             ->when($this->type !== '', fn ($q) => $q->where('type', $this->type))
             ->when($this->etiquette !== '', fn ($q) => $q->whereHas(
@@ -169,6 +217,9 @@ class Liste extends Component
             )
             ->orderBy($triAutorise, $sensAutorise)
             ->paginate(15);
+
+        // On retient les filtres (et la page) pour la prochaine visite.
+        session([self::CLE_SESSION => $this->only(self::FILTRES) + ['page' => $contacts->currentPage()]]);
 
         return view('livewire.contacts.liste', [
             'contacts' => $contacts,

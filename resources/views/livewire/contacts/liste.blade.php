@@ -90,6 +90,10 @@
             <input type="checkbox" wire:model.live="inclureMasques" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
             Afficher les masqués
         </label>
+
+        @if ($this->filtresActifs())
+            <button type="button" wire:click="reinitialiserFiltres" class="lb-btn lb-btn-ghost" style="padding:8px 13px;font-size:12.5px">✕ Effacer les filtres</button>
+        @endif
     </div>
 
     {{-- Cartes --}}
@@ -102,6 +106,10 @@
                     <div style="min-width:0;flex:1">
                         <div class="nm lb-truncate">
                             {{ $contact->nomComplet() }}
+                            @if ($envoi = $contact->dernierEnvoi())
+                                <span title="Dernier mail envoyé le {{ $envoi->translatedFormat('j F Y') }}" aria-label="Dernier mail envoyé le {{ $envoi->translatedFormat('j F Y') }}"
+                                      style="font-size:11.5px;font-weight:500;color:var(--mint-deep);background:var(--mint-tint);border-radius:999px;padding:1px 7px;margin-left:4px;white-space:nowrap">✉️ {{ $envoi->format('d/m') }}</span>
+                            @endif
                             @if ($contact->estArchive()) <span class="lb-muted" style="font-size:11px;font-weight:400">· archivé</span> @endif
                         </div>
                         <div class="meta lb-truncate">

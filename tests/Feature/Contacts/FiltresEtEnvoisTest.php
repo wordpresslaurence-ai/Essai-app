@@ -1,0 +1,75 @@
+<?php
+
+use App\Livewire\Contacts\FicheDetail;
+use App\Livewire\Contacts\Liste;
+use App\Models\Activite;
+use App\Models\Contact;
+use App\Models\Email;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create());
+});
+
+it('retient les filtres en revenant au carnet et les efface d’un clic', function () {
+    Contact::factory()->create(['nom' => 'Zen SPRL', 'type' => Contact::TYPE_ENTREPRISE]);
+    Contact::factory()->create(['prenom' => 'Marie', 'nom' => 'Durand', 'type' => Contact::TYPE_PERSONNE]);
+
+    Livewire::test(Liste::class)
+        ->assertDontSee('Effacer les filtres')
+        ->set('type', Contact::TYPE_ENTREPRISE)
+        ->assertSee('Effacer les filtres');
+
+    // Retour au carnet (depuis une fiche, ou par le menu) : le filtre est toujours là.
+    Livewire::test(Liste::class)
+        ->assertSet('type', Contact::TYPE_ENTREPRISE)
+        ->assertSee('Zen SPRL')
+        ->assertDontSee('Marie Durand')
+        ->call('reinitialiserFiltres')
+        ->assertSet('type', '')
+        ->assertSee('Marie Durand');
+
+    Livewire::test(Liste::class)->assertSet('type', '');
+});
+
+it('donne la priorité aux filtres présents dans l’adresse', function () {
+    Livewire::test(Liste::class)->set('type', Contact::TYPE_ENTREPRISE);
+
+    Livewire::withQueryParams(['type' => Contact::TYPE_PERSONNE])
+        ->test(Liste::class)
+        ->assertSet('type', Contact::TYPE_PERSONNE);
+});
+
+it('montre l’enveloppe du dernier mail envoyé dans le carnet et sur la fiche', function () {
+    $ecrit = Contact::factory()->create(['prenom' => 'Marie', 'nom' => 'Durand']);
+    $note = Contact::factory()->create(['prenom' => 'Paul', 'nom' => 'Petit']);
+    $rien = Contact::factory()->create(['prenom' => 'Anne', 'nom' => 'Sansmail']);
+
+    Email::create([
+        'contact_id' => $ecrit->id, 'direction' => Email::DIRECTION_SORTANT, 'objet' => 'Bonjour',
+        'date_email' => '2026-11-12 10:00:00', 'message_id' => 'a@x', 'de' => 'moi@x.be', 'a' => 'marie@x.be', 'boite' => 'moi@x.be',
+    ]);
+    Email::create([
+        'contact_id' => $ecrit->id, 'direction' => Email::DIRECTION_ENTRANT, 'objet' => 'Re: Bonjour',
+        'date_email' => '2026-11-15 10:00:00', 'message_id' => 'b@x', 'de' => 'marie@x.be', 'a' => 'moi@x.be', 'boite' => 'moi@x.be',
+    ]);
+    Activite::create([
+        'titre' => 'Envoyer le mail de prospection à Paul Petit', 'type' => Activite::TYPE_TACHE,
+        'contact_id' => $note->id, 'terminee_at' => '2026-11-20 09:00:00',
+    ]);
+
+    expect($ecrit->dernierEnvoi()->format('d/m'))->toBe('12/11'); // le mail reçu ne compte pas
+    expect($note->dernierEnvoi()->format('d/m'))->toBe('20/11');
+    expect($rien->dernierEnvoi())->toBeNull();
+
+    Livewire::test(Liste::class)
+        ->assertSee('✉️ 12/11')
+        ->assertSee('✉️ 20/11');
+
+    Livewire::test(FicheDetail::class, ['contact' => $ecrit])->assertSee('Dernier mail envoyé le 12 novembre 2026');
+    Livewire::test(FicheDetail::class, ['contact' => $rien])->assertSee('Aucun mail envoyé');
+});

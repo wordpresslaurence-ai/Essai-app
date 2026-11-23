@@ -28,6 +28,11 @@
                     style="background:none;border:0;cursor:pointer;font-size:26px;line-height:1;padding:0;color:{{ $contact->a_la_une ? 'var(--gold)' : 'var(--text-muted)' }}">
                 {{ $contact->a_la_une ? '★' : '☆' }}
             </button>
+            @if ($envoi = $contact->dernierEnvoi())
+                <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep)" title="Mail lu dans tes envoyés, ou envoi noté dans le CRM">✉️ Dernier mail envoyé le {{ $envoi->translatedFormat('j F Y') }}</span>
+            @else
+                <span class="lb-tag" style="background:var(--surface)">✉️ Aucun mail envoyé</span>
+            @endif
         </div>
         @if ($contact->suiviEnPause())
             <div class="flex items-center gap-2 flex-wrap" style="margin-top:8px">
