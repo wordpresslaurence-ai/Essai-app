@@ -220,6 +220,14 @@
             <div class="lb-card" style="padding:20px">
                 <div class="flex items-center justify-between">
                     <h3 class="lb-h3" style="font-size:19px">E-mails</h3>
+                    @if (filled($contact->email))
+                        <button type="button" wire:click="retrouverMails" class="lb-accent" title="Cherche dans tes boîtes, sans limite de date, les mails reçus de ce contact ou envoyés à lui"
+                                style="font-size:12.5px;font-weight:600;background:none;border:0;cursor:pointer;margin-left:auto;margin-right:12px"
+                                wire:loading.attr="disabled" wire:target="retrouverMails">
+                            <span wire:loading.remove wire:target="retrouverMails">🔎 Retrouver ses mails</span>
+                            <span wire:loading wire:target="retrouverMails">Recherche dans tes boîtes…</span>
+                        </button>
+                    @endif
                     @if ($contact->emails->isNotEmpty())
                         <div class="flex items-center gap-3 flex-wrap">
                             <span class="lb-muted" style="font-size:12px">{{ $contact->emails->count() }} message(s)</span>

@@ -33,6 +33,15 @@ class LecteurFactice implements LecteurEmails
         return true;
     }
 
+    public function rechercherAdresse(BoiteEmail $boite, string $adresse): array
+    {
+        $source = $this->parBoite[$boite->email] ?? $this->messages;
+        $adresse = mb_strtolower($adresse);
+
+        return array_values(array_filter($source, fn (MessageEmail $m) => mb_strtolower($m->expediteur) === $adresse
+            || in_array($adresse, array_map('mb_strtolower', $m->destinataires), true)));
+    }
+
     public function recupererDepuis(BoiteEmail $boite, ?CarbonInterface $depuis): array
     {
         $source = $this->parBoite[$boite->email] ?? $this->messages;

@@ -138,6 +138,61 @@ class SynchronisationEmails
         $boite->update(['derniere_synchro_at' => Carbon::now()]);
     }
 
+    /**
+     * Retrouve dans toutes les boîtes, sans limite de date, les mails échangés
+     * avec ce contact (toutes ses adresses) et ajoute ceux qui manquent sur sa
+     * fiche. Utile pour un contact créé après l'envoi d'un mail, ou dont
+     * l'adresse a été ajoutée ensuite : la synchronisation ordinaire ne relit
+     * que les mails récents.
+     */
+    public function importerPourContact(Contact $contact): ResultatSynchronisation
+    {
+        $resultat = new ResultatSynchronisation;
+        $adresses = collect($contact->toutesAdressesEmail())->map(fn ($a) => $this->normaliser($a))->filter()->unique();
+
+        if ($adresses->isEmpty()) {
+            return $resultat;
+        }
+
+        foreach (BoiteEmail::actives()->get() as $boite) {
+            $adresseBoite = $this->normaliser($boite->email);
+            $resultat->boitesLues++;
+
+            foreach ($adresses as $adresse) {
+                foreach ($this->lecteur->rechercherAdresse($boite, $adresse) as $message) {
+                    if (Email::where('message_id', mb_substr($message->messageId, 0, 255))->exists()) {
+                        $resultat->ignores++;
+
+                        continue;
+                    }
+
+                    $direction = $this->normaliser($message->expediteur) === $adresseBoite
+                        ? Email::DIRECTION_SORTANT
+                        : Email::DIRECTION_ENTRANT;
+
+                    Email::create([
+                        'contact_id' => $contact->id,
+                        'direction' => $direction,
+                        'de' => $message->expediteur,
+                        'a' => implode(', ', $message->destinataires),
+                        'objet' => $message->objet,
+                        'extrait' => $message->extrait(),
+                        'corps' => $message->texte,
+                        'date_email' => $message->date,
+                        'message_id' => mb_substr($message->messageId, 0, 255),
+                        'fil_id' => $message->filId !== null ? mb_substr($message->filId, 0, 255) : null,
+                        'boite' => $boite->email,
+                        'boite_email_id' => $boite->id,
+                        'traite' => $direction === Email::DIRECTION_SORTANT,
+                    ]);
+                    $resultat->ajouterImport($contact->nomComplet(), $message->objet, $direction);
+                }
+            }
+        }
+
+        return $resultat;
+    }
+
     /** Crée la tâche si aucune tâche ouverte ne vise déjà cette adresse. */
     private function creerTacheProspect(string $adresse, ?string $objet, ?string $corps = null): bool
     {

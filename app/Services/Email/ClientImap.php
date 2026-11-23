@@ -42,7 +42,7 @@ class ClientImap implements LecteurEmails
 
         $messages = [];
 
-        foreach ($boite->dossiers() as $dossier) {
+        foreach ($this->dossiersLus($boite) as $dossier) {
             $flux = @imap_open($boite->chaineImap($dossier), $boite->email, (string) $boite->secret(), OP_READONLY, 1);
             if ($flux === false) {
                 continue; // un dossier absent ne doit pas tout bloquer
@@ -61,6 +61,80 @@ class ClientImap implements LecteurEmails
         }
 
         return $messages;
+    }
+
+    public function rechercherAdresse(BoiteEmail $boite, string $adresse): array
+    {
+        $this->verifierExtension();
+        $this->verifierIdentifiants($boite);
+
+        $adresse = str_replace('"', '', trim($adresse));
+        if ($adresse === '') {
+            return [];
+        }
+
+        $messages = [];
+
+        foreach ($this->dossiersLus($boite) as $dossier) {
+            $flux = @imap_open($boite->chaineImap($dossier), $boite->email, (string) $boite->secret(), OP_READONLY, 1);
+            if ($flux === false) {
+                continue;
+            }
+
+            $uids = [];
+            foreach (['FROM', 'TO', 'CC'] as $champ) {
+                $uids = [...$uids, ...(imap_search($flux, $champ.' "'.$adresse.'"', SE_UID) ?: [])];
+            }
+
+            // Les 200 plus récents par dossier suffisent largement pour un contact.
+            $uids = array_slice(array_values(array_unique($uids)), -200);
+
+            foreach ($uids as $uid) {
+                $entete = imap_rfc822_parse_headers(imap_fetchheader($flux, $uid, FT_UID));
+                $message = $this->construireMessage($flux, $uid, $entete);
+                if ($message !== null) {
+                    $messages[] = $message;
+                }
+            }
+
+            imap_close($flux);
+        }
+
+        imap_errors(); // vide la pile des dossiers absents
+
+        return $messages;
+    }
+
+    /**
+     * Dossiers lus : réception, et tous les dossiers d'envoi trouvés sur le serveur
+     * (« Sent », « Envoyés », « Messages envoyés »…), en plus des noms habituels.
+     * Un dossier d'envoi au nom inattendu n'est ainsi plus oublié.
+     *
+     * @return list<string>
+     */
+    private function dossiersLus(BoiteEmail $boite): array
+    {
+        $dossiers = $boite->dossiers();
+
+        if (filled($boite->dossier_envoyes)) {
+            return $dossiers; // dossier choisi à la main : on s'y tient
+        }
+
+        $racine = '{'.$boite->hoteImap().':'.$boite->portImap().'/imap/ssl/novalidate-cert}';
+        $flux = @imap_open($racine.'INBOX', $boite->email, (string) $boite->secret(), OP_READONLY | OP_HALFOPEN, 1);
+        if ($flux !== false) {
+            foreach (@imap_list($flux, $racine, '*') ?: [] as $nom) {
+                $nom = substr($nom, strlen($racine));
+                $lisible = function_exists('mb_convert_encoding') ? (@mb_convert_encoding($nom, 'UTF-8', 'UTF7-IMAP') ?: $nom) : $nom;
+                if (preg_match('/sent|envoy/i', $lisible) && ! preg_match('/draft|brouillon|trash|corbeille|spam/i', $lisible)) {
+                    $dossiers[] = $lisible;
+                }
+            }
+            @imap_close($flux);
+        }
+        imap_errors();
+
+        return array_values(array_unique($dossiers));
     }
 
     private function construireMessage(\IMAP\Connection|false $flux, int $uid, object $entete): ?MessageEmail

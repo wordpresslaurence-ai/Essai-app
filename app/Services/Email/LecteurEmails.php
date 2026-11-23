@@ -25,4 +25,12 @@ interface LecteurEmails
      * @return list<MessageEmail>
      */
     public function recupererDepuis(BoiteEmail $boite, ?CarbonInterface $depuis): array;
+
+    /**
+     * Retrouve, sans limite de date, les messages échangés avec une adresse
+     * (expéditeur, destinataire ou copie), dans la réception et les envoyés.
+     *
+     * @return list<MessageEmail>
+     */
+    public function rechercherAdresse(BoiteEmail $boite, string $adresse): array;
 }
