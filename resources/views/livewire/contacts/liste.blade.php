@@ -108,7 +108,7 @@
                             {{ $contact->nomComplet() }}
                             @if ($envoi = $contact->dernierEnvoi())
                                 <span title="Dernier mail envoyé le {{ $envoi->translatedFormat('j F Y') }}" aria-label="Dernier mail envoyé le {{ $envoi->translatedFormat('j F Y') }}"
-                                      style="font-size:11.5px;font-weight:500;color:var(--mint-deep);background:var(--mint-tint);border-radius:999px;padding:1px 7px;margin-left:4px;white-space:nowrap">✉️ {{ $envoi->format('d/m') }}</span>
+                                      style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle;font-size:11.5px;font-weight:500;color:var(--mint-deep);background:var(--mint-tint);border-radius:999px;padding:1px 7px;margin-left:4px;white-space:nowrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:13px;height:13px;flex:none;color:var(--envoi)"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>{{ $envoi->format('d/m') }}</span>
                             @endif
                             @if ($contact->estArchive()) <span class="lb-muted" style="font-size:11px;font-weight:400">· archivé</span> @endif
                         </div>

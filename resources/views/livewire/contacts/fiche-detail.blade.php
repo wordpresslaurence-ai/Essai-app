@@ -29,9 +29,9 @@
                 {{ $contact->a_la_une ? '★' : '☆' }}
             </button>
             @if ($envoi = $contact->dernierEnvoi())
-                <span class="lb-tag" style="background:var(--mint-tint);color:var(--mint-deep)" title="Mail lu dans tes envoyés, ou envoi noté dans le CRM">✉️ Dernier mail envoyé le {{ $envoi->translatedFormat('j F Y') }}</span>
+                <span class="lb-tag" style="display:inline-flex;align-items:center;gap:5px;background:var(--mint-tint);color:var(--mint-deep)" title="Mail lu dans tes envoyés, ou envoi noté dans le CRM"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;flex:none;color:var(--envoi)"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Dernier mail envoyé le {{ $envoi->translatedFormat('j F Y') }}</span>
             @else
-                <span class="lb-tag" style="background:var(--surface)">✉️ Aucun mail envoyé</span>
+                <span class="lb-tag" style="display:inline-flex;align-items:center;gap:5px;background:var(--surface)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;flex:none;color:var(--envoi)"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Aucun mail envoyé</span>
             @endif
         </div>
         @if ($contact->suiviEnPause())
