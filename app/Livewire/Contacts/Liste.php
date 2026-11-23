@@ -52,6 +52,10 @@ class Liste extends Component
     #[Url]
     public string $mails = '';
 
+    /** N'afficher que les fiches qui partagent leur adresse e-mail avec une autre. */
+    #[Url]
+    public bool $doublons = false;
+
     /** Afficher aussi les catégories « masquées par défaut » (ex. dormant). */
     #[Url]
     public bool $inclureMasques = false;
@@ -65,7 +69,7 @@ class Liste extends Component
     public string $sens = 'asc';
 
     /** Filtres retenus d'une visite à l'autre (retour depuis une fiche, menu « Contacts »). */
-    public const FILTRES = ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'mails', 'inclureMasques', 'tri', 'sens'];
+    public const FILTRES = ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'mails', 'doublons', 'inclureMasques', 'tri', 'sens'];
 
     private const CLE_SESSION = 'contacts.filtres';
 
@@ -98,7 +102,7 @@ class Liste extends Component
     {
         $defauts = [
             'recherche' => '', 'type' => '', 'etiquette' => '', 'statut' => 'actifs', 'temperature' => '',
-            'origine' => '', 'pole' => '', 'categorie' => '', 'mails' => '', 'inclureMasques' => false,
+            'origine' => '', 'pole' => '', 'categorie' => '', 'mails' => '', 'doublons' => false, 'inclureMasques' => false,
         ];
 
         foreach ($defauts as $filtre => $defaut) {
@@ -113,7 +117,7 @@ class Liste extends Component
     /** Réinitialise la pagination dès qu'un filtre change. */
     public function updating($name): void
     {
-        if (in_array($name, ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'mails', 'inclureMasques'], true)) {
+        if (in_array($name, ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'mails', 'doublons', 'inclureMasques'], true)) {
             $this->resetPage();
         }
     }
@@ -166,10 +170,13 @@ class Liste extends Component
 
     public function reinitialiserFiltres(): void
     {
-        $this->reset(['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'mails', 'inclureMasques']);
+        $this->reset(['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'mails', 'doublons', 'inclureMasques']);
         $this->resetPage();
         session()->forget(self::CLE_SESSION);
     }
+
+    /** Adresses e-mail portées par plusieurs fiches (en minuscules). */
+    private const ADRESSES_EN_DOUBLE = 'LOWER(email) IN (SELECT LOWER(c2.email) FROM contacts c2 WHERE c2.email IS NOT NULL AND c2.email <> \'\' GROUP BY LOWER(c2.email) HAVING COUNT(*) > 1)';
 
     public function render(): View
     {
@@ -197,6 +204,7 @@ class Liste extends Component
             )
             ->when($this->origine !== '', fn ($q) => $q->where('origine', $this->origine))
             ->when(in_array($this->mails, ['sans', 'avec'], true), fn ($q) => $q->dejaEcrit($this->mails === 'avec'))
+            ->when($this->doublons, fn ($q) => $q->whereRaw(self::ADRESSES_EN_DOUBLE))
             ->when($this->categorie === 'aucune', fn ($q) => $q->whereNull('categorie_id'))
             ->when(
                 $this->categorie !== '' && $this->categorie !== 'aucune',
@@ -220,6 +228,7 @@ class Liste extends Component
                 $this->etiquette === '' && ! $this->inclureMasques,
                 fn ($q) => $q->whereDoesntHave('etiquettes', fn ($e) => $e->where('masquer_par_defaut', true))
             )
+            ->when($this->doublons, fn ($q) => $q->orderByRaw('LOWER(email)'))
             ->orderBy($triAutorise, $sensAutorise)
             ->paginate(15);
 
@@ -229,6 +238,7 @@ class Liste extends Component
         return view('livewire.contacts.liste', [
             'contacts' => $contacts,
             'etiquettes' => Etiquette::orderBy('nom')->get(),
+            'nbDoublons' => Contact::whereRaw(self::ADRESSES_EN_DOUBLE)->count(),
             'poles' => Pole::with('categories')->orderBy('ordre')->orderBy('nom')->get(),
         ]);
     }

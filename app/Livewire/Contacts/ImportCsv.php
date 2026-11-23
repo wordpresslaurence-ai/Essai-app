@@ -396,9 +396,67 @@ class ImportCsv extends Component
         ];
     }
 
-    /** Importe les lignes valides (EF-20), ignore et rapporte les invalides. */
+    /**
+     * Lignes du fichier qui feraient un doublon : même adresse e-mail qu'une fiche
+     * existante (adresse principale ou secondaire) ou qu'une autre ligne du fichier ;
+     * sans e-mail, même nom qu'une fiche existante. L'import est bloqué tant qu'il y en a.
+     *
+     * @return list<array{ligne: int, nom: string, email: ?string, raison: string, contact: ?Contact}>
+     */
+    public function doublons(): array
+    {
+        $resultat = [];
+        $emailsVus = [];
+
+        foreach (array_slice($this->lireLignes(), 1) as $numero => $ligne) {
+            $donnees = $this->normaliserValeurs($this->mapperLigne($ligne));
+            if (Validator::make($donnees, $this->reglesLigne())->fails()) {
+                continue; // les lignes en erreur sont déjà signalées à part
+            }
+
+            $email = mb_strtolower(trim((string) ($donnees['email'] ?? '')));
+            $prenom = trim((string) ($donnees['prenom'] ?? ''));
+            $nom = trim((string) ($donnees['nom'] ?? ''));
+            $libelle = trim($prenom.' '.$nom);
+
+            if ($email !== '') {
+                $existant = Contact::whereRaw('LOWER(email) = ?', [$email])
+                    ->orWhereHas('adressesEmail', fn ($q) => $q->whereRaw('LOWER(adresse) = ?', [$email]))
+                    ->first();
+
+                if ($existant) {
+                    $resultat[] = ['ligne' => $numero + 2, 'nom' => $libelle, 'email' => $email, 'raison' => 'adresse déjà dans le carnet', 'contact' => $existant];
+                } elseif (isset($emailsVus[$email])) {
+                    $resultat[] = ['ligne' => $numero + 2, 'nom' => $libelle, 'email' => $email, 'raison' => 'même adresse que la ligne '.$emailsVus[$email], 'contact' => null];
+                }
+                $emailsVus[$email] ??= $numero + 2;
+
+                continue;
+            }
+
+            if ($nom !== '') {
+                $existant = Contact::whereRaw('LOWER(nom) = ?', [mb_strtolower($nom)])
+                    ->when($prenom !== '', fn ($q) => $q->whereRaw('LOWER(prenom) = ?', [mb_strtolower($prenom)]))
+                    ->first();
+
+                if ($existant) {
+                    $resultat[] = ['ligne' => $numero + 2, 'nom' => $libelle, 'email' => null, 'raison' => 'même nom qu’une fiche existante', 'contact' => $existant];
+                }
+            }
+        }
+
+        return $resultat;
+    }
+
+    /** Importe les lignes valides (EF-20), ignore et rapporte les invalides. Bloqué s'il y a des doublons. */
     public function importer(): void
     {
+        if ($this->doublons() !== []) {
+            $this->addError('doublons', 'Import bloqué : le fichier contient des contacts déjà présents dans ton carnet. Retire ces lignes du fichier, puis recommence.');
+
+            return;
+        }
+
         $lignes = $this->lireLignes();
         $donneesLignes = array_slice($lignes, 1);
 

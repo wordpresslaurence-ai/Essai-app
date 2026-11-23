@@ -63,48 +63,6 @@ class ClientImap implements LecteurEmails
         return $messages;
     }
 
-    public function rechercherAdresse(BoiteEmail $boite, string $adresse): array
-    {
-        $this->verifierExtension();
-        $this->verifierIdentifiants($boite);
-
-        $adresse = str_replace('"', '', trim($adresse));
-        if ($adresse === '') {
-            return [];
-        }
-
-        $messages = [];
-
-        foreach ($this->dossiersLus($boite) as $dossier) {
-            $flux = @imap_open($boite->chaineImap($dossier), $boite->email, (string) $boite->secret(), OP_READONLY, 1);
-            if ($flux === false) {
-                continue;
-            }
-
-            $uids = [];
-            foreach (['FROM', 'TO', 'CC'] as $champ) {
-                $uids = [...$uids, ...(imap_search($flux, $champ.' "'.$adresse.'"', SE_UID) ?: [])];
-            }
-
-            // Les 200 plus récents par dossier suffisent largement pour un contact.
-            $uids = array_slice(array_values(array_unique($uids)), -200);
-
-            foreach ($uids as $uid) {
-                $entete = imap_rfc822_parse_headers(imap_fetchheader($flux, $uid, FT_UID));
-                $message = $this->construireMessage($flux, $uid, $entete);
-                if ($message !== null) {
-                    $messages[] = $message;
-                }
-            }
-
-            imap_close($flux);
-        }
-
-        imap_errors(); // vide la pile des dossiers absents
-
-        return $messages;
-    }
-
     /**
      * Dossiers lus : réception, et tous les dossiers d'envoi trouvés sur le serveur
      * (« Sent », « Envoyés », « Messages envoyés »…), en plus des noms habituels.

@@ -17,6 +17,19 @@
         <div class="lb-alert lb-alert-success mt-5">{{ session('message') }}</div>
     @endif
 
+    {{-- Alerte doublons --}}
+    @if ($nbDoublons > 0 && ! $doublons)
+        <div class="lb-alert mt-5 flex flex-wrap items-center justify-between gap-3" style="background:var(--gold-tint);color:var(--ink)">
+            <span>⚠️ {{ $nbDoublons }} fiches partagent leur adresse e-mail avec une autre fiche : ce sont probablement des doublons.</span>
+            <button type="button" wire:click="$set('doublons', true)" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px">Voir les doublons</button>
+        </div>
+    @elseif ($doublons)
+        <div class="lb-alert mt-5" style="background:var(--gold-tint);color:var(--ink)">
+            Fiches en double, rangées par adresse e-mail : garde la bonne (catégorie, mails, activités) et supprime l'autre depuis sa fiche.
+            <button type="button" wire:click="$set('doublons', false)" class="lb-accent" style="background:none;border:0;cursor:pointer;font-weight:600;margin-left:6px">Revenir au carnet complet</button>
+        </div>
+    @endif
+
     {{-- Barre de filtres --}}
     <div class="flex flex-wrap items-center gap-3 mt-6">
         <label class="lb-search" style="flex:1;min-width:220px">

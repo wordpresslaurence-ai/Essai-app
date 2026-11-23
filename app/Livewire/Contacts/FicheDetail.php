@@ -693,26 +693,6 @@ class FicheDetail extends Component
         }
     }
 
-    /**
-     * Recherche dans toutes les boîtes, sans limite de date, les mails échangés
-     * avec ce contact et ajoute ceux qui manquent (contact créé après l'envoi…).
-     */
-    public function retrouverMails(): void
-    {
-        try {
-            $resultat = app(\App\Services\Email\SynchronisationEmails::class)->importerPourContact($this->contact);
-        } catch (Throwable $e) {
-            session()->flash('erreur', $e->getMessage());
-
-            return;
-        }
-
-        $this->contact->refresh();
-        session()->flash('message', $resultat->emailsImportes > 0
-            ? $resultat->emailsImportes.' mail(s) retrouvé(s) et ajouté(s) à la fiche.'
-            : 'Aucun nouveau mail trouvé pour '.$this->contact->email.' dans tes boîtes : tout est déjà sur la fiche, ou ces mails ont été envoyés depuis une boîte non reliée au CRM.');
-    }
-
     /** Boîtes où l'on peut déposer un brouillon (celle du pôle du contact en premier). */
     private function boitesBrouillon(): \Illuminate\Support\Collection
     {

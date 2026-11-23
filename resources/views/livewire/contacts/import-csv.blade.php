@@ -67,9 +67,26 @@
                     </div>
                 </div>
 
-                @if ($apercu['doublons'] > 0)
-                    <p class="lb-accent mt-3" style="font-size:13px">⚠️ {{ $apercu['doublons'] }} doublon(s) potentiel(s) (même e-mail) — importés tout de même.</p>
+                @php $doublons = $this->doublons(); @endphp
+                @if ($doublons !== [])
+                    <div class="lb-alert lb-alert-danger mt-3" style="font-size:13px">
+                        <b>⚠️ Import bloqué : {{ count($doublons) }} contact(s) de ce fichier sont déjà dans ton carnet.</b>
+                        Vérifie que c'est le bon fichier. Pour importer quand même les nouveaux, retire ces lignes du fichier, puis choisis-le à nouveau.
+                    </div>
+                    <div class="lb-inset mt-2" style="padding:14px;max-height:14rem;overflow-y:auto">
+                        <ul style="font-size:12.5px;display:flex;flex-direction:column;gap:4px">
+                            @foreach ($doublons as $d)
+                                <li>
+                                    Ligne {{ $d['ligne'] }} : <b>{{ $d['nom'] ?: '(sans nom)' }}</b>@if ($d['email']) · {{ $d['email'] }}@endif — {{ $d['raison'] }}
+                                    @if ($d['contact'])
+                                        (<a href="{{ route('contacts.fiche', $d['contact']) }}" class="lb-accent" target="_blank" rel="noopener">voir {{ $d['contact']->nomComplet() }}</a>)
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
                 @endif
+                @error('doublons') <p class="lb-error mt-2">{{ $message }}</p> @enderror
 
                 @if (count($apercu['erreurs']) > 0)
                     <div class="lb-inset mt-3" style="padding:14px;max-height:12rem;overflow-y:auto">
@@ -84,8 +101,8 @@
 
                 <div class="flex items-center justify-between mt-5">
                     <button type="button" wire:click="recommencer" class="lb-muted" style="font-size:13px;background:none;border:0;cursor:pointer">← Choisir un autre fichier</button>
-                    <button type="button" wire:click="importer" @disabled($apercu['valides'] === 0) class="lb-btn lb-btn-primary" style="{{ $apercu['valides'] === 0 ? 'opacity:.5' : '' }}">
-                        Importer {{ $apercu['valides'] }} contact(s)
+                    <button type="button" wire:click="importer" @disabled($apercu['valides'] === 0 || $doublons !== []) class="lb-btn lb-btn-primary" style="{{ $apercu['valides'] === 0 || $doublons !== [] ? 'opacity:.5' : '' }}">
+                        {{ $doublons !== [] ? 'Import bloqué (doublons)' : 'Importer '.$apercu['valides'].' contact(s)' }}
                     </button>
                 </div>
             </div>
