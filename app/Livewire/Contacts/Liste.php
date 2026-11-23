@@ -48,6 +48,10 @@ class Liste extends Component
     #[Url]
     public string $categorie = '';
 
+    /** Mails : '' (tous), 'sans' (jamais écrit), 'avec' (déjà écrit). */
+    #[Url]
+    public string $mails = '';
+
     /** Afficher aussi les catégories « masquées par défaut » (ex. dormant). */
     #[Url]
     public bool $inclureMasques = false;
@@ -61,7 +65,7 @@ class Liste extends Component
     public string $sens = 'asc';
 
     /** Filtres retenus d'une visite à l'autre (retour depuis une fiche, menu « Contacts »). */
-    public const FILTRES = ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'inclureMasques', 'tri', 'sens'];
+    public const FILTRES = ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'mails', 'inclureMasques', 'tri', 'sens'];
 
     private const CLE_SESSION = 'contacts.filtres';
 
@@ -94,7 +98,7 @@ class Liste extends Component
     {
         $defauts = [
             'recherche' => '', 'type' => '', 'etiquette' => '', 'statut' => 'actifs', 'temperature' => '',
-            'origine' => '', 'pole' => '', 'categorie' => '', 'inclureMasques' => false,
+            'origine' => '', 'pole' => '', 'categorie' => '', 'mails' => '', 'inclureMasques' => false,
         ];
 
         foreach ($defauts as $filtre => $defaut) {
@@ -109,7 +113,7 @@ class Liste extends Component
     /** Réinitialise la pagination dès qu'un filtre change. */
     public function updating($name): void
     {
-        if (in_array($name, ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'inclureMasques'], true)) {
+        if (in_array($name, ['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'mails', 'inclureMasques'], true)) {
             $this->resetPage();
         }
     }
@@ -162,7 +166,7 @@ class Liste extends Component
 
     public function reinitialiserFiltres(): void
     {
-        $this->reset(['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'inclureMasques']);
+        $this->reset(['recherche', 'type', 'etiquette', 'statut', 'temperature', 'origine', 'pole', 'categorie', 'mails', 'inclureMasques']);
         $this->resetPage();
         session()->forget(self::CLE_SESSION);
     }
@@ -192,6 +196,7 @@ class Liste extends Component
                 fn ($q) => $q->where('temperature', $this->temperature)
             )
             ->when($this->origine !== '', fn ($q) => $q->where('origine', $this->origine))
+            ->when(in_array($this->mails, ['sans', 'avec'], true), fn ($q) => $q->dejaEcrit($this->mails === 'avec'))
             ->when($this->categorie === 'aucune', fn ($q) => $q->whereNull('categorie_id'))
             ->when(
                 $this->categorie !== '' && $this->categorie !== 'aucune',

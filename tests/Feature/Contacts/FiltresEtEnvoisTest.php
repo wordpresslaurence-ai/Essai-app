@@ -73,3 +73,33 @@ it('montre l’enveloppe du dernier mail envoyé dans le carnet et sur la fiche'
     Livewire::test(FicheDetail::class, ['contact' => $ecrit])->assertSee('Dernier mail envoyé le '.$ecrit->dernierEnvoi()->translatedFormat('j F Y'));
     Livewire::test(FicheDetail::class, ['contact' => $rien])->assertSee('Aucun mail envoyé');
 });
+
+it('filtre les contacts à qui un mail a déjà été envoyé, ou jamais', function () {
+    $ecrit = Contact::factory()->create(['prenom' => 'Marie', 'nom' => 'Durand']);
+    $note = Contact::factory()->create(['prenom' => 'Paul', 'nom' => 'Petit']);
+    Contact::factory()->create(['prenom' => 'Anne', 'nom' => 'Sansmail']);
+    Contact::factory()->create(['prenom' => 'Luc', 'nom' => 'Recu']);
+
+    Email::create([
+        'contact_id' => $ecrit->id, 'direction' => Email::DIRECTION_SORTANT, 'objet' => 'Bonjour',
+        'date_email' => '2026-11-12 10:00:00', 'message_id' => 'a@x', 'de' => 'moi@x.be', 'a' => 'marie@x.be', 'boite' => 'moi@x.be',
+    ]);
+    Email::create([
+        'contact_id' => Contact::where('nom', 'Recu')->value('id'), 'direction' => Email::DIRECTION_ENTRANT, 'objet' => 'Question',
+        'date_email' => '2026-11-13 10:00:00', 'message_id' => 'b@x', 'de' => 'luc@x.be', 'a' => 'moi@x.be', 'boite' => 'moi@x.be',
+    ]);
+    Activite::create(['titre' => 'Invitation envoyée', 'type' => Activite::TYPE_EMAIL, 'contact_id' => $note->id, 'terminee_at' => now()]);
+
+    Livewire::test(Liste::class)
+        ->set('mails', 'sans')
+        ->assertSee('Anne Sansmail')
+        ->assertSee('Luc Recu')
+        ->assertDontSee('Marie Durand')
+        ->assertDontSee('Paul Petit')
+        ->assertSee('Effacer les filtres')
+        ->set('mails', 'avec')
+        ->assertSee('Marie Durand')
+        ->assertSee('Paul Petit')
+        ->assertDontSee('Anne Sansmail')
+        ->assertDontSee('Luc Recu');
+});

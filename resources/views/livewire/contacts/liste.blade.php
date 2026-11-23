@@ -81,6 +81,12 @@
             </select>
         @endif
 
+        <select wire:model.live="mails" class="lb-select" aria-label="Mails envoyés">
+            <option value="">Tous (mails)</option>
+            <option value="sans">Jamais écrit</option>
+            <option value="avec">Déjà écrit</option>
+        </select>
+
         <select wire:model.live="tri" class="lb-select" aria-label="Trier par">
             <option value="nom">Trier : nom</option>
             <option value="updated_at">Trier : récent</option>

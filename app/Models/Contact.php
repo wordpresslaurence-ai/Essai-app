@@ -214,6 +214,22 @@ class Contact extends Model
                     ->orWhere('titre', 'like', 'Envoyer le mail de prospection%'))], 'terminee_at');
     }
 
+    /**
+     * Contacts à qui un mail a déjà été envoyé ($envoye = true), ou jamais ($envoye = false).
+     *
+     * @param  Builder<Contact>  $query
+     */
+    public function scopeDejaEcrit(Builder $query, bool $envoye = true): void
+    {
+        $mail = fn ($q) => $q->where('direction', Email::DIRECTION_SORTANT);
+        $note = fn ($q) => $q->whereNotNull('terminee_at')
+            ->where(fn ($a) => $a->where('type', Activite::TYPE_EMAIL)->orWhere('titre', 'like', 'Envoyer le mail de prospection%'));
+
+        $envoye
+            ? $query->where(fn ($q) => $q->whereHas('emails', $mail)->orWhereHas('activites', $note))
+            : $query->whereDoesntHave('emails', $mail)->whereDoesntHave('activites', $note);
+    }
+
     /** Date du dernier mail envoyé à ce contact (null s'il n'y en a pas). */
     public function dernierEnvoi(): ?\Illuminate\Support\Carbon
     {
