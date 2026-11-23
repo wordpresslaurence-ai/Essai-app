@@ -90,8 +90,9 @@ it('recherche et filtre par type', function () {
         ->assertSee('Durand')
         ->assertDontSee('ACME SPRL');
 
-    // Filtre par type entreprise
+    // Filtre par type entreprise (la recherche précédente, retenue, est d'abord effacée)
     Livewire::test(Liste::class)
+        ->call('reinitialiserFiltres')
         ->set('type', Contact::TYPE_ENTREPRISE)
         ->assertSee('ACME SPRL')
         ->assertDontSee('Durand');
