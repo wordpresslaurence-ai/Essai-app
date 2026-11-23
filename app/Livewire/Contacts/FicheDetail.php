@@ -37,6 +37,11 @@ class FicheDetail extends Component
 
     public ?string $telegramErreur = null;
 
+    // Prospection : boîte où déposer le brouillon
+    public ?string $boiteBrouillonId = null;
+
+    public ?string $brouillonDepose = null;
+
     // Prospection
     public string $angleProspection = '';
 
@@ -688,6 +693,42 @@ class FicheDetail extends Component
         }
     }
 
+    /** Boîtes où l'on peut déposer un brouillon (celle du pôle du contact en premier). */
+    private function boitesBrouillon(): \Illuminate\Support\Collection
+    {
+        $pole = $this->contact->categorie?->pole_id;
+
+        return \App\Models\BoiteEmail::actives()->get()
+            ->sortBy(fn ($b) => ($b->pole_id && $b->pole_id === $pole ? '0' : '1').$b->nomAffichage())
+            ->values();
+    }
+
+    /** Dépose le mail de prospection dans le dossier « Brouillons » de la boîte choisie. Rien n'est envoyé. */
+    public function deposerBrouillon(): void
+    {
+        $this->reset('prospectionErreur', 'brouillonDepose');
+
+        if (blank($this->contact->email) || $this->prospectionCorps === null) {
+            return;
+        }
+
+        $boites = $this->boitesBrouillon();
+        $boite = $boites->firstWhere('id', (int) $this->boiteBrouillonId) ?? $boites->first();
+        if (! $boite) {
+            $this->prospectionErreur = 'Aucune boîte e-mail n’est configurée (Réglages → Gérer les boîtes e-mail).';
+
+            return;
+        }
+
+        try {
+            $dossier = app(\App\Services\Email\DeposeBrouillon::class)
+                ->deposer($boite, $this->contact->email, (string) $this->prospectionObjet, (string) $this->prospectionCorps);
+            $this->brouillonDepose = 'Brouillon déposé dans « '.$dossier.' » de '.$boite->email.'. Ouvre ta messagerie pour le relire et l’envoyer.';
+        } catch (Throwable $e) {
+            $this->prospectionErreur = $e->getMessage();
+        }
+    }
+
     /** Propose un brouillon de réponse au dernier e-mail reçu de ce contact. */
     public function redigerReponse(): void
     {
@@ -750,6 +791,7 @@ class FicheDetail extends Component
         return view('livewire.contacts.fiche-detail', [
             'derniereAnalyse' => $this->contact->analyses()->latest('faite_le')->first(),
             'offresProspection' => $offres,
+            'boitesBrouillon' => $this->boitesBrouillon(),
             'lienTelegram' => $this->contact->lienTelegram(),
             'messagesTelegram' => $this->contact->messagesTelegram()->latest('id')->limit(30)->get()->reverse()->values(),
             'telegramEnAttente' => $this->contact->messagesTelegram()

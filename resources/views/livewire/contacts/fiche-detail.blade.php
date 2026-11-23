@@ -567,8 +567,34 @@
                         </div>
                         <textarea wire:model="prospectionCorps" x-ref="corps" rows="9" class="lb-field" style="margin-top:6px"></textarea>
 
+                        @if (filled($contact->email))
+                            <div class="flex flex-wrap items-center gap-2" style="margin-top:10px">
+                                @if ($boitesBrouillon->isNotEmpty())
+                                    @if ($boitesBrouillon->count() > 1)
+                                        <select wire:model="boiteBrouillonId" class="lb-field" style="width:auto;padding:7px 10px;font-size:12.5px" aria-label="Boîte où déposer le brouillon">
+                                            @foreach ($boitesBrouillon as $b)
+                                                <option value="{{ $b->id }}">{{ $b->email }}</option>
+                                            @endforeach
+                                        </select>
+                                    @endif
+                                    <button type="button" wire:click="deposerBrouillon" class="lb-btn lb-btn-primary" style="padding:7px 13px;font-size:12.5px"
+                                            wire:loading.attr="disabled" wire:target="deposerBrouillon">
+                                        <span wire:loading.remove wire:target="deposerBrouillon">📥 Mettre dans mes brouillons{{ $boitesBrouillon->count() === 1 ? ' ('.$boitesBrouillon->first()->email.')' : '' }}</span>
+                                        <span wire:loading wire:target="deposerBrouillon">Dépôt…</span>
+                                    </button>
+                                @endif
+                                <button type="button" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px"
+                                        x-on:click="window.location.href = 'mailto:' + @js($contact->email) + '?subject=' + encodeURIComponent($refs.objet.value) + '&body=' + encodeURIComponent($refs.corps.value)">
+                                    ✉️ Ouvrir dans ma messagerie
+                                </button>
+                            </div>
+                            @if ($brouillonDepose)
+                                <div class="lb-alert lb-alert-success" style="margin-top:8px">{{ $brouillonDepose }}</div>
+                            @endif
+                        @endif
+
                         <p class="lb-muted" style="font-size:11.5px;margin-top:10px">
-                            Relis, ajuste, puis copie — tu l'envoies depuis ta boîte mail{{ $contact->numeroWhatsapp() ? ', ou par WhatsApp (le texte s’ouvre dans la conversation, sans l’objet, et rien ne part sans ton accord)' : '' }}.@if (! $contact->numeroWhatsapp()) Pour l'envoi par WhatsApp, ajoute un numéro de téléphone à la fiche. @endif « Liens cliquables » colle le mail mis en forme (libellés cliquables, URL longue masquée). Une tâche « à envoyer » a été ajoutée à ce contact pour garder la trace.
+                            Relis, ajuste, puis dépose-le dans tes brouillons (liens cliquables, adressé au contact) ou copie-le — tu l'envoies depuis ta boîte mail{{ $contact->numeroWhatsapp() ? ', ou par WhatsApp (le texte s’ouvre dans la conversation, sans l’objet, et rien ne part sans ton accord)' : '' }}.@if (! $contact->numeroWhatsapp()) Pour l'envoi par WhatsApp, ajoute un numéro de téléphone à la fiche. @endif « Liens cliquables » colle le mail mis en forme (libellés cliquables, URL longue masquée). Une tâche « à envoyer » a été ajoutée à ce contact pour garder la trace.
                         </p>
                     </div>
                 @else
