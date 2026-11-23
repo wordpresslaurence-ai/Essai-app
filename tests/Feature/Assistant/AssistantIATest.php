@@ -403,7 +403,7 @@ it('transmet le CORPS COMPLET du mail reçu à Claude, pas seulement l’aperçu
 });
 
 it('redemande avec plus de place quand le mail de prospection a été coupé', function () {
-    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test']);
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test', 'pitch_prospection' => 'Formation Prana Vidya pour professeurs de yoga.']);
 
     Http::fake(['api.anthropic.com/*' => Http::sequence()
         ->push(['content' => [['type' => 'text', 'text' => '{"objet":"Découvrir","corps":"Bonjour, le début seulement']], 'stop_reason' => 'max_tokens'], 200)
