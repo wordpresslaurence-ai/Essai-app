@@ -85,26 +85,54 @@ class WebhookTelegramController extends Controller
         $expediteur = trim(data_get($message, 'from.first_name', '').' '.data_get($message, 'from.last_name', ''))
             ?: (string) data_get($message, 'from.username', '');
 
+        $userId = (string) data_get($message, 'from.id');
+        $contact = Contact::where('telegram_id', $chatId)->first();
+
         // « /start <jeton> » : la personne ouvre son lien personnel, on relie son compte à sa fiche.
         if (preg_match('/^\/start(?:\s+(\S+))?/', $texte, $m)) {
-            $contact = isset($m[1]) ? Contact::where('telegram_jeton_lien', $m[1])->first() : null;
+            $parLien = isset($m[1]) ? Contact::where('telegram_jeton_lien', $m[1])->first() : null;
+            $reconnu = $parLien ?? $contact ?? $this->contactParCanal($userId);
 
-            if ($contact) {
-                Contact::where('telegram_id', $chatId)->whereKeyNot($contact->id)
-                    ->update(['telegram_id' => null, 'telegram_nom' => null]);
-                $contact->forceFill(['telegram_id' => $chatId, 'telegram_nom' => $expediteur ?: null])->save();
-                MessageTelegram::where('chat_id', $chatId)->whereNull('contact_id')->update(['contact_id' => $contact->id]);
+            if ($reconnu && ! $contact?->is($reconnu)) {
+                $this->relier($reconnu, $chatId, $expediteur);
+            }
 
-                $this->repondre($telegram, $chatId, 'Bonjour '.($contact->prenom ?: $contact->nomComplet())
+            if ($reconnu) {
+                $this->repondre($telegram, $chatId, 'Bonjour '.($reconnu->prenom ?: $reconnu->nomComplet())
                     .', c’est bien noté. Vous pouvez m’écrire ici vos questions, je vous répondrai personnellement. Laurence');
-            } elseif (! Contact::where('telegram_id', $chatId)->exists()) {
-                $this->repondre($telegram, $chatId, 'Bonjour. Pour que je vous reconnaisse, ouvrez le lien personnel que je vous ai envoyé. Laurence');
+            } else {
+                $this->demanderNumero($telegram, $chatId, 'Bonjour.');
             }
 
             return response()->json(['ok' => true]);
         }
 
-        $contact = Contact::where('telegram_id', $chatId)->first();
+        // Numéro partagé avec le bouton « Partager mon numéro » (le sien uniquement).
+        if (! $contact && is_array($partage = data_get($message, 'contact'))
+            && (string) data_get($partage, 'user_id') === $userId) {
+            $numero = (string) data_get($partage, 'phone_number');
+            $trouve = $this->contactParNumero($numero);
+
+            MessageTelegram::firstOrCreate(
+                ['chat_id' => $chatId, 'sens' => MessageTelegram::ENTRANT, 'telegram_message_id' => (string) data_get($message, 'message_id')],
+                ['contact_id' => $trouve?->id, 'type' => 'texte', 'texte' => 'Numéro partagé : '.$numero, 'expediteur' => $expediteur ?: null, 'traite_le' => now()],
+            );
+
+            if ($trouve) {
+                $this->relier($trouve, $chatId, $expediteur);
+                $this->repondre($telegram, $chatId, 'Merci '.($trouve->prenom ?: $trouve->nomComplet())
+                    .', je vous ai reconnu(e). Vous pouvez m’écrire ici vos questions, je vous répondrai personnellement. Laurence', ['remove_keyboard' => true]);
+            } else {
+                $this->repondre($telegram, $chatId, 'Merci. Je ne retrouve pas ce numéro dans mes contacts, mais votre message est bien arrivé : je vous répondrai personnellement. Laurence', ['remove_keyboard' => true]);
+            }
+
+            return response()->json(['ok' => true]);
+        }
+
+        // Compte inconnu du robot mais entré dans un canal avec son lien d'accès : on le reconnaît.
+        if (! $contact && ($contact = $this->contactParCanal($userId))) {
+            $this->relier($contact, $chatId, $expediteur);
+        }
 
         $type = match (true) {
             data_get($message, 'text') !== null => 'texte',
@@ -123,7 +151,7 @@ class WebhookTelegramController extends Controller
 
         if (! $contact && $ligne->wasRecentlyCreated
             && MessageTelegram::where('chat_id', $chatId)->where('sens', MessageTelegram::ENTRANT)->count() === 1) {
-            $this->repondre($telegram, $chatId, 'Bonjour, j’ai bien reçu votre message. Pour que je vous reconnaisse, ouvrez le lien personnel que je vous ai envoyé. Laurence');
+            $this->demanderNumero($telegram, $chatId, 'Bonjour, j’ai bien reçu votre message.');
         }
 
         return response()->json(['ok' => true]);
@@ -210,11 +238,57 @@ class WebhookTelegramController extends Controller
         );
     }
 
-    /** Réponse automatique : un échec d'envoi ne doit pas faire échouer la réception. */
-    private function repondre(ClientTelegram $telegram, string $chatId, string $texte): void
+    /** Relie un compte Telegram à une fiche, et lui rattache ses messages déjà reçus. */
+    private function relier(Contact $contact, string $chatId, string $expediteur): void
+    {
+        Contact::where('telegram_id', $chatId)->whereKeyNot($contact->id)
+            ->update(['telegram_id' => null, 'telegram_nom' => null]);
+        $contact->forceFill(['telegram_id' => $chatId, 'telegram_nom' => $expediteur ?: null])->save();
+        MessageTelegram::where('chat_id', $chatId)->whereNull('contact_id')->update(['contact_id' => $contact->id]);
+    }
+
+    /** Contact entré dans un canal avec son lien d'accès personnel, depuis ce compte Telegram. */
+    private function contactParCanal(string $userId): ?Contact
+    {
+        if ($userId === '') {
+            return null;
+        }
+
+        return Inscription::where('acces_telegram_id', $userId)->latest('id')->first()?->contact;
+    }
+
+    /** Contact dont le téléphone correspond au numéro partagé (un seul, sinon personne). */
+    private function contactParNumero(string $numero): ?Contact
+    {
+        $chiffres = preg_replace('/\D+/', '', $numero) ?? '';
+        if (strlen($chiffres) < 9) {
+            return null;
+        }
+
+        $trouves = Contact::actifs()->whereNotNull('telephone')->where('telephone', '!=', '')->get()
+            ->filter(fn (Contact $c) => $c->numeroWhatsapp() === $chiffres);
+
+        return $trouves->count() === 1 ? $trouves->first() : null;
+    }
+
+    /** Propose au compte inconnu de partager son numéro pour être reconnu. */
+    private function demanderNumero(ClientTelegram $telegram, string $chatId, string $debut): void
+    {
+        $this->repondre($telegram, $chatId,
+            $debut.' Pour que je vous reconnaisse, appuyez sur « Partager mon numéro » ci-dessous, ou ouvrez le lien personnel que je vous ai envoyé. Laurence',
+            ['keyboard' => [[['text' => '📱 Partager mon numéro', 'request_contact' => true]]], 'one_time_keyboard' => true, 'resize_keyboard' => true],
+        );
+    }
+
+    /**
+     * Réponse automatique : un échec d'envoi ne doit pas faire échouer la réception.
+     *
+     * @param  array<string, mixed>|null  $clavier
+     */
+    private function repondre(ClientTelegram $telegram, string $chatId, string $texte, ?array $clavier = null): void
     {
         try {
-            $telegram->envoyer($chatId, $texte);
+            $telegram->envoyer($chatId, $texte, $clavier);
         } catch (Throwable) {
             // Sans gravité : le message reçu est enregistré de toute façon.
         }

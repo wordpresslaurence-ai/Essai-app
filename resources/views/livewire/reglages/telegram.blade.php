@@ -68,9 +68,30 @@
                                 <div class="nm lb-truncate">{{ $canal->nom() }}</div>
                                 <div class="mt">{{ $canal->type === 'channel' ? 'Canal' : 'Groupe' }} · {{ $canal->seances()->count() }} session(s) reliée(s)</div>
                             </div>
-                            <button type="button" wire:click="oublierCanal({{ $canal->id }})" wire:confirm="Retirer ce canal de la liste ? Les sessions reliées perdront ce lien."
-                                    class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px;flex:none">Retirer</button>
+                            <div class="flex flex-wrap items-center gap-2" style="flex:none">
+                                <button type="button" wire:click="ouvrirEpingle({{ $canal->id }})" class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px">
+                                    {{ $canal->message_epingle_id ? 'Modifier le message épinglé' : 'Épingler « Une question ? »' }}
+                                </button>
+                                <button type="button" wire:click="oublierCanal({{ $canal->id }})" wire:confirm="Retirer ce canal de la liste ? Les sessions reliées perdront ce lien."
+                                        class="lb-btn lb-btn-ghost" style="padding:6px 11px;font-size:12px">Retirer</button>
+                            </div>
                         </div>
+                        @if ($epingleCanalId === $canal->id)
+                            <div style="padding:14px;margin:4px 0 10px;border-radius:12px;background:var(--surface)">
+                                <label for="texteEpingle" class="lb-label">Message à publier et épingler dans « {{ $canal->nom() }} »</label>
+                                <textarea id="texteEpingle" rows="6" wire:model="texteEpingle" class="lb-field"></textarea>
+                                @error('texteEpingle') <p class="lb-error">{{ $message }}</p> @enderror
+                                <p class="lb-muted" style="font-size:12px;margin-top:6px">
+                                    Le lien mène à ton robot. Les abonnés entrés avec leur lien d'accès y sont reconnus automatiquement ;
+                                    les autres peuvent partager leur numéro pour l'être.
+                                </p>
+                                <div class="flex justify-end gap-2" style="margin-top:8px">
+                                    <button type="button" wire:click="fermerEpingle" class="lb-btn lb-btn-ghost" style="padding:7px 13px;font-size:12.5px">Annuler</button>
+                                    <button type="button" wire:click="publierEpingle" class="lb-btn lb-btn-primary" style="padding:7px 13px;font-size:12.5px"
+                                            wire:loading.attr="disabled" wire:target="publierEpingle">{{ $canal->message_epingle_id ? 'Mettre à jour' : 'Publier et épingler' }}</button>
+                                </div>
+                            </div>
+                        @endif
                     @endforeach
                 </div>
                 <p class="lb-muted" style="font-size:12px;margin-top:8px">Pour en ajouter un : rends le robot administrateur, puis publie un message dans le canal.</p>
@@ -154,7 +175,7 @@
     @if ($inconnus->isNotEmpty())
         <h3 class="lb-h3 mt-6" style="font-size:18px">Messages de comptes non reconnus</h3>
         <p class="lb-muted" style="font-size:12.5px;margin-top:2px;max-width:52rem">
-            Ces personnes ont écrit au robot sans passer par leur lien personnel. Le robot leur a demandé de l'ouvrir : dès qu'elles le font, leurs messages rejoignent leur fiche.
+            Ces personnes ont écrit au robot sans être reconnues. Le robot leur a proposé de partager leur numéro ou d'ouvrir leur lien personnel : dès qu'elles le font, leurs messages rejoignent leur fiche.
         </p>
         <div class="lb-people mt-3" style="max-width:720px">
             @foreach ($inconnus as $m)

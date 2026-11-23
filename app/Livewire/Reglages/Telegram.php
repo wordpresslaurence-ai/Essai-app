@@ -26,6 +26,11 @@ class Telegram extends Component
     /** @var array<string, mixed>|null Résultat de « Vérifier le branchement ». */
     public ?array $etat = null;
 
+    /** Canal dont le panneau « message épinglé » est ouvert, et son texte. */
+    public ?int $epingleCanalId = null;
+
+    public string $texteEpingle = '';
+
     public function connecter(): void
     {
         $this->reset('erreur', 'etat');
@@ -114,6 +119,70 @@ class Telegram extends Component
         if ($pratique && ! $pratique->ajouterBouton(app(ClientTelegram::class))) {
             $this->erreur = $pratique->bouton_erreur;
         }
+    }
+
+    public function ouvrirEpingle(int $id): void
+    {
+        $canal = \App\Models\CanalTelegram::find($id);
+        if (! $canal) {
+            return;
+        }
+
+        $this->reset('erreur', 'etat');
+        $this->epingleCanalId = $canal->id;
+        $this->texteEpingle = $canal->message_epingle_texte
+            ?: \App\Models\CanalTelegram::texteEpingleParDefaut((string) Parametre::instance()->telegram_robot);
+    }
+
+    public function fermerEpingle(): void
+    {
+        $this->reset('epingleCanalId', 'texteEpingle');
+    }
+
+    /**
+     * Publie le message « Une question ? » dans le canal et l'épingle. S'il existe
+     * déjà, son texte est simplement modifié (pas de doublon).
+     */
+    public function publierEpingle(): void
+    {
+        $this->reset('erreur');
+        $canal = $this->epingleCanalId ? \App\Models\CanalTelegram::find($this->epingleCanalId) : null;
+        if (! $canal) {
+            return;
+        }
+
+        $this->validate(['texteEpingle' => ['required', 'string', 'max:3500']], ['texteEpingle.required' => 'Écris le message à épingler.']);
+        $texte = trim($this->texteEpingle);
+        $client = app(ClientTelegram::class);
+
+        try {
+            $modifie = false;
+            if (filled($canal->message_epingle_id)) {
+                try {
+                    $client->modifierTexte($canal->chat_id, $canal->message_epingle_id, $texte);
+                    $modifie = true;
+                } catch (Throwable $e) {
+                    // Texte identique : rien à changer. Message supprimé entre-temps : on en publie un nouveau.
+                    $modifie = str_contains($e->getMessage(), 'not modified');
+                }
+            }
+
+            if (! $modifie) {
+                $id = $client->envoyer($canal->chat_id, $texte);
+                $client->epingler($canal->chat_id, (string) $id);
+                $canal->message_epingle_id = $id;
+            }
+        } catch (Throwable $e) {
+            $this->erreur = $e->getMessage();
+
+            return;
+        }
+
+        $canal->message_epingle_texte = $texte;
+        $canal->save();
+
+        $this->fermerEpingle();
+        session()->flash('message', 'Message épinglé dans « '.$canal->nom().' ».');
     }
 
     public function oublierCanal(int $id): void

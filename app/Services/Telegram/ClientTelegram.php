@@ -86,6 +86,16 @@ class ClientTelegram
         return (array) $this->appeler('getWebhookInfo');
     }
 
+    public function modifierTexte(string $chatId, string $messageId, string $texte): void
+    {
+        $this->appeler('editMessageText', ['chat_id' => $chatId, 'message_id' => (int) $messageId, 'text' => mb_substr($texte, 0, 4000)]);
+    }
+
+    public function epingler(string $chatId, string $messageId): void
+    {
+        $this->appeler('pinChatMessage', ['chat_id' => $chatId, 'message_id' => (int) $messageId, 'disable_notification' => true]);
+    }
+
     /** Ajoute le bouton « ✓ Fait » sous une publication du canal. */
     public function ajouterBoutonFait(string $chatId, string $messageId, int $pratiqueId): void
     {
@@ -132,9 +142,15 @@ class ClientTelegram
     }
 
     /** Envoie un message texte ; retourne son identifiant Telegram. */
-    public function envoyer(string $chatId, string $texte): ?string
+    /** @param  array<string, mixed>|null  $clavier  Boutons sous la zone de saisie (ex. partage du numéro). */
+    public function envoyer(string $chatId, string $texte, ?array $clavier = null): ?string
     {
-        $resultat = $this->appeler('sendMessage', ['chat_id' => $chatId, 'text' => mb_substr($texte, 0, 4000)]);
+        $donnees = ['chat_id' => $chatId, 'text' => mb_substr($texte, 0, 4000)];
+        if ($clavier !== null) {
+            $donnees['reply_markup'] = $clavier;
+        }
+
+        $resultat = $this->appeler('sendMessage', $donnees);
 
         return is_array($resultat) && isset($resultat['message_id']) ? (string) $resultat['message_id'] : null;
     }

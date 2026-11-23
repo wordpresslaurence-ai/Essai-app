@@ -10,7 +10,7 @@ class CanalTelegram extends Model
 {
     protected $table = 'canaux_telegram';
 
-    protected $fillable = ['chat_id', 'titre', 'type', 'actif'];
+    protected $fillable = ['chat_id', 'titre', 'type', 'actif', 'message_epingle_id', 'message_epingle_texte'];
 
     protected function casts(): array
     {
@@ -20,6 +20,13 @@ class CanalTelegram extends Model
     public function seances(): HasMany
     {
         return $this->hasMany(Seance::class);
+    }
+
+    /** Texte proposé pour le message épinglé « Une question ? ». */
+    public static function texteEpingleParDefaut(string $robot): string
+    {
+        return "Une question sur votre pratique ?\n\nÉcrivez-moi en privé ici : https://t.me/".$robot
+            ."\nJe vous réponds personnellement.\n\nLaurence";
     }
 
     public function nom(): string
