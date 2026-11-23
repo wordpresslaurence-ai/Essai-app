@@ -401,3 +401,19 @@ it('transmet le CORPS COMPLET du mail reçu à Claude, pas seulement l’aperçu
     // Le marqueur unique n'existe que dans le corps complet, jamais dans l'aperçu.
     Http::assertSent(fn ($request) => str_contains(json_encode($request->data(), JSON_UNESCAPED_UNICODE), 'ABC123XYZ'));
 });
+
+it('redemande avec plus de place quand le mail de prospection a été coupé', function () {
+    Parametre::instance()->update(['anthropic_api_key' => 'sk-ant-test']);
+
+    Http::fake(['api.anthropic.com/*' => Http::sequence()
+        ->push(['content' => [['type' => 'text', 'text' => '{"objet":"Découvrir","corps":"Bonjour, le début seulement']], 'stop_reason' => 'max_tokens'], 200)
+        ->push(['content' => [['type' => 'text', 'text' => json_encode(['objet' => 'Découvrir', 'corps' => "Bonjour,\n\nLe mail complet.\n\nLaurence"])]], 'stop_reason' => 'end_turn'], 200),
+    ]);
+
+    $r = (new AssistantClaude)->redigerProspection(Contact::factory()->create());
+
+    expect($r->corps)->toBe("Bonjour,\n\nLe mail complet.\n\nLaurence");
+    Http::assertSentCount(2);
+    Http::assertSent(fn ($req) => $req['max_tokens'] === 8000);
+    Http::assertSent(fn ($req) => $req['max_tokens'] === 16000);
+});

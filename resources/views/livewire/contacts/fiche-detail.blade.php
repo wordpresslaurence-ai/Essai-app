@@ -306,7 +306,10 @@
                         <label class="lb-label" style="margin-top:8px">Objet</label>
                         <input type="text" wire:model="reponseObjet" x-ref="robjet" class="lb-field">
                         <label class="lb-label" style="margin-top:8px">Corps</label>
-                        <textarea wire:model="reponseCorps" x-ref="rcorps" rows="8" class="lb-field"></textarea>
+                        <textarea wire:model="reponseCorps" x-ref="rcorps" rows="16" class="lb-field"
+                                  style="margin-top:6px;min-height:300px;resize:vertical;line-height:1.5"
+                                  x-init="$nextTick(() => { $el.style.height = 'auto'; $el.style.height = Math.max($el.scrollHeight + 4, 300) + 'px' })"
+                                  x-on:input="$el.style.height = 'auto'; $el.style.height = Math.max($el.scrollHeight + 4, 300) + 'px'"></textarea>
                         <p class="lb-muted" style="font-size:11.5px;margin-top:6px">Brouillon — relis, ajuste, puis copie-le dans ta messagerie. <strong>Rien n'est envoyé.</strong></p>
                     </div>
                 @endif
@@ -565,7 +568,10 @@
                                 @endif
                             </span>
                         </div>
-                        <textarea wire:model="prospectionCorps" x-ref="corps" rows="9" class="lb-field" style="margin-top:6px"></textarea>
+                        <textarea wire:model="prospectionCorps" x-ref="corps" rows="18" class="lb-field"
+                                  style="margin-top:6px;min-height:340px;resize:vertical;line-height:1.5"
+                                  x-init="$nextTick(() => { $el.style.height = 'auto'; $el.style.height = Math.max($el.scrollHeight + 4, 340) + 'px' })"
+                                  x-on:input="$el.style.height = 'auto'; $el.style.height = Math.max($el.scrollHeight + 4, 340) + 'px'"></textarea>
 
                         @if (filled($contact->email))
                             <div class="flex flex-wrap items-center gap-2" style="margin-top:10px">

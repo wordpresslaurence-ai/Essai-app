@@ -165,7 +165,7 @@ class AssistantClaude implements AssistantIA
 
         $utilisateur = $this->contexteProspection($contact, $p, $angle, $cat);
 
-        $texte = $this->envoyer($p, $systeme, $utilisateur, 3000);
+        $texte = $this->envoyer($p, $systeme, $utilisateur, 8000);
         $json = $this->decoderJson($texte);
 
         $objetDefaut = $cat ? 'Découvrir « '.$cat->libelleComplet().' »' : 'Une proposition pour vous';
@@ -237,7 +237,7 @@ class AssistantClaude implements AssistantIA
         $lignes[] = $this->transcription($contact);
         $utilisateur = implode("\n", $lignes);
 
-        $texte = $this->envoyer($p, $systeme, $utilisateur, 2500);
+        $texte = $this->envoyer($p, $systeme, $utilisateur, 8000);
         $json = $this->decoderJson($texte);
 
         $objetDefaut = 'Re: '.($dernierRecu->objet ?: 'votre message');
@@ -316,7 +316,23 @@ class AssistantClaude implements AssistantIA
             : [];
     }
 
+    /**
+     * Si la réponse a été coupée faute de place (limite de longueur atteinte), on
+     * redemande une fois avec deux fois plus de place, plutôt que d'afficher un
+     * mail interrompu.
+     */
     private function envoyer(Parametre $p, string $systeme, string $utilisateur, int $maxTokens): string
+    {
+        $texte = $this->appelerClaude($p, $systeme, $utilisateur, $maxTokens, $coupe);
+
+        if ($coupe && $maxTokens < 16000) {
+            $texte = $this->appelerClaude($p, $systeme, $utilisateur, min(16000, $maxTokens * 2), $coupe);
+        }
+
+        return $texte;
+    }
+
+    private function appelerClaude(Parametre $p, string $systeme, string $utilisateur, int $maxTokens, ?bool &$coupe = null): string
     {
         $cle = $p->secret('anthropic_api_key');
 
@@ -338,6 +354,7 @@ class AssistantClaude implements AssistantIA
         ]);
 
         $json = $reponse->json();
+        $coupe = data_get($json, 'stop_reason') === 'max_tokens';
 
         if ($reponse->failed()) {
             $detail = data_get($json, 'error.message') ?? data_get($json, 'error.type') ?? $reponse->status();

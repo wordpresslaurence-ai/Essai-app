@@ -162,7 +162,10 @@
 
                             <div class="mt-4">
                                 <label for="brouillonCorps" class="lb-label">Message pour {{ $c->nomComplet() }}</label>
-                                <textarea id="brouillonCorps" rows="12" x-ref="corps" wire:model="brouillonCorps" class="lb-field"></textarea>
+                                <textarea id="brouillonCorps" rows="18" x-ref="corps" wire:model="brouillonCorps" class="lb-field"
+                                  style="margin-top:6px;min-height:340px;resize:vertical;line-height:1.5"
+                                  x-init="$nextTick(() => { $el.style.height = 'auto'; $el.style.height = Math.max($el.scrollHeight + 4, 340) + 'px' })"
+                                  x-on:input="$el.style.height = 'auto'; $el.style.height = Math.max($el.scrollHeight + 4, 340) + 'px'"></textarea>
                                 @if (str_contains($brouillonCorps.$brouillonObjet, '['))
                                     <p style="font-size:12.5px;margin-top:6px;color:var(--terra);font-weight:600">
                                         Il reste des repères entre crochets à compléter avant d'envoyer.
