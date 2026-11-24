@@ -79,3 +79,26 @@ it('ne compte pas comme doublon une personne qui a l’adresse de son entreprise
         ->assertSee('Mallia Coiffure (copie)')
         ->assertDontSee('Lia Mallia');
 });
+
+it('importe seulement les nouveaux contacts quand on choisit de laisser les doublons de côté', function () {
+    Contact::factory()->create(['prenom' => 'Stéphanie', 'nom' => 'Van den Heede', 'email' => 'stephanie@salon.be']);
+
+    $csv = "prenom;nom;email\n"
+        ."Stéphanie;Stéphanie Van den Heede;stephanie@salon.be\n"
+        ."Anne;Nouvelle;anne@exemple.be\n"
+        ."Anne;Copie;anne@exemple.be\n";
+    $fichier = UploadedFile::fake()->createWithContent('contacts.csv', $csv);
+
+    Livewire::test(ImportCsv::class)
+        ->set('fichier', $fichier)
+        ->assertSee('Importer sans les doublons (1)')
+        ->call('importer', true)
+        ->assertSet('etape', 'termine')
+        ->assertSet('rapport.importes', 1)
+        ->assertSet('rapport.doublons', 2)
+        ->assertSee('2 doublon(s) laissé(s) de côté');
+
+    expect(Contact::count())->toBe(2);
+    expect(Contact::where('nom', 'Nouvelle')->exists())->toBeTrue();
+    expect(Contact::where('nom', 'Van den Heede')->sole()->prenom)->toBe('Stéphanie'); // fiche existante intacte
+});

@@ -448,23 +448,34 @@ class ImportCsv extends Component
         return $resultat;
     }
 
-    /** Importe les lignes valides (EF-20), ignore et rapporte les invalides. Bloqué s'il y a des doublons. */
-    public function importer(): void
+    /**
+     * Importe les lignes valides (EF-20), ignore et rapporte les invalides. S'il y
+     * a des doublons, l'import est bloqué, sauf si l'on choisit de les laisser de
+     * côté ($sansDoublons) : seuls les nouveaux contacts sont alors importés.
+     */
+    public function importer(bool $sansDoublons = false): void
     {
-        if ($this->doublons() !== []) {
-            $this->addError('doublons', 'Import bloqué : le fichier contient des contacts déjà présents dans ton carnet. Retire ces lignes du fichier, puis recommence.');
+        $doublons = $this->doublons();
+
+        if ($doublons !== [] && ! $sansDoublons) {
+            $this->addError('doublons', 'Import bloqué : le fichier contient des contacts déjà présents dans ton carnet. Importe sans les doublons, ou retire ces lignes du fichier.');
 
             return;
         }
 
+        $lignesDoublons = array_column($doublons, 'ligne');
         $lignes = $this->lireLignes();
         $donneesLignes = array_slice($lignes, 1);
 
         $importes = 0;
         $ignorees = [];
 
-        DB::transaction(function () use ($donneesLignes, &$importes, &$ignorees) {
+        DB::transaction(function () use ($donneesLignes, $lignesDoublons, &$importes, &$ignorees) {
             foreach ($donneesLignes as $numero => $ligne) {
+                if (in_array($numero + 2, $lignesDoublons, true)) {
+                    continue; // doublon laissé de côté
+                }
+
                 $donnees = $this->normaliserValeurs($this->mapperLigne($ligne));
                 $validation = Validator::make($donnees, $this->reglesLigne());
 
@@ -505,6 +516,7 @@ class ImportCsv extends Component
         $this->rapport = [
             'importes' => $importes,
             'ignorees' => $ignorees,
+            'doublons' => count($lignesDoublons),
         ];
         $this->etape = 'termine';
     }
