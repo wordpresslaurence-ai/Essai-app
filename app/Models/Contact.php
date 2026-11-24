@@ -230,6 +230,31 @@ class Contact extends Model
             : $query->whereDoesntHave('emails', $mail)->whereDoesntHave('activites', $note);
     }
 
+    /**
+     * Contacts selon la date du DERNIER mail envoyé : au moins un envoi depuis
+     * $depuis (ou n'importe quand si null), et aucun envoi depuis $rienDepuis.
+     * Ex. « entre 30 et 60 jours » = un envoi depuis 60 jours, aucun depuis 30.
+     *
+     * @param  Builder<Contact>  $query
+     */
+    public function scopeDernierEnvoiEntre(Builder $query, ?\Illuminate\Support\Carbon $depuis, ?\Illuminate\Support\Carbon $rienDepuis): void
+    {
+        $envoiDepuis = function ($q, ?\Illuminate\Support\Carbon $date) {
+            $q->where(fn ($e) => $e
+                ->whereHas('emails', fn ($m) => $m->where('direction', Email::DIRECTION_SORTANT)
+                    ->when($date, fn ($d) => $d->where('date_email', '>=', $date)))
+                ->orWhereHas('activites', fn ($a) => $a->whereNotNull('terminee_at')
+                    ->where(fn ($t) => $t->where('type', Activite::TYPE_EMAIL)->orWhere('titre', 'like', 'Envoyer le mail de prospection%'))
+                    ->when($date, fn ($d) => $d->where('terminee_at', '>=', $date))));
+        };
+
+        $envoiDepuis($query, $depuis);
+
+        if ($rienDepuis) {
+            $query->whereNot(fn ($q) => $envoiDepuis($q, $rienDepuis));
+        }
+    }
+
     /** Date du dernier mail envoyé à ce contact (null s'il n'y en a pas). */
     public function dernierEnvoi(): ?\Illuminate\Support\Carbon
     {

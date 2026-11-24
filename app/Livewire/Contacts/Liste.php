@@ -48,9 +48,17 @@ class Liste extends Component
     #[Url]
     public string $categorie = '';
 
-    /** Mails : '' (tous), 'sans' (jamais écrit), 'avec' (déjà écrit). */
+    /** Mails : '' (tous), 'sans' (jamais écrit), 'avec' (déjà écrit), ou une tranche du dernier envoi (voir TRANCHES_MAILS). */
     #[Url]
     public string $mails = '';
+
+    /** Tranches de date du dernier mail envoyé => [écrit depuis N jours, rien depuis N jours]. */
+    public const TRANCHES_MAILS = [
+        'moins30' => [30, null],
+        '30a60' => [60, 30],
+        '60a90' => [90, 60],
+        'plus90' => [null, 90],
+    ];
 
     /** N'afficher que les fiches qui partagent leur adresse e-mail avec une autre. */
     #[Url]
@@ -204,6 +212,13 @@ class Liste extends Component
             )
             ->when($this->origine !== '', fn ($q) => $q->where('origine', $this->origine))
             ->when(in_array($this->mails, ['sans', 'avec'], true), fn ($q) => $q->dejaEcrit($this->mails === 'avec'))
+            ->when(isset(self::TRANCHES_MAILS[$this->mails]), function ($q) {
+                [$depuis, $rien] = self::TRANCHES_MAILS[$this->mails];
+                $q->dernierEnvoiEntre(
+                    $depuis ? now()->subDays($depuis)->startOfDay() : null,
+                    $rien ? now()->subDays($rien)->startOfDay() : null,
+                );
+            })
             ->when($this->doublons, fn ($q) => $q->whereRaw(self::ADRESSES_EN_DOUBLE))
             ->when($this->categorie === 'aucune', fn ($q) => $q->whereNull('categorie_id'))
             ->when(

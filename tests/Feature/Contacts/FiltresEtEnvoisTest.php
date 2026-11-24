@@ -103,3 +103,29 @@ it('filtre les contacts à qui un mail a déjà été envoyé, ou jamais', funct
         ->assertDontSee('Anne Sansmail')
         ->assertDontSee('Luc Recu');
 });
+
+it('filtre selon la date du dernier mail envoyé', function () {
+    $envoi = function (string $nom, int $ilYaJours) {
+        $contact = Contact::factory()->create(['prenom' => 'Contact', 'nom' => $nom]);
+        Activite::create(['titre' => 'Mail', 'type' => Activite::TYPE_EMAIL, 'contact_id' => $contact->id, 'terminee_at' => now()->subDays($ilYaJours)]);
+
+        return $contact;
+    };
+    $envoi('Recent', 10);
+    $envoi('Moyen', 45);
+    $envoi('Ancien', 75);
+    $envoi('TresAncien', 120);
+    // Écrit il y a 120 jours puis à nouveau il y a 10 jours : seul le dernier envoi compte.
+    $relance = $envoi('Relance', 120);
+    Activite::create(['titre' => 'Mail', 'type' => Activite::TYPE_EMAIL, 'contact_id' => $relance->id, 'terminee_at' => now()->subDays(10)]);
+    Contact::factory()->create(['prenom' => 'Contact', 'nom' => 'Jamais']);
+
+    $voir = fn (string $tranche) => Livewire::test(Liste::class)->set('mails', $tranche)->viewData('contacts')->pluck('nom')->sort()->values()->all();
+
+    expect($voir('moins30'))->toBe(['Recent', 'Relance']);
+    expect($voir('30a60'))->toBe(['Moyen']);
+    expect($voir('60a90'))->toBe(['Ancien']);
+    expect($voir('plus90'))->toBe(['TresAncien']);
+    expect($voir('avec'))->toBe(['Ancien', 'Moyen', 'Recent', 'Relance', 'TresAncien']);
+    expect($voir('sans'))->toBe(['Jamais']);
+});

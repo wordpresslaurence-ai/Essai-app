@@ -98,6 +98,10 @@
             <option value="">Tous (mails)</option>
             <option value="sans">Jamais écrit</option>
             <option value="avec">Déjà écrit</option>
+            <option value="moins30">Écrit il y a moins de 30 jours</option>
+            <option value="30a60">Écrit il y a 30 à 60 jours</option>
+            <option value="60a90">Écrit il y a 60 à 90 jours</option>
+            <option value="plus90">Écrit il y a plus de 90 jours</option>
         </select>
 
         <select wire:model.live="tri" class="lb-select" aria-label="Trier par">
