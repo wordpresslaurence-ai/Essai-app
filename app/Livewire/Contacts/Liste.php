@@ -183,8 +183,15 @@ class Liste extends Component
         session()->forget(self::CLE_SESSION);
     }
 
-    /** Adresses e-mail portées par plusieurs fiches (en minuscules). */
-    private const ADRESSES_EN_DOUBLE = 'LOWER(email) IN (SELECT LOWER(c2.email) FROM contacts c2 WHERE c2.email IS NOT NULL AND c2.email <> \'\' GROUP BY LOWER(c2.email) HAVING COUNT(*) > 1)';
+    /**
+     * Fiches dont l'adresse e-mail est portée par une autre fiche. Une personne qui
+     * a la même adresse que l'entreprise à laquelle elle est rattachée (adresse de
+     * contact commune) n'est pas un doublon : elle est écartée des deux côtés.
+     */
+    private const ADRESSES_EN_DOUBLE = 'NOT EXISTS (SELECT 1 FROM contacts e WHERE e.id = contacts.entreprise_id AND LOWER(e.email) = LOWER(contacts.email))'
+        .' AND LOWER(contacts.email) IN (SELECT LOWER(c2.email) FROM contacts c2 LEFT JOIN contacts e2 ON e2.id = c2.entreprise_id'
+        .' WHERE c2.email IS NOT NULL AND c2.email <> \'\' AND (e2.id IS NULL OR e2.email IS NULL OR LOWER(e2.email) <> LOWER(c2.email))'
+        .' GROUP BY LOWER(c2.email) HAVING COUNT(*) > 1)';
 
     public function render(): View
     {
@@ -243,7 +250,7 @@ class Liste extends Component
                 $this->etiquette === '' && ! $this->inclureMasques,
                 fn ($q) => $q->whereDoesntHave('etiquettes', fn ($e) => $e->where('masquer_par_defaut', true))
             )
-            ->when($this->doublons, fn ($q) => $q->orderByRaw('LOWER(email)'))
+            ->when($this->doublons, fn ($q) => $q->orderByRaw('LOWER(contacts.email)'))
             ->orderBy($triAutorise, $sensAutorise)
             ->paginate(15);
 

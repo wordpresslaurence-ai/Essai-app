@@ -64,3 +64,18 @@ it('signale dans le carnet les fiches qui partagent une adresse e-mail et les mo
         ->assertDontSee('Marie Unique')
         ->assertSee('Revenir au carnet complet');
 });
+
+it('ne compte pas comme doublon une personne qui a l’adresse de son entreprise', function () {
+    $salon = Contact::factory()->entreprise()->create(['nom' => 'Mallia Coiffure', 'email' => 'contact@salon.be']);
+    Contact::factory()->create(['prenom' => 'Lia', 'nom' => 'Mallia', 'email' => 'Contact@salon.be', 'entreprise_id' => $salon->id]);
+
+    // Un vrai doublon de l'entreprise reste signalé.
+    Livewire::test(Liste::class)->assertDontSee('partagent leur adresse e-mail');
+
+    Contact::factory()->entreprise()->create(['nom' => 'Mallia Coiffure (copie)', 'email' => 'contact@salon.be']);
+    Livewire::test(Liste::class)
+        ->assertSee('2 fiches partagent leur adresse e-mail')
+        ->set('doublons', true)
+        ->assertSee('Mallia Coiffure (copie)')
+        ->assertDontSee('Lia Mallia');
+});
