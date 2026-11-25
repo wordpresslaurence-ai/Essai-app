@@ -131,7 +131,8 @@ it('affiche les opportunités qui stagnent et crée une relance', function () {
 
     $c = Livewire::test(Brief::class)
         ->assertSee('Opportunités qui stagnent')
-        ->assertSee('Refonte site');
+        ->assertSee('Refonte site')
+        ->assertSeeHtml('href="'.route('pipeline.modifier', $opp).'"');
 
     $c->call('creerTacheOpportunite', $opp->id);
 

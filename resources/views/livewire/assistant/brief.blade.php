@@ -246,13 +246,13 @@
         @forelse ($stagnantes as $opp)
             <div class="lb-prow" wire:key="stag-{{ $opp->id }}">
                 <span class="lb-dot" style="width:12px;height:12px;background:var(--{{ \App\Models\Opportunite::couleurEtape($opp->etape) }})"></span>
-                <div style="min-width:0;flex:1">
+                <a href="{{ route('pipeline.modifier', $opp) }}" wire:navigate title="Ouvrir l'opportunité" style="min-width:0;flex:1;text-decoration:none;color:inherit">
                     <div class="nm lb-truncate">{{ $opp->titre }}</div>
                     <div class="mt lb-truncate">
                         {{ $opp->libelleEtape() }}@if ($opp->contact) · {{ $opp->contact->nomComplet() }}@endif
                         · <span style="color:var(--terra)">{{ $opp->joursDepuisChangement() }} j sans bouger</span>
                     </div>
-                </div>
+                </a>
                 <div style="margin-left:auto;flex:none">
                     @if (in_array($opp->id, $dejaOpp))
                         <span class="lb-muted" style="font-size:12px;white-space:nowrap" title="Une relance existe déjà">✓ Relance</span>
