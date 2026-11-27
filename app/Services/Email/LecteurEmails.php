@@ -26,4 +26,11 @@ interface LecteurEmails
      */
     public function recupererDepuis(BoiteEmail $boite, ?CarbonInterface $depuis): array;
 
+    /**
+     * Pour le diagnostic : dossiers lus et nombre de messages des 30 derniers jours.
+     *
+     * @return list<array{dossier: string, envoi: bool, ouvert: bool, messages_30j: int}>
+     */
+    public function diagnostic(BoiteEmail $boite): array;
+
 }

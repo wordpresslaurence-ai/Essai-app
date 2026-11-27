@@ -50,6 +50,12 @@ class BoitesEmail extends Component
     public ?string $erreur = null;
 
     /** Ouvre le formulaire pour une nouvelle boîte. */
+    /** Résultat du diagnostic de la dernière boîte testée. */
+    public ?int $diagnosticId = null;
+
+    /** @var list<array{dossier: string, envoi: bool, ouvert: bool, messages_30j: int}> */
+    public array $diagnostic = [];
+
     public function nouvelle(): void
     {
         $this->reset([
@@ -156,11 +162,27 @@ class BoitesEmail extends Component
         $boite = BoiteEmail::findOrFail($id);
 
         try {
-            app(LecteurEmails::class)->tester($boite);
+            $lecteur = app(LecteurEmails::class);
+            $lecteur->tester($boite);
             $this->message = 'Connexion réussie pour « '.$boite->nomAffichage().' ».';
+            $this->diagnosticId = $boite->id;
+            $this->diagnostic = $lecteur->diagnostic($boite);
         } catch (Throwable $e) {
             $this->erreur = $e->getMessage();
         }
+    }
+
+    /**
+     * La prochaine synchronisation relira les 90 derniers jours de cette boîte
+     * (réception et envois), sans créer de doublons : utile si des mails envoyés
+     * ont été manqués.
+     */
+    public function relire(int $id): void
+    {
+        $this->reset('message', 'erreur');
+        $boite = BoiteEmail::findOrFail($id);
+        $boite->update(['derniere_synchro_at' => null]);
+        $this->message = 'C’est noté : la prochaine synchronisation (Assistant → « Synchroniser mes mails ») relira les 90 derniers jours de « '.$boite->nomAffichage().' ».';
     }
 
     public function render(): View

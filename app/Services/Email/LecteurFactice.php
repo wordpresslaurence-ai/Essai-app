@@ -33,6 +33,17 @@ class LecteurFactice implements LecteurEmails
         return true;
     }
 
+    public function diagnostic(BoiteEmail $boite): array
+    {
+        $source = $this->parBoite[$boite->email] ?? $this->messages;
+        $recents = array_filter($source, fn (MessageEmail $m) => $m->date->greaterThanOrEqualTo(now()->subDays(30)));
+
+        return [
+            ['dossier' => 'INBOX', 'envoi' => false, 'ouvert' => true, 'messages_30j' => count(array_filter($recents, fn ($m) => ! $m->envoye))],
+            ['dossier' => 'INBOX.Sent', 'envoi' => true, 'ouvert' => true, 'messages_30j' => count(array_filter($recents, fn ($m) => $m->envoye))],
+        ];
+    }
+
     public function recupererDepuis(BoiteEmail $boite, ?CarbonInterface $depuis): array
     {
         $source = $this->parBoite[$boite->email] ?? $this->messages;

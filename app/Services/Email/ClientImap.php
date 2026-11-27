@@ -51,7 +51,7 @@ class ClientImap implements LecteurEmails
             $ids = imap_search($flux, $critere, SE_UID) ?: [];
             foreach ($ids as $uid) {
                 $entete = imap_rfc822_parse_headers(imap_fetchheader($flux, $uid, FT_UID));
-                $message = $this->construireMessage($flux, $uid, $entete);
+                $message = $this->construireMessage($flux, $uid, $entete, strtoupper($dossier) !== 'INBOX');
                 if ($message !== null) {
                     $messages[] = $message;
                 }
@@ -95,7 +95,32 @@ class ClientImap implements LecteurEmails
         return array_values(array_unique($dossiers));
     }
 
-    private function construireMessage(\IMAP\Connection|false $flux, int $uid, object $entete): ?MessageEmail
+    public function diagnostic(BoiteEmail $boite): array
+    {
+        $this->verifierExtension();
+        $this->verifierIdentifiants($boite);
+
+        $critere = 'SINCE "'.now()->subDays(31)->format('d M Y').'"';
+        $lignes = [];
+
+        foreach ($this->dossiersLus($boite) as $dossier) {
+            $flux = @imap_open($boite->chaineImap($dossier), $boite->email, (string) $boite->secret(), OP_READONLY, 1);
+            $lignes[] = [
+                'dossier' => $dossier,
+                'envoi' => strtoupper($dossier) !== 'INBOX',
+                'ouvert' => $flux !== false,
+                'messages_30j' => $flux !== false ? count(imap_search($flux, $critere, SE_UID) ?: []) : 0,
+            ];
+            if ($flux !== false) {
+                imap_close($flux);
+            }
+        }
+        imap_errors();
+
+        return $lignes;
+    }
+
+    private function construireMessage(\IMAP\Connection|false $flux, int $uid, object $entete, bool $envoye = false): ?MessageEmail
     {
         $de = $this->premiereAdresse($entete->from ?? []);
         if ($de === null) {
@@ -121,6 +146,7 @@ class ClientImap implements LecteurEmails
             texte: $corps,
             date: $this->parserDate($entete->date ?? null),
             filId: $this->racineDuFil($entete, $messageId),
+            envoye: $envoye,
         );
     }
 

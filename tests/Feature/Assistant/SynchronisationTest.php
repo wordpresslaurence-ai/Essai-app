@@ -190,3 +190,36 @@ it('corrige la date d’un mail déjà importé si elle a changé (ancien bug de
     expect(Email::count())->toBe(1);
     expect(Email::first()->date_email->format('Y-m-d H:i'))->toBe('2026-06-01 10:00');
 });
+
+it('classe comme envoyé un mail trouvé dans un dossier d’envoi, même écrit depuis un alias', function () {
+    $boite = App\Models\BoiteEmail::factory()->create(['email' => 'laurence@creasitewp.com', 'active' => true]);
+    $contact = App\Models\Contact::factory()->create(['email' => 'client@exemple.be']);
+    $this->app->bind(App\Services\Email\LecteurEmails::class, fn () => new App\Services\Email\LecteurFactice([
+        new App\Services\Email\MessageEmail(messageId: '<alias@x>', expediteur: 'contact@creasitewp.com', destinataires: ['client@exemple.be'],
+            objet: 'Votre devis', texte: 'Bonjour', date: now()->subDay(), envoye: true),
+    ]));
+
+    app(App\Services\Email\SynchronisationEmails::class)->executer();
+
+    expect(App\Models\Email::sole()->direction)->toBe(App\Models\Email::DIRECTION_SORTANT);
+    expect(App\Models\Email::sole()->contact_id)->toBe($contact->id);
+});
+
+it('montre les dossiers lus au test de la boîte et permet de relire 90 jours', function () {
+    $this->actingAs(App\Models\User::factory()->create());
+    $boite = App\Models\BoiteEmail::factory()->create(['email' => 'laurence@creasitewp.com', 'active' => true, 'derniere_synchro_at' => now()]);
+    $this->app->bind(App\Services\Email\LecteurEmails::class, fn () => new App\Services\Email\LecteurFactice([
+        new App\Services\Email\MessageEmail(messageId: '<a@x>', expediteur: 'client@exemple.be', destinataires: ['laurence@creasitewp.com'],
+            objet: 'Question', texte: '…', date: now()->subDays(3)),
+    ]));
+
+    Livewire\Livewire::test(App\Livewire\Reglages\BoitesEmail::class)
+        ->call('tester', $boite->id)
+        ->assertSee('Dossiers lus')
+        ->assertSee('INBOX.Sent')
+        ->assertSee("Le dossier d'envoi est vide sur 30 jours")
+        ->call('relire', $boite->id)
+        ->assertSee('relira les 90 derniers jours');
+
+    expect($boite->fresh()->derniere_synchro_at)->toBeNull();
+});

@@ -85,7 +85,9 @@ class SynchronisationEmails
             }
 
             $expediteur = $this->normaliser($message->expediteur);
-            $direction = $expediteur === $adresseBoite
+            // Envoyé : écrit depuis l'adresse de la boîte, ou trouvé dans un dossier d'envoi
+            // (cas d'un envoi depuis un alias ou une autre adresse de la même boîte).
+            $direction = $expediteur === $adresseBoite || $message->envoye
                 ? Email::DIRECTION_SORTANT
                 : Email::DIRECTION_ENTRANT;
 

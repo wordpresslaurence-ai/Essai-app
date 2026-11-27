@@ -21,6 +21,7 @@ class MessageEmail
         public readonly ?string $texte,           // corps en texte simple
         public readonly CarbonInterface $date,
         public readonly ?string $filId = null,    // identifiant de conversation
+        public readonly bool $envoye = false,     // lu dans un dossier d'envoi : c'est un mail envoyé
     ) {}
 
     /** Aperçu court du corps (pour l'affichage en liste). */

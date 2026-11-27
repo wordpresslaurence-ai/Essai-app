@@ -157,6 +157,8 @@
                 <div class="flex items-center gap-2" style="flex:none">
                     <button type="button" wire:click="tester({{ $boite->id }})" class="lb-btn lb-btn-ghost" style="padding:6px 12px;font-size:12.5px"
                             wire:loading.attr="disabled" wire:target="tester({{ $boite->id }})">Tester</button>
+                    <button type="button" wire:click="relire({{ $boite->id }})" class="lb-btn lb-btn-ghost" style="padding:6px 12px;font-size:12.5px"
+                            title="La prochaine synchronisation relira les 90 derniers jours, sans doublons">Relire 90 jours</button>
                     <button type="button" wire:click="basculerActive({{ $boite->id }})" class="lb-btn lb-btn-ghost" style="padding:6px 12px;font-size:12.5px">
                         {{ $boite->active ? 'Désactiver' : 'Activer' }}
                     </button>
@@ -166,6 +168,25 @@
                             title="Supprimer" aria-label="Supprimer">×</button>
                 </div>
             </div>
+            @if ($diagnosticId === $boite->id && $diagnostic !== [])
+                @php $envois = collect($diagnostic)->where('envoi', true); @endphp
+                <div class="lb-inset" style="padding:12px 14px;margin:2px 0 10px;font-size:12.5px">
+                    <div style="font-weight:600;margin-bottom:4px">Dossiers lus (messages des 30 derniers jours)</div>
+                    <ul style="display:flex;flex-direction:column;gap:2px">
+                        @foreach ($diagnostic as $d)
+                            <li>
+                                {{ $d['envoi'] ? '📤' : '📥' }} <code>{{ $d['dossier'] }}</code> :
+                                @if ($d['ouvert']) {{ $d['messages_30j'] }} message(s) @else <span class="lb-muted">absent sur le serveur</span> @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                    @if ($envois->where('ouvert', true)->isEmpty())
+                        <p style="color:var(--terra);font-weight:600;margin-top:6px">Aucun dossier d'envoi trouvé : les mails envoyés ne peuvent pas être lus. Indique le nom du dossier « Envoyés » dans « Modifier ».</p>
+                    @elseif ($envois->sum('messages_30j') === 0)
+                        <p style="color:var(--terra);font-weight:600;margin-top:6px">Le dossier d'envoi est vide sur 30 jours : tes mails envoyés sont peut-être rangés ailleurs (vérifie dans ton webmail), ou envoyés depuis une autre boîte.</p>
+                    @endif
+                </div>
+            @endif
         @empty
             <div class="lb-placeholder">
                 Aucune boîte e-mail pour l'instant.
