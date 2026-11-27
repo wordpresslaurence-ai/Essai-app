@@ -74,10 +74,8 @@ class ClientImap implements LecteurEmails
     {
         $dossiers = $boite->dossiers();
 
-        if (filled($boite->dossier_envoyes)) {
-            return $dossiers; // dossier choisi à la main : on s'y tient
-        }
-
+        // Même avec un dossier « Envoyés » saisi à la main, on ajoute ceux trouvés sur
+        // le serveur : un nom mal saisi ne doit pas faire manquer les mails envoyés.
         $racine = '{'.$boite->hoteImap().':'.$boite->portImap().'/imap/ssl/novalidate-cert}';
         $flux = @imap_open($racine.'INBOX', $boite->email, (string) $boite->secret(), OP_READONLY | OP_HALFOPEN, 1);
         if ($flux !== false) {
