@@ -76,21 +76,54 @@ class ClientImap implements LecteurEmails
 
         // Même avec un dossier « Envoyés » saisi à la main, on ajoute ceux trouvés sur
         // le serveur : un nom mal saisi ne doit pas faire manquer les mails envoyés.
-        $racine = '{'.$boite->hoteImap().':'.$boite->portImap().'/imap/ssl/novalidate-cert}';
-        $flux = @imap_open($racine.'INBOX', $boite->email, (string) $boite->secret(), OP_READONLY | OP_HALFOPEN, 1);
-        if ($flux !== false) {
-            foreach (@imap_list($flux, $racine, '*') ?: [] as $nom) {
-                $nom = substr($nom, strlen($racine));
-                $lisible = function_exists('mb_convert_encoding') ? (@mb_convert_encoding($nom, 'UTF-8', 'UTF7-IMAP') ?: $nom) : $nom;
-                if (preg_match('/sent|envoy/i', $lisible) && ! preg_match('/draft|brouillon|trash|corbeille|spam/i', $lisible)) {
-                    $dossiers[] = $lisible;
-                }
+        foreach ($this->dossiersServeur($boite) as $lisible) {
+            if (self::estDossierEnvoi($lisible)) {
+                $dossiers[] = $lisible;
             }
+        }
+
+        return array_values(array_unique($dossiers));
+    }
+
+    /** Un nom de dossier qui évoque les mails envoyés (et pas les brouillons ni la corbeille). */
+    public static function estDossierEnvoi(string $nom): bool
+    {
+        return preg_match('/sent|envoy|gesendet|enviad|inviat|verzonden/i', $nom) === 1
+            && preg_match('/draft|brouillon|trash|corbeille|spam|junk|ind[ée]sirable/i', $nom) !== 1;
+    }
+
+    /**
+     * Tous les dossiers de la boîte sur le serveur, en clair (UTF-8).
+     *
+     * @return list<string>
+     */
+    private function dossiersServeur(BoiteEmail $boite): array
+    {
+        $racine = '{'.$boite->hoteImap().':'.$boite->portImap().'/imap/ssl/novalidate-cert}';
+        $noms = [];
+
+        // Connexion à la racine (sans dossier) pour lister ; à défaut, via la réception.
+        foreach ([[$racine, OP_HALFOPEN], [$racine.'INBOX', OP_READONLY]] as [$adresse, $options]) {
+            $flux = @imap_open($adresse, $boite->email, (string) $boite->secret(), $options, 1);
+            if ($flux === false) {
+                continue;
+            }
+
+            $liste = @imap_list($flux, $racine, '*') ?: [];
             @imap_close($flux);
+
+            foreach ($liste as $nom) {
+                $nom = substr($nom, strlen($racine));
+                $noms[] = function_exists('mb_convert_encoding') ? (@mb_convert_encoding($nom, 'UTF-8', 'UTF7-IMAP') ?: $nom) : $nom;
+            }
+
+            if ($noms !== []) {
+                break;
+            }
         }
         imap_errors();
 
-        return array_values(array_unique($dossiers));
+        return array_values(array_unique($noms));
     }
 
     public function diagnostic(BoiteEmail $boite): array
@@ -100,12 +133,16 @@ class ClientImap implements LecteurEmails
 
         $critere = 'SINCE "'.now()->subDays(31)->format('d M Y').'"';
         $lignes = [];
+        $lus = $this->dossiersLus($boite);
 
-        foreach ($this->dossiersLus($boite) as $dossier) {
+        // Les dossiers lus, puis tous les autres dossiers du serveur (pour repérer où
+        // sont rangés les mails envoyés si ce n'est pas dans un dossier attendu).
+        foreach (array_values(array_unique([...$lus, ...$this->dossiersServeur($boite)])) as $dossier) {
             $flux = @imap_open($boite->chaineImap($dossier), $boite->email, (string) $boite->secret(), OP_READONLY, 1);
             $lignes[] = [
                 'dossier' => $dossier,
                 'envoi' => strtoupper($dossier) !== 'INBOX',
+                'lu' => in_array($dossier, $lus, true),
                 'ouvert' => $flux !== false,
                 'messages_30j' => $flux !== false ? count(imap_search($flux, $critere, SE_UID) ?: []) : 0,
             ];

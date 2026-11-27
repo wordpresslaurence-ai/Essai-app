@@ -29,7 +29,7 @@ interface LecteurEmails
     /**
      * Pour le diagnostic : dossiers lus et nombre de messages des 30 derniers jours.
      *
-     * @return list<array{dossier: string, envoi: bool, ouvert: bool, messages_30j: int}>
+     * @return list<array{dossier: string, envoi: bool, lu: bool, ouvert: bool, messages_30j: int}>
      */
     public function diagnostic(BoiteEmail $boite): array;
 

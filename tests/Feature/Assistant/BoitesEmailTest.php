@@ -145,3 +145,14 @@ it('exige une connexion pour accéder à l’écran des boîtes', function () {
     auth()->logout();
     $this->get(route('reglages.boites'))->assertRedirect(route('login'));
 });
+
+it('cherche aussi le dossier « Sent Items » créé par Outlook', function () {
+    $boite = BoiteEmail::factory()->hostinger()->create();
+
+    expect($boite->dossiers())->toContain('INBOX.Sent')->toContain('Sent Items')->toContain('INBOX.Sent Items');
+
+    expect(App\Services\Email\ClientImap::estDossierEnvoi('Sent Items'))->toBeTrue();
+    expect(App\Services\Email\ClientImap::estDossierEnvoi('INBOX.Éléments envoyés'))->toBeTrue();
+    expect(App\Services\Email\ClientImap::estDossierEnvoi('Drafts'))->toBeFalse();
+    expect(App\Services\Email\ClientImap::estDossierEnvoi('Deleted Items'))->toBeFalse();
+});

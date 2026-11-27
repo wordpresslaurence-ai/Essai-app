@@ -53,7 +53,7 @@ class BoitesEmail extends Component
     /** Résultat du diagnostic de la dernière boîte testée. */
     public ?int $diagnosticId = null;
 
-    /** @var list<array{dossier: string, envoi: bool, ouvert: bool, messages_30j: int}> */
+    /** @var list<array{dossier: string, envoi: bool, lu: bool, ouvert: bool, messages_30j: int}> */
     public array $diagnostic = [];
 
     public function nouvelle(): void

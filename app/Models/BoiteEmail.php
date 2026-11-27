@@ -182,8 +182,9 @@ class BoiteEmail extends Model
 
         $candidats = match ($this->fournisseur) {
             self::FOURNISSEUR_GMAIL => ['[Gmail]/Sent Mail', '[Gmail]/Messages envoyés'],
-            self::FOURNISSEUR_HOSTINGER => ['INBOX.Sent', 'Sent'],
-            default => ['INBOX.Sent', 'Sent', 'Sent Items'],
+            // « Sent Items » : nom créé par Outlook quand il envoie depuis la boîte.
+            self::FOURNISSEUR_HOSTINGER => ['INBOX.Sent', 'Sent', 'INBOX.Sent Items', 'Sent Items'],
+            default => ['INBOX.Sent', 'Sent', 'INBOX.Sent Items', 'Sent Items'],
         };
 
         return array_merge(['INBOX'], $candidats);

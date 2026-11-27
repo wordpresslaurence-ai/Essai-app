@@ -39,8 +39,8 @@ class LecteurFactice implements LecteurEmails
         $recents = array_filter($source, fn (MessageEmail $m) => $m->date->greaterThanOrEqualTo(now()->subDays(30)));
 
         return [
-            ['dossier' => 'INBOX', 'envoi' => false, 'ouvert' => true, 'messages_30j' => count(array_filter($recents, fn ($m) => ! $m->envoye))],
-            ['dossier' => 'INBOX.Sent', 'envoi' => true, 'ouvert' => true, 'messages_30j' => count(array_filter($recents, fn ($m) => $m->envoye))],
+            ['dossier' => 'INBOX', 'envoi' => false, 'lu' => true, 'ouvert' => true, 'messages_30j' => count(array_filter($recents, fn ($m) => ! $m->envoye))],
+            ['dossier' => 'INBOX.Sent', 'envoi' => true, 'lu' => true, 'ouvert' => true, 'messages_30j' => count(array_filter($recents, fn ($m) => $m->envoye))],
         ];
     }
 

@@ -169,17 +169,32 @@
                 </div>
             </div>
             @if ($diagnosticId === $boite->id && $diagnostic !== [])
-                @php $envois = collect($diagnostic)->where('envoi', true); @endphp
+                @php
+                    $lus = collect($diagnostic)->filter(fn ($d) => $d['lu'] ?? true);
+                    $autres = collect($diagnostic)->reject(fn ($d) => $d['lu'] ?? true);
+                    $envois = $lus->where('envoi', true);
+                @endphp
                 <div class="lb-inset" style="padding:12px 14px;margin:2px 0 10px;font-size:12.5px">
-                    <div style="font-weight:600;margin-bottom:4px">Dossiers lus (messages des 30 derniers jours)</div>
+                    <div style="font-weight:600;margin-bottom:4px">Dossiers lus par le CRM (messages des 30 derniers jours)</div>
                     <ul style="display:flex;flex-direction:column;gap:2px">
-                        @foreach ($diagnostic as $d)
+                        @foreach ($lus as $d)
                             <li>
                                 {{ $d['envoi'] ? '📤' : '📥' }} <code>{{ $d['dossier'] }}</code> :
                                 @if ($d['ouvert']) {{ $d['messages_30j'] }} message(s) @else <span class="lb-muted">absent sur le serveur</span> @endif
                             </li>
                         @endforeach
                     </ul>
+                    @if ($autres->isNotEmpty())
+                        <div style="font-weight:600;margin:8px 0 4px">Autres dossiers de la boîte (non lus)</div>
+                        <ul style="display:flex;flex-direction:column;gap:2px">
+                            @foreach ($autres as $d)
+                                <li>📁 <code>{{ $d['dossier'] }}</code> : {{ $d['ouvert'] ? $d['messages_30j'].' message(s)' : 'illisible' }}</li>
+                            @endforeach
+                        </ul>
+                        <p class="lb-muted" style="margin-top:4px">Si tes mails envoyés sont dans l'un de ces dossiers, recopie son nom exact dans « Modifier » → dossier « Envoyés ».</p>
+                    @else
+                        <p class="lb-muted" style="margin-top:6px">Le serveur n'a pas donné la liste de ses autres dossiers.</p>
+                    @endif
                     @if ($envois->where('ouvert', true)->isEmpty())
                         <p style="color:var(--terra);font-weight:600;margin-top:6px">Aucun dossier d'envoi trouvé : les mails envoyés ne peuvent pas être lus. Indique le nom du dossier « Envoyés » dans « Modifier ».</p>
                     @elseif ($envois->sum('messages_30j') === 0)
