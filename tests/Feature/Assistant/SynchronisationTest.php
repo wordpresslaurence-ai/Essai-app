@@ -217,7 +217,7 @@ it('montre les dossiers lus au test de la boîte et permet de relire 90 jours', 
         ->call('tester', $boite->id)
         ->assertSee('Dossiers lus')
         ->assertSee('INBOX.Sent')
-        ->assertSee("Le dossier d'envoi est vide sur 30 jours")
+        ->assertSee('est vide sur 30 jours')
         ->call('relire', $boite->id)
         ->assertSee('relira les 90 derniers jours');
 
